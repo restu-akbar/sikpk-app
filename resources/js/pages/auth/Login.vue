@@ -11,6 +11,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { register } from '@/routes';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
+import { ref } from 'vue';
 
 defineOptions({
     layout: {
@@ -24,6 +25,8 @@ defineProps<{
     canResetPassword: boolean;
     canRegister: boolean;
 }>();
+
+const showPassword = ref(false);
 </script>
 
 <template>
@@ -61,6 +64,7 @@ defineProps<{
             <div class="grid gap-2">
                 <div class="flex items-center justify-between">
                     <Label for="password">Password</Label>
+
                     <TextLink
                         v-if="canResetPassword"
                         :href="request()"
@@ -70,14 +74,29 @@ defineProps<{
                         Forgot password?
                     </TextLink>
                 </div>
-                <PasswordInput
-                    id="password"
-                    name="password"
-                    required
-                    :tabindex="2"
-                    autocomplete="current-password"
-                    placeholder="Password"
-                />
+
+                <div class="relative">
+                    <PasswordInput
+                        id="password"
+                        name="password"
+                        required
+                        :tabindex="2"
+                        autocomplete="current-password"
+                        placeholder="Password"
+                        :type="showPassword ? 'text' : 'password'"
+                    />
+
+                    <button
+                        type="button"
+                        @click="showPassword = !showPassword"
+                        class="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground"
+                    >
+                        <Eye v-if="!showPassword" class="h-4 w-4" />
+
+                        <EyeOff v-else class="h-4 w-4" />
+                    </button>
+                </div>
+
                 <InputError :message="errors.password" />
             </div>
 
