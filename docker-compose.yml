@@ -1,0 +1,47 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    container_name: sikpk-app
+    volumes:
+      - ./:/var/www/html
+    ports:
+      - '9000:9000'
+    networks:
+      - sikpk
+
+  nginx:
+    image: nginx:latest
+    container_name: sikpk-nginx
+    ports:
+      - '80:80'
+    volumes:
+      - ./:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+    networks:
+      - sikpk
+
+  db:
+    image: postgres:15-alpine
+    container_name: sikpk-db
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-sikpk_db}
+      POSTGRES_USER: ${DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-secure_password}
+    volumes:
+      - sikpk-db-data:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+    networks:
+      - sikpk
+
+volumes:
+  sikpk-db-data:
+
+networks:
+  sikpk:
