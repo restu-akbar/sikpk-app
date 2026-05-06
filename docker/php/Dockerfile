@@ -31,17 +31,10 @@ RUN npm install -g pnpm
 
 WORKDIR /var/www/html
 
-# Copy ALL project files first
 COPY . .
 
 # Install PHP dependencies
 RUN composer install --no-interaction --prefer-dist
-
-# Install frontend dependencies
-RUN pnpm install
-
-# Build frontend
-RUN pnpm build
 
 # Permission
 RUN chown -R www-data:www-data storage bootstrap/cache

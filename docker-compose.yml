@@ -8,6 +8,14 @@ services:
       - ./:/var/www/html
     ports:
       - '9000:9000'
+      - '5173:5173'
+    command: >
+      sh -c "
+        pnpm install &&
+        pnpm dev --host &
+        php-fpm
+      "
+    user: '${UID:-1000}:${GID:-1000}'
     networks:
       - sikpk
 
@@ -55,3 +63,4 @@ volumes:
 
 networks:
   sikpk:
+    name: sikpk-network
