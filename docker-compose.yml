@@ -40,6 +40,16 @@ services:
     networks:
       - sikpk
 
+  atis-adminer:
+    image: adminer
+    container_name: sikpk-adminer
+    environment:
+      ADMINER_DEFAULT_SERVER: db
+    ports:
+      - '9090:8080'
+    networks:
+      - sikpk
+
 volumes:
   sikpk-db-data:
 
