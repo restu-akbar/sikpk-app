@@ -8,25 +8,25 @@ use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     */
     public function run(): void
     {
-        /*
-        |--------------------------------------------------------------------------
-        | Ketua
-        |--------------------------------------------------------------------------
-        */
+        User::updateOrCreate(
+            ['email' => env('DEFAULT_KETUA_EMAIL', 'ketua@example.com')],
+            [
+                'name' => 'Ketua',
+                'password' => Hash::make(
+                    env('DEFAULT_KETUA_PASSWORD', 'password')
+                ),
+                'role' => 'ketua',
+                'must_change_password' => true,
+            ]
+        );
 
-        User::create([
-            'name' => 'Ketua',
-            'email' => env('DEFAULT_KETUA_EMAIL', 'ketua@example.com'),
-            'password' => Hash::make(
-                env('DEFAULT_KETUA_PASSWORD', 'password')
-            ),
-            'role' => 'ketua',
-            'must_change_password' => true,
-        ]);
+        User::factory()
+            ->count(10)
+            ->create([
+                'role' => 'anggota',
+                'must_change_password' => true,
+            ]);
     }
 }
