@@ -9,8 +9,13 @@ const { appearance } = useAppearance();
 <template>
     <SonnerPrimitive
         :theme="appearance"
+        position="top-right"
+        richColors
+        expand
         class="toaster group"
-        position="bottom-right"
+        :toastOptions="{
+            duration: 3000,
+        }"
         :style="{
             '--normal-bg': 'var(--popover)',
             '--normal-text': 'var(--popover-foreground)',

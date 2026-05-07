@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
-import { BookOpen, FolderGit2, LayoutGrid } from 'lucide-vue-next';
+import { Link, usePage } from '@inertiajs/vue3';
+import { BookOpen, FolderGit2, LayoutGrid, Users } from 'lucide-vue-next';
 import AppLogo from '@/components/AppLogo.vue';
 import NavFooter from '@/components/NavFooter.vue';
 import NavMain from '@/components/NavMain.vue';
@@ -17,6 +17,9 @@ import {
 import { dashboard } from '@/routes';
 import type { NavItem } from '@/types';
 
+const page = usePage();
+const user = page.props.auth.user;
+
 const mainNavItems: NavItem[] = [
     {
         title: 'Dashboard',
@@ -25,7 +28,19 @@ const mainNavItems: NavItem[] = [
     },
 ];
 
+const masterNavItems: NavItem[] =
+    user.role === 'ketua'
+        ? [
+              {
+                  title: 'Anggota',
+                  href: '/master/users',
+                  icon: Users,
+              },
+          ]
+        : [];
+
 const footerNavItems: NavItem[] = [
+    /*
     {
         title: 'Repository',
         href: 'https://github.com/laravel/vue-starter-kit',
@@ -36,6 +51,7 @@ const footerNavItems: NavItem[] = [
         href: 'https://laravel.com/docs/starter-kits#vue',
         icon: BookOpen,
     },
+    */
 ];
 </script>
 
@@ -54,7 +70,25 @@ const footerNavItems: NavItem[] = [
         </SidebarHeader>
 
         <SidebarContent>
+            <div
+                v-if="masterNavItems.length"
+                class="px-2 text-xs font-semibold text-muted-foreground"
+            >
+                MODUL
+            </div>
+
             <NavMain :items="mainNavItems" />
+
+            <div v-if="masterNavItems.length" class="mx-2 my-4 border-t" />
+
+            <div
+                v-if="masterNavItems.length"
+                class="px-2 text-xs font-semibold text-muted-foreground"
+            >
+                MASTER
+            </div>
+
+            <NavMain v-if="masterNavItems.length" :items="masterNavItems" />
         </SidebarContent>
 
         <SidebarFooter>
@@ -62,5 +96,6 @@ const footerNavItems: NavItem[] = [
             <NavUser />
         </SidebarFooter>
     </Sidebar>
+
     <slot />
 </template>
