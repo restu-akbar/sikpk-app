@@ -25,7 +25,6 @@ use Illuminate\Notifications\Notifiable;
 
     'must_change_password',
 
-    'encryption_version',
     'encryption_initialized_at',
 ])]
 

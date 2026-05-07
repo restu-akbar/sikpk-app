@@ -81,8 +81,7 @@ return new class extends Migration
 
             // Timestamp setup encryption
             $table->timestamp('encryption_initialized_at')
-                ->nullable()
-                ->after('encryption_version');
+                ->nullable();
         });
     }
 
