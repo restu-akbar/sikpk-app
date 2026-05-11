@@ -1,5 +1,5 @@
 import { router } from '@inertiajs/vue3';
-import type { InertiaLinkProps, route } from '@inertiajs/vue3';
+import type { InertiaLinkProps } from '@inertiajs/vue3';
 import { clsx } from 'clsx';
 import type { ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -40,17 +40,7 @@ export const downloadRecoveryFile = (
         .replace(/\s+/g, '-')
         .replace(/[^a-z0-9-_]/g, '');
 
-    const content = `
-Recovery Code
-
-Simpan file ini dengan aman.
-Kode ini digunakan untuk memulihkan akun Anda.
-
-Recovery Code:
-${recoveryCode}
-
-Jangan bagikan kode ini kepada siapa pun.
-`;
+    const content = `${recoveryCode}`;
 
     const blob = new Blob([content], {
         type: 'text/plain;charset=utf-8',
@@ -85,14 +75,27 @@ export function handleCreate(resourceRoute: string, data: any) {
     });
 }
 
-export function handleEdit(resourceRoute: string, data: any) {
-    router.put(`${resourceRoute}/${data.id}`, data, {
+export function handleEdit(
+    url: string,
+    data?: any,
+    options?: {
+        success?: string;
+        error?: string;
+        onSuccess?: () => void;
+        onError?: () => void;
+    },
+) {
+    router.put(url, data ?? {}, {
         onSuccess: () => {
-            toast.success('Data berhasil diperbarui');
+            toast.success(options?.success ?? 'Data berhasil diperbarui');
+
+            options?.onSuccess?.();
         },
 
         onError: () => {
-            toast.error('Gagal memperbarui data');
+            toast.error(options?.error ?? 'Gagal memperbarui data');
+
+            options?.onError?.();
         },
     });
 }

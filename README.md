@@ -2,12 +2,12 @@
 
 A modern web application built using:
 
-* Laravel 13
-* Vue 3
-* Inertia.js
-* TypeScript
-* TailwindCSS
-* Shadcn Vue
+- Laravel 13
+- Vue 3
+- Inertia.js
+- TypeScript
+- TailwindCSS
+- Shadcn Vue
 
 ---
 
@@ -27,18 +27,18 @@ A modern web application built using:
 
 ## Backend
 
-* Laravel 13
-* PostgreSQL
-* Service Pattern
+- Laravel 13
+- PostgreSQL
+- Service Pattern
 
 ## Frontend
 
-* Vue 3
-* TypeScript
-* Inertia.js
-* TailwindCSS
-* Vue Sonner
-* Shadcn Vue
+- Vue 3
+- TypeScript
+- Inertia.js
+- TailwindCSS
+- Vue Sonner
+- Shadcn Vue
 
 ---
 
@@ -339,14 +339,6 @@ php artisan optimize:clear
 
 ---
 
-## Generate Ziggy Routes
-
-```bash
-php artisan ziggy:generate
-```
-
----
-
 ## Run Queue Worker
 
 ```bash
@@ -385,16 +377,16 @@ Account activated
 
 ## Backend
 
-* Service Pattern
-* Thin Controller
-* Business Logic in Services
+- Service Pattern
+- Thin Controller
+- Business Logic in Services
 
 ## Frontend
 
-* Reusable Components
-* Generic DataTable
-* Form Schema Driven
-* Inertia CRUD Pattern
+- Reusable Components
+- Generic DataTable
+- Form Schema Driven
+- Inertia CRUD Pattern
 
 ---
 

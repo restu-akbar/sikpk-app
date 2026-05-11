@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules\Password;
+use Inertia\Inertia;
 
 class ChangePasswordController extends Controller
 {
@@ -61,10 +62,19 @@ class ChangePasswordController extends Controller
 
             'emek_recovery_salt' =>
             $request->emek_recovery_salt,
+        ]);
 
+        return back()->with('success', true);
+    }
+
+    public function complete(Request $request)
+    {
+        $request->user()->update([
             'must_change_password' => false,
         ]);
 
-        return redirect()->route('dashboard');
+        return redirect()
+            ->route('dashboard')
+            ->with('success', 'Setup user berhasil');
     }
 }

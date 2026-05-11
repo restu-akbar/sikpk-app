@@ -1,16 +1,18 @@
 <script setup lang="ts">
-import { Head, useForm, usePage } from '@inertiajs/vue3';
+import { Head, useForm, usePage, router } from '@inertiajs/vue3';
 import { Eye, EyeOff } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 import { update } from '@/actions/App/Http/Controllers/Auth/ChangePasswordController';
 import { setTemporaryError, downloadRecoveryFile } from '@/lib/utils';
 import { generateEncryptionContext } from '@/lib/crypto';
+import { handleEdit } from '@/lib/utils';
 
 const page = usePage();
 const showCurrentPassword = ref(false);
 const showNewPassword = ref(false);
 const showConfirmPassword = ref(false);
-
+const showRecoveryDialog = ref(false);
+const pendingRecoveryCode = ref('');
 const user = page.props.auth.user;
 
 const form = useForm({
@@ -129,14 +131,32 @@ const submit = async () => {
         const recoveryCode = encryption.recovery_code;
 
         form.submit(update(), {
+            preserveState: true,
+
             onSuccess: () => {
-                downloadRecoveryFile(recoveryCode, user.name);
-                form.reset();
+                setTimeout(() => {
+                    pendingRecoveryCode.value = recoveryCode;
+
+                    showRecoveryDialog.value = true;
+                }, 100);
             },
         });
     } catch (error) {
         console.error(error);
     }
+};
+
+const handleDownloadRecovery = () => {
+    downloadRecoveryFile(pendingRecoveryCode.value, user.name);
+
+    handleEdit(
+        '/getting-started/complete',
+        {},
+        {
+            success: 'Setup user berhasil',
+            error: 'Setup user gagal',
+        },
+    );
 };
 
 watch(
@@ -289,6 +309,56 @@ watch(
                     }}
                 </button>
             </form>
+        </div>
+        <div
+            v-if="showRecoveryDialog"
+            class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
+        >
+            <div
+                class="w-full max-w-md rounded-2xl bg-background p-6 shadow-xl"
+            >
+                <div class="space-y-4">
+                    <div>
+                        <h2 class="text-lg font-semibold">
+                            Simpan Recovery Key Anda
+                        </h2>
+
+                        <p class="mt-2 text-sm text-muted-foreground">
+                            Recovery key digunakan untuk memulihkan akses ke
+                            data terenkripsi anda apabila lupa password.
+                        </p>
+                    </div>
+
+                    <div
+                        class="rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-4 text-sm"
+                    >
+                        <ul class="list-disc space-y-1 pl-5">
+                            <li>File ini hanya dapat diunduh sekali.</li>
+
+                            <li>
+                                Jangan bagikan recovery key kepada siapapun.
+                            </li>
+
+                            <li>Simpan di tempat yang aman.</li>
+
+                            <li>
+                                Jika recovery key hilang dan password lupa, akun
+                                anda tidak dapat dipulihkan.
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div class="flex justify-end gap-2">
+                        <button
+                            type="button"
+                            class="rounded-lg bg-primary px-4 py-2 text-sm text-primary-foreground"
+                            @click="handleDownloadRecovery"
+                        >
+                            Download Recovery Key
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </template>

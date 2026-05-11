@@ -16,11 +16,18 @@ class EnsurePasswordChanged
             $user &&
             $user->must_change_password &&
             !$request->routeIs([
-                'getting-started',
-                'change-password.update',
+                'getting-started.*',
             ])
         ) {
-            return redirect()->route('getting-started');
+            return redirect()->route('getting-started.index');
+        }
+
+        if (
+            $user &&
+            !$user->must_change_password &&
+            $request->routeIs('getting-started.*')
+        ) {
+            return redirect()->route('dashboard');
         }
 
         return $next($request);

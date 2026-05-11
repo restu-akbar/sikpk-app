@@ -12,13 +12,23 @@ Route::inertia('/', 'Welcome', [
 Route::middleware(['auth', 'password.changed'])->group(function () {
     Route::inertia('/dashboard', 'dashboard/Dashboard')->name('dashboard');
 
-    Route::inertia('/getting-started', 'GettingStarted')
-        ->name('getting-started');
+    Route::prefix('getting-started')
+        ->name('getting-started.')
+        ->group(function () {
+            Route::inertia('/', 'GettingStarted')
+                ->name('index');
 
-    Route::put(
-        '/change-password',
-        [ChangePasswordController::class, 'update']
-    )->name('change-password.update');
+            Route::put(
+                '/',
+                [ChangePasswordController::class, 'update']
+            )->name('update');
+
+            Route::put(
+                '/complete',
+                [ChangePasswordController::class, 'complete']
+            )->name('complete');
+        });
+
 
     Route::prefix('master')
         ->name('master.')
