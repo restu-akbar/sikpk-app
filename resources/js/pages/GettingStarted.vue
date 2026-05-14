@@ -4,7 +4,7 @@ import { Eye, EyeOff } from 'lucide-vue-next';
 import { computed, ref, watch } from 'vue';
 import { update } from '@/actions/App/Http/Controllers/Auth/ChangePasswordController';
 import { setTemporaryError, downloadRecoveryFile } from '@/lib/utils';
-import { generateEncryptionContext } from '@/lib/crypto';
+import { generateEncryption } from '@/lib/crypto';
 import { handleEdit } from '@/lib/utils';
 
 const page = usePage();
@@ -29,6 +29,7 @@ const form = useForm({
     emek_recovery: '',
     emek_recovery_salt: '',
 });
+
 const passwordMessage = computed(() => {
     if (!form.password) {
         return '';
@@ -114,7 +115,7 @@ const submit = async () => {
             return;
         }
 
-        const encryption = await generateEncryptionContext(form.password);
+        const encryption = await generateEncryption(form.password);
 
         form.public_key = encryption.public_key;
 
