@@ -1,4 +1,16 @@
-export async function generateEncryptionContext(password: string) {
+import { aesEncrypt, aesDecrypt } from '@/lib/crypto/aes-gcm';
+import { bufferToBase64 } from '@/lib/crypto/base64';
+import { base64ToBuffer } from '@/lib/crypto/base64';
+import { derivePbkdf2Key } from '@/lib/crypto/pbkdf2';
+import {
+    generateRsaKeyPair,
+    exportPublicKey,
+    exportPrivateKey,
+} from '@/lib/crypto/rsa-oaep';
+
+import { generateRecoveryCode } from '@/lib/crypto/recovery';
+
+export async function generateEncryption(password: string) {
     /*
     |--------------------------------------------------------------------------
     | Password Salt
@@ -18,45 +30,21 @@ export async function generateEncryptionContext(password: string) {
     | Derive KEK from Password
     |--------------------------------------------------------------------------
     */
-    const passwordKey = await crypto.subtle.importKey(
-        'raw',
-        new TextEncoder().encode(password),
-        'PBKDF2',
-        false,
-        ['deriveKey'],
-    );
-
-    const kek = await crypto.subtle.deriveKey(
-        {
-            name: 'PBKDF2',
-            salt: passwordSalt,
-            iterations: 600000,
-            hash: 'SHA-256',
-        },
-        passwordKey,
-        {
-            name: 'AES-GCM',
-            length: 256,
-        },
-        true,
-        ['encrypt', 'decrypt'],
-    );
+    const kek = await derivePbkdf2Key({
+        password,
+        salt: passwordSalt,
+        iterations: 600000,
+    });
 
     /*
     |--------------------------------------------------------------------------
     | Encrypt MEK using Password KEK
     |--------------------------------------------------------------------------
     */
-    const emekIv = crypto.getRandomValues(new Uint8Array(12));
-
-    const encryptedMek = await crypto.subtle.encrypt(
-        {
-            name: 'AES-GCM',
-            iv: emekIv,
-        },
-        kek,
-        mek,
-    );
+    const emekEncrypted = await aesEncrypt({
+        key: kek,
+        data: mek,
+    });
 
     /*
     |--------------------------------------------------------------------------
@@ -72,73 +60,32 @@ export async function generateEncryptionContext(password: string) {
     | Derive Recovery KEK
     |--------------------------------------------------------------------------
     */
-    const recoveryKey = await crypto.subtle.importKey(
-        'raw',
-        new TextEncoder().encode(recoveryCode),
-        'PBKDF2',
-        false,
-        ['deriveKey'],
-    );
-
-    const recoveryKek = await crypto.subtle.deriveKey(
-        {
-            name: 'PBKDF2',
-            salt: recoverySalt,
-            iterations: 600000,
-            hash: 'SHA-256',
-        },
-        recoveryKey,
-        {
-            name: 'AES-GCM',
-            length: 256,
-        },
-        true,
-        ['encrypt', 'decrypt'],
-    );
+    const recoveryKek = await derivePbkdf2Key({
+        password: recoveryCode,
+        salt: recoverySalt,
+        iterations: 600000,
+    });
 
     /*
     |--------------------------------------------------------------------------
     | Encrypt MEK using Recovery KEK
     |--------------------------------------------------------------------------
     */
-    const recoveryIv = crypto.getRandomValues(new Uint8Array(12));
-
-    const encryptedRecoveryMek = await crypto.subtle.encrypt(
-        {
-            name: 'AES-GCM',
-            iv: recoveryIv,
-        },
-        recoveryKek,
-        mek,
-    );
+    const recoveryEncrypted = await aesEncrypt({
+        key: recoveryKek,
+        data: mek,
+    });
 
     /*
     |--------------------------------------------------------------------------
     | Generate RSA Keypair
     |--------------------------------------------------------------------------
     */
-    const keyPair = await crypto.subtle.generateKey(
-        {
-            name: 'RSA-OAEP',
-            modulusLength: 2048,
-            publicExponent: new Uint8Array([1, 0, 1]),
-            hash: 'SHA-256',
-        },
-        true,
-        ['encrypt', 'decrypt'],
-    );
+    const keyPair = await generateRsaKeyPair();
 
-    /*
-    |--------------------------------------------------------------------------
-    | Export Keys
-    |--------------------------------------------------------------------------
-    */
-    const publicKey = await crypto.subtle.exportKey('spki', keyPair.publicKey);
+    const publicKey = await exportPublicKey(keyPair.publicKey);
 
-    const privateKey = await crypto.subtle.exportKey(
-        'pkcs8',
-        keyPair.privateKey,
-    );
+    const privateKeyPkcs8 = await exportPrivateKey(keyPair.privateKey);
 
     /*
     |--------------------------------------------------------------------------
@@ -149,83 +96,114 @@ export async function generateEncryptionContext(password: string) {
         'encrypt',
     ]);
 
-    const privateIv = crypto.getRandomValues(new Uint8Array(12));
+    const encryptedPrivate = await aesEncrypt({
+        key: mekKey,
+        data: privateKeyPkcs8,
+    });
 
-    const encryptedPrivateKey = await crypto.subtle.encrypt(
-        {
-            name: 'AES-GCM',
-            iv: privateIv,
-        },
-        mekKey,
-        privateKey,
-    );
-
+    /*
+    |--------------------------------------------------------------------------
+    | Return payload
+    |--------------------------------------------------------------------------
+    */
     return {
-        /*
-        |--------------------------------------------------------------------------
-        | Keys
-        |--------------------------------------------------------------------------
-        */
-        public_key: bufferToBase64(publicKey),
+        public_key: publicKey,
 
-        encrypted_private_key: JSON.stringify({
-            iv: bufferToBase64(privateIv),
-            data: bufferToBase64(encryptedPrivateKey),
-        }),
+        encrypted_private_key: JSON.stringify(encryptedPrivate),
 
-        /*
-        |--------------------------------------------------------------------------
-        | Password EMEK
-        |--------------------------------------------------------------------------
-        */
-        emek_password: JSON.stringify({
-            iv: bufferToBase64(emekIv),
-            data: bufferToBase64(encryptedMek),
-        }),
+        emek_password: JSON.stringify(emekEncrypted),
 
         emek_password_salt: bufferToBase64(passwordSalt),
 
-        /*
-        |--------------------------------------------------------------------------
-        | Recovery EMEK
-        |--------------------------------------------------------------------------
-        */
-        emek_recovery: JSON.stringify({
-            iv: bufferToBase64(recoveryIv),
-            data: bufferToBase64(encryptedRecoveryMek),
-        }),
+        emek_recovery: JSON.stringify(recoveryEncrypted),
 
         emek_recovery_salt: bufferToBase64(recoverySalt),
 
-        /*
-        |--------------------------------------------------------------------------
-        | IMPORTANT
-        |--------------------------------------------------------------------------
-        | Show once to user
-        |--------------------------------------------------------------------------
-        */
         recovery_code: recoveryCode,
     };
 }
 
-function generateRecoveryCode(): string {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+export async function generateDecryption({
+    password,
+    emek_password,
+    emek_password_salt,
+    encrypted_private_key,
+}: {
+    password: string;
+    emek_password: string;
+    emek_password_salt: string;
+    encrypted_private_key: string;
+}) {
+    /*
+    |--------------------------------------------------------------------------
+    | Parse payloads
+    |--------------------------------------------------------------------------
+    */
+    const emekPayload = JSON.parse(emek_password);
+    const privatePayload = JSON.parse(encrypted_private_key);
+    const salt = base64ToBuffer(emek_password_salt);
 
-    const parts = [];
+    /*
+    |--------------------------------------------------------------------------
+    | Derive KEK from password
+    |--------------------------------------------------------------------------
+    */
+    const kek = await derivePbkdf2Key({
+        password,
+        salt,
+        iterations: 600000,
+    });
 
-    for (let g = 0; g < 4; g++) {
-        let part = '';
+    /*
+    |--------------------------------------------------------------------------
+    | Decrypt MEK
+    |--------------------------------------------------------------------------
+    */
+    const mekRaw = await aesDecrypt({
+        key: kek,
+        iv: emekPayload.iv,
+        data: emekPayload.data,
+    });
 
-        for (let i = 0; i < 5; i++) {
-            part += chars[Math.floor(Math.random() * chars.length)];
-        }
+    /*
+    |--------------------------------------------------------------------------
+    | Import MEK as AES key
+    |--------------------------------------------------------------------------
+    */
+    const mekKey = await crypto.subtle.importKey(
+        'raw',
+        mekRaw,
+        'AES-GCM',
+        false,
+        ['decrypt'],
+    );
 
-        parts.push(part);
-    }
+    /*
+    |--------------------------------------------------------------------------
+    | Decrypt private key
+    |--------------------------------------------------------------------------
+    */
+    const privateKeyPkcs8 = await aesDecrypt({
+        key: mekKey,
+        iv: privatePayload.iv,
+        data: privatePayload.data,
+    });
 
-    return parts.join('-');
-}
+    /*
+    |--------------------------------------------------------------------------
+    | Import RSA private key
+    |--------------------------------------------------------------------------
+    */
+    const privateKey = await crypto.subtle.importKey(
+        'pkcs8',
+        privateKeyPkcs8,
+        {
+            name: 'RSA-OAEP',
+            hash: 'SHA-256',
+        },
+        false,
+        ['decrypt'],
+    );
 
-function bufferToBase64(buffer: ArrayBuffer | Uint8Array) {
-    return btoa(String.fromCharCode(...new Uint8Array(buffer)));
+    return privateKey;
 }
