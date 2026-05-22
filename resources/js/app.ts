@@ -53,26 +53,17 @@ createInertiaApp({
     },
 
     setup({ el, App, props, plugin }) {
-        /*
-        |--------------------------------------------------------------------------
-        | Pinia
-        |--------------------------------------------------------------------------
-        */
-
         const pinia = createPinia();
 
-        /*
-        |--------------------------------------------------------------------------
-        | Vue App
-        |--------------------------------------------------------------------------
-        */
-
-        createApp({
-            render: () => h(App, props),
-        })
+        const app = createApp({ render: () => h(App, props) })
             .use(plugin)
-            .use(pinia)
-            .mount(el);
+            .use(pinia);
+
+        if (typeof window !== 'undefined') {
+            app.mount(el);
+        }
+
+        return app;
     },
 
     progress: {
