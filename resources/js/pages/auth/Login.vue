@@ -66,6 +66,11 @@ async function submit() {
         });
 
         cryptoStore.activate(privateKey);
+
+        if (response.data.must_change_password) {
+            window.location.href = '/getting-started';
+            return;
+        }
         router.visit('/dashboard');
     } catch (error: any) {
         if (error.response?.status === 422) {

@@ -22,6 +22,7 @@ class LoginResponse implements LoginResponseContract
                 'emek_password_salt'
                 => $request->user()->emek_password_salt,
             ],
+            'must_change_password' => $request->user()->must_change_password,
         ]);
     }
 }

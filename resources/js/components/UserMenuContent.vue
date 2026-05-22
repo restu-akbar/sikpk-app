@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Link, router } from '@inertiajs/vue3';
+import axios from 'axios';
 import { LogOut, Settings } from 'lucide-vue-next';
 import {
     DropdownMenuGroup,
@@ -17,7 +18,9 @@ type Props = {
 };
 
 const handleLogout = () => {
-    router.flushAll();
+    axios.post(logout().url).finally(() => {
+        window.location.href = '/';
+    });
 };
 
 defineProps<Props>();
@@ -40,15 +43,13 @@ defineProps<Props>();
     </DropdownMenuGroup>
     <DropdownMenuSeparator />
     <DropdownMenuItem :as-child="true">
-        <Link
-            class="block w-full cursor-pointer"
-            :href="logout()"
+        <button
             @click="handleLogout"
-            as="button"
+            class="flex w-full cursor-pointer items-center"
             data-test="logout-button"
         >
             <LogOut class="mr-2 h-4 w-4" />
             Log out
-        </Link>
+        </button>
     </DropdownMenuItem>
 </template>
