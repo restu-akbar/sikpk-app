@@ -9,6 +9,10 @@ use Illuminate\Support\Facades\Hash;
 
 class UserService extends BaseService
 {
+    public function __construct(
+        protected MailService $mailService
+    ) {}
+
     protected function query(): Builder
     {
         return User::query();
@@ -34,6 +38,11 @@ class UserService extends BaseService
             'password' => Hash::make($plainPassword),
         ]);
 
+        $this->mailService->sendAccountCreated(
+            $user->name,
+            $user->email,
+            $plainPassword
+        );
         return [
             'user' => $user,
             'plain_password' => $plainPassword,

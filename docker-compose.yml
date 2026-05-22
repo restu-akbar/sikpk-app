@@ -58,6 +58,15 @@ services:
     networks:
       - sikpk
 
+  mail:
+    container_name: sikpk-mail
+    image: axllent/mailpit:latest
+    ports:
+      - 8025:8025
+      - 1025:1025
+    networks:
+      - sikpk
+
 volumes:
   sikpk-db-data:
 
