@@ -1,19 +1,20 @@
 <script setup lang="ts">
-import { Head, useForm, usePage, router } from '@inertiajs/vue3';
-import { Eye, EyeOff } from 'lucide-vue-next';
-import { computed, ref, watch } from 'vue';
+import { Head, useForm, usePage } from '@inertiajs/vue3';
+import { ref } from 'vue';
 import { update } from '@/actions/App/Http/Controllers/Auth/ChangePasswordController';
-import { setTemporaryError, downloadRecoveryFile } from '@/lib/utils';
+import {
+    setTemporaryError,
+    downloadRecoveryFile,
+    handleEdit,
+} from '@/lib/utils';
 import { generateEncryption } from '@/lib/crypto';
-import { handleEdit } from '@/lib/utils';
+import ChangePasswordForm from '@/components/ChangePasswordForm.vue';
 
 const page = usePage();
-const showCurrentPassword = ref(false);
-const showNewPassword = ref(false);
-const showConfirmPassword = ref(false);
+const user = page.props.auth.user;
+
 const showRecoveryDialog = ref(false);
 const pendingRecoveryCode = ref('');
-const user = page.props.auth.user;
 
 const form = useForm({
     current_password: '',
@@ -30,46 +31,6 @@ const form = useForm({
     emek_recovery_salt: '',
 });
 
-const passwordMessage = computed(() => {
-    if (!form.password) {
-        return '';
-    }
-
-    const messages = [];
-
-    if (form.password.length < 8) {
-        messages.push('minimal 8 karakter');
-    }
-
-    const chars = [];
-
-    if (!/[A-Z]/.test(form.password)) {
-        chars.push('huruf besar');
-    }
-
-    if (!/[a-z]/.test(form.password)) {
-        chars.push('huruf kecil');
-    }
-
-    if (!/\d/.test(form.password)) {
-        chars.push('angka');
-    }
-
-    if (!/[^A-Za-z0-9]/.test(form.password)) {
-        chars.push('simbol');
-    }
-
-    if (chars.length) {
-        messages.push(chars.join(', '));
-    }
-
-    if (!messages.length) {
-        return '';
-    }
-
-    return `Password harus mengandung ${messages.join(' dan ')}.`;
-});
-
 const submit = async () => {
     try {
         form.clearErrors();
@@ -80,64 +41,39 @@ const submit = async () => {
                 'current_password',
                 'Password saat ini wajib diisi.',
             );
-
             return;
         }
-
         if (!form.password) {
             setTemporaryError(form, 'password', 'Password baru wajib diisi.');
-
             return;
         }
-
-        if (!form.password_confirmation) {
-            setTemporaryError(
-                form,
-                'password_confirmation',
-                'Konfirmasi password wajib diisi.',
-            );
-
-            return;
-        }
-
         if (form.password !== form.password_confirmation) {
             form.setError(
                 'password_confirmation',
-                'Konfirmasi password harus sama dengan password baru.',
+                'Konfirmasi password harus sama.',
             );
-
             return;
         }
 
-        if (passwordMessage.value) {
-            form.setError('password', passwordMessage.value);
-
-            return;
-        }
-
-        const encryption = await generateEncryption(form.password);
+        const encryption = await generateEncryption({
+            mode: 'initial',
+            password: form.password,
+        });
 
         form.public_key = encryption.public_key;
-
         form.encrypted_private_key = encryption.encrypted_private_key;
-
         form.emek_password = encryption.emek_password;
-
         form.emek_password_salt = encryption.emek_password_salt;
-
         form.emek_recovery = encryption.emek_recovery;
-
         form.emek_recovery_salt = encryption.emek_recovery_salt;
 
         const recoveryCode = encryption.recovery_code;
 
-        form.submit(update(), {
+        form.submit('put', update['/getting-started'].url(), {
             preserveState: true,
-
             onSuccess: () => {
                 setTimeout(() => {
                     pendingRecoveryCode.value = recoveryCode;
-
                     showRecoveryDialog.value = true;
                 }, 100);
             },
@@ -159,23 +95,6 @@ const handleDownloadRecovery = () => {
         },
     );
 };
-
-watch(
-    () => [form.password, form.password_confirmation],
-    () => {
-        if (
-            form.password_confirmation &&
-            form.password !== form.password_confirmation
-        ) {
-            form.setError(
-                'password_confirmation',
-                'Konfirmasi password harus sama dengan password baru.',
-            );
-        } else {
-            form.clearErrors('password_confirmation');
-        }
-    },
-);
 </script>
 
 <template>
@@ -196,121 +115,9 @@ watch(
                 </p>
             </div>
 
-            <form @submit.prevent="submit" class="space-y-5">
-                <!-- Current Password -->
-                <div class="space-y-2">
-                    <label class="text-sm font-medium">
-                        Current Password
-                    </label>
-
-                    <div class="relative">
-                        <input
-                            v-model="form.current_password"
-                            :type="showCurrentPassword ? 'text' : 'password'"
-                            class="w-full rounded-lg border bg-background px-3 py-2 pr-10 text-sm"
-                            autocomplete="current-password"
-                        />
-
-                        <button
-                            type="button"
-                            @click="showCurrentPassword = !showCurrentPassword"
-                            class="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground"
-                        >
-                            <Eye v-if="!showCurrentPassword" class="h-4 w-4" />
-
-                            <EyeOff v-else class="h-4 w-4" />
-                        </button>
-                    </div>
-
-                    <p
-                        v-if="form.errors.current_password"
-                        class="text-sm text-red-500"
-                    >
-                        {{ form.errors.current_password }}
-                    </p>
-                </div>
-
-                <!-- New Password -->
-                <!-- New Password -->
-                <div class="space-y-2">
-                    <label class="text-sm font-medium"> New Password </label>
-
-                    <div class="relative">
-                        <input
-                            v-model="form.password"
-                            :type="showNewPassword ? 'text' : 'password'"
-                            class="w-full rounded-lg border bg-background px-3 py-2 pr-10 text-sm"
-                            autocomplete="new-password"
-                        />
-
-                        <button
-                            type="button"
-                            @click="showNewPassword = !showNewPassword"
-                            class="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground"
-                        >
-                            <Eye v-if="!showNewPassword" class="h-4 w-4" />
-
-                            <EyeOff v-else class="h-4 w-4" />
-                        </button>
-                    </div>
-
-                    <p v-if="passwordMessage" class="text-sm text-red-500">
-                        {{ passwordMessage }}
-                    </p>
-
-                    <!-- Backend Error -->
-                    <p v-if="form.errors.password" class="text-sm text-red-500">
-                        {{ form.errors.password }}
-                    </p>
-                </div>
-
-                <!-- Confirm Password -->
-                <div class="space-y-2">
-                    <label class="text-sm font-medium">
-                        Confirm Password
-                    </label>
-
-                    <div class="relative">
-                        <input
-                            v-model="form.password_confirmation"
-                            :type="showConfirmPassword ? 'text' : 'password'"
-                            class="w-full rounded-lg border bg-background px-3 py-2 pr-10 text-sm"
-                            autocomplete="new-password"
-                        />
-
-                        <button
-                            type="button"
-                            @click="showConfirmPassword = !showConfirmPassword"
-                            class="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground"
-                        >
-                            <Eye v-if="!showConfirmPassword" class="h-4 w-4" />
-
-                            <EyeOff v-else class="h-4 w-4" />
-                        </button>
-                    </div>
-
-                    <p
-                        v-if="form.errors.password_confirmation"
-                        class="text-sm text-red-500"
-                    >
-                        {{ form.errors.password_confirmation }}
-                    </p>
-                </div>
-
-                <!-- Submit -->
-                <button
-                    type="submit"
-                    :disabled="form.processing"
-                    class="w-full rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition hover:opacity-90 disabled:opacity-50"
-                >
-                    {{
-                        form.processing
-                            ? 'Updating Password...'
-                            : 'Update Password'
-                    }}
-                </button>
-            </form>
+            <ChangePasswordForm :form="form" :on-submit="submit" />
         </div>
+
         <div
             v-if="showRecoveryDialog"
             class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
@@ -335,13 +142,10 @@ watch(
                     >
                         <ul class="list-disc space-y-1 pl-5">
                             <li>File ini hanya dapat diunduh sekali.</li>
-
                             <li>
                                 Jangan bagikan recovery key kepada siapapun.
                             </li>
-
                             <li>Simpan di tempat yang aman.</li>
-
                             <li>
                                 Jika recovery key hilang dan password lupa, akun
                                 anda tidak dapat dipulihkan.

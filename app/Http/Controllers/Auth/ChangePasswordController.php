@@ -43,28 +43,24 @@ class ChangePasswordController extends Controller
 
         $user = $request->user();
 
-        $user->update([
-            'password' => Hash::make($request->password),
+        $data = array_filter($request->only([
+            'public_key',
+            'encrypted_private_key',
+            'emek_password',
+            'emek_password_salt',
+            'emek_recovery',
+            'emek_recovery_salt',
+        ]), fn($value) => !is_null($value));
+        $data['password'] = Hash::make($request->password);
 
-            'public_key' => $request->public_key,
+        $user->update($data);
 
-            'encrypted_private_key' =>
-            $request->encrypted_private_key,
+        if ($request->routeIs('getting-started')) {
+            return redirect('/dashboard')->with('success', true);
+        }
 
-            'emek_password' =>
-            $request->emek_password,
-
-            'emek_password_salt' =>
-            $request->emek_password_salt,
-
-            'emek_recovery' =>
-            $request->emek_recovery,
-
-            'emek_recovery_salt' =>
-            $request->emek_recovery_salt,
-        ]);
-
-        return back()->with('success', true);
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Password berhasil diubah')]);
+        return back();
     }
 
     public function complete(Request $request)
