@@ -95,17 +95,11 @@ function toggleSort(column: Column) {
     }
 }
 function submitCreate(data: any) {
-    console.log('submit', data);
-
     if (props.validator) {
         const isValid = props.validator(data);
 
-        console.log('valid?', isValid);
-
         if (!isValid) return;
     }
-
-    console.log('POSTING');
 
     handleCreate(props.resourceRoute!, data);
 

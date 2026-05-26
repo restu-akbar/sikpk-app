@@ -53,6 +53,10 @@ async function submit() {
 
     try {
         const response = await axios.post('/login', form);
+        if (response.data.must_change_password) {
+            window.location.href = '/getting-started';
+            return;
+        }
         const crypto = response.data.crypto;
 
         const privateKey = await generateDecryption({
@@ -67,14 +71,15 @@ async function submit() {
 
         cryptoStore.activate(privateKey);
 
-        if (response.data.must_change_password) {
-            window.location.href = '/getting-started';
-            return;
-        }
         router.visit('/dashboard');
     } catch (error: any) {
         if (error.response?.status === 422) {
-            Object.assign(errors, error.response.data.errors);
+            const raw = error.response.data.errors;
+            Object.keys(raw).forEach((key) => {
+                (errors as any)[key] = Array.isArray(raw[key])
+                    ? raw[key][0]
+                    : raw[key];
+            });
         }
     } finally {
         processing.value = false;

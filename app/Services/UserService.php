@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Mail\AccountCreatedMail;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
@@ -26,7 +27,7 @@ class UserService extends BaseService
             ->paginate($perPage);
     }
 
-    public function createAnggota(array $data): array
+    public function createAnggota(array $data): void
     {
         $plainPassword = Str::password();
 
@@ -34,19 +35,17 @@ class UserService extends BaseService
             'name' => $data['name'],
             'email' => $data['email'],
             'role' => 'anggota',
-
             'password' => Hash::make($plainPassword),
         ]);
 
-        $this->mailService->sendAccountCreated(
-            $user->name,
+        $this->mailService->send(
             $user->email,
-            $plainPassword
+            new AccountCreatedMail(
+                $user->name,
+                $user->email,
+                $plainPassword
+            )
         );
-        return [
-            'user' => $user,
-            'plain_password' => $plainPassword,
-        ];
     }
 
     public function updateAnggota(User $user, array $data): User

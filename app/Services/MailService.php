@@ -2,22 +2,15 @@
 
 namespace App\Services;
 
-use App\Mail\AccountCreatedMail;
+use Illuminate\Mail\Mailable;
 use Illuminate\Support\Facades\Mail;
 
 class MailService
 {
-    public function sendAccountCreated(
-        string $name,
-        string $email,
-        string $password
+    public function send(
+        string|array $to,
+        Mailable $mailable
     ): void {
-        Mail::to($email)->send(
-            new AccountCreatedMail(
-                $name,
-                $email,
-                $password
-            )
-        );
+        Mail::to($to)->send($mailable);
     }
 }
