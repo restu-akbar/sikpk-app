@@ -5,26 +5,62 @@ namespace App\Http\Controllers\Settings;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\ProfileDeleteRequest;
 use App\Http\Requests\Settings\ProfileUpdateRequest;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Mail\ProfileEditLinkMail;
+use App\Services\MailService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\URL;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class ProfileController extends Controller
 {
+    public function __construct(
+        protected MailService $mailService
+    ) {}
+
     /**
      * Show the user's profile settings page.
      */
     public function edit(Request $request): Response
     {
         return Inertia::render('settings/Profile', [
-            'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => $request->session()->get('status'),
         ]);
     }
 
+    public function secureEdit(Request $request): Response
+    {
+        if ((string) $request->user !== (string) auth()->id()) {
+            abort(403);
+        }
+        return Inertia::render('settings/ProfileEditSecure');
+    }
+
+    public function requestEdit(Request $request)
+    {
+        $user = $request->user();
+
+        $signedUrl = URL::temporarySignedRoute(
+            'settings.profile.secure-edit',
+            now()->addMinutes(15),
+            [
+                'user' => $user->id,
+            ]
+        );
+
+        $this->mailService->send(
+            $user->email,
+            new ProfileEditLinkMail(
+                $user->name,
+                $signedUrl
+            )
+        );
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Verification link sent.')]);
+        return back();
+    }
     /**
      * Update the user's profile information.
      */
@@ -40,7 +76,7 @@ class ProfileController extends Controller
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('Profile updated.')]);
 
-        return to_route('profile.edit');
+        return to_route('settings.profile.edit');
     }
 
     /**
