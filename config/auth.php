@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Reporter;
 use App\Models\User;
 
 return [
@@ -42,6 +43,10 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+        'google' => [
+            'driver' => 'session',
+            'provider' => 'reporters',
+        ],
     ],
 
     /*
@@ -66,7 +71,10 @@ return [
             'driver' => 'eloquent',
             'model' => env('AUTH_MODEL', User::class),
         ],
-
+        'reporters' => [
+            'driver' => 'eloquent',
+            'model' => Reporter::class,
+        ],
         // 'users' => [
         //     'driver' => 'database',
         //     'table' => 'users',
