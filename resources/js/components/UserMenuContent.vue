@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import UserInfo from '@/components/UserInfo.vue';
 import { logout } from '@/routes';
-import { edit } from '@/routes/settings/profile';
+import { edit } from '@/routes/satgas/settings/profile';
 import type { User } from '@/types';
 
 type Props = {

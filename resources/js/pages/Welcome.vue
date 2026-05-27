@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
-import { dashboard, login, register } from '@/routes';
+import { register } from '@/routes';
+import { login } from '@/routes/google';
+import { dashboard } from '@/routes/satgas';
 
 withDefaults(
     defineProps<{

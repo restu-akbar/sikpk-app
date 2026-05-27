@@ -3,7 +3,7 @@ import { Head, useForm } from '@inertiajs/vue3';
 import Heading from '@/components/Heading.vue';
 import ChangePasswordForm from '@/components/ChangePasswordForm.vue';
 import { update } from '@/actions/App/Http/Controllers/Auth/ChangePasswordController';
-import { edit } from '@/routes/settings/security';
+import { edit } from '@/routes/satgas/settings/security';
 import { setTemporaryError } from '@/lib/utils';
 import { generateEncryption } from '@/lib/crypto';
 import { usePage } from '@inertiajs/vue3';

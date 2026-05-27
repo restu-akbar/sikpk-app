@@ -4,7 +4,7 @@ import { Head, usePage } from '@inertiajs/vue3';
 import KetuaDashboard from './KetuaDashboard.vue';
 import AnggotaDashboard from './AnggotaDashboard.vue';
 
-import { dashboard } from '@/routes';
+import { dashboard } from '@/routes/satgas';
 
 defineOptions({
     layout: {

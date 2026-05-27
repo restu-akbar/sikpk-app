@@ -14,7 +14,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { dashboard } from '@/routes';
+import { dashboard } from '@/routes/satgas';
 import type { NavItem } from '@/types';
 
 const page = usePage();
@@ -33,7 +33,7 @@ const masterNavItems: NavItem[] =
         ? [
               {
                   title: 'Anggota',
-                  href: '/master/users',
+                  href: '/satgas/master/users',
                   icon: Users,
               },
           ]
