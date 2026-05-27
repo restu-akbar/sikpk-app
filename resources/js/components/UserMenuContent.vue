@@ -18,12 +18,13 @@ type Props = {
 };
 
 const handleLogout = () => {
-    axios.post(logout().url).finally(() => {
+    const url = props.user.role ? logout().url : '/logout';
+    axios.post(url).finally(() => {
         window.location.href = '/';
     });
 };
 
-defineProps<Props>();
+const props = defineProps<Props>();
 </script>
 
 <template>
@@ -33,15 +34,21 @@ defineProps<Props>();
         </div>
     </DropdownMenuLabel>
     <DropdownMenuSeparator />
-    <DropdownMenuGroup>
-        <DropdownMenuItem :as-child="true">
-            <Link class="block w-full cursor-pointer" :href="edit()" prefetch>
-                <Settings class="mr-2 h-4 w-4" />
-                Settings
-            </Link>
-        </DropdownMenuItem>
-    </DropdownMenuGroup>
-    <DropdownMenuSeparator />
+    <template v-if="props.user.role">
+        <DropdownMenuGroup>
+            <DropdownMenuItem :as-child="true">
+                <Link
+                    class="block w-full cursor-pointer"
+                    :href="edit()"
+                    prefetch
+                >
+                    <Settings class="mr-2 h-4 w-4" />
+                    Settings
+                </Link>
+            </DropdownMenuItem>
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+    </template>
     <DropdownMenuItem :as-child="true">
         <button
             @click="handleLogout"
