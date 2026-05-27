@@ -14,6 +14,11 @@
     <p>Email: {{ $email }}</p>
     <p>Password: {{ $password }}</p>
 
+    <p>
+        <a href="{{ config('app.url') }}/login">
+            Login Sekarang
+        </a>
+    </p>
     <p>Silakan login dan segera ubah password Anda.</p>
 </body>
 

@@ -52,7 +52,7 @@ async function submit() {
     errors.password = undefined;
 
     try {
-        const response = await axios.post('/login', form);
+        const response = await axios.post('/satgas/login', form);
         if (response.data.must_change_password) {
             window.location.href = '/getting-started';
             return;
