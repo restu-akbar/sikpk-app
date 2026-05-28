@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link, usePage } from '@inertiajs/vue3';
-import { BookOpen, FolderGit2, LayoutGrid, Users } from 'lucide-vue-next';
+import { LayoutGrid, Users } from 'lucide-vue-next';
 import AppLogo from '@/components/AppLogo.vue';
 import NavFooter from '@/components/NavFooter.vue';
 import NavMain from '@/components/NavMain.vue';
@@ -13,12 +13,16 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
+    useSidebar,
 } from '@/components/ui/sidebar';
+
 import { dashboard } from '@/routes/satgas';
 import type { NavItem } from '@/types';
 
 const page = usePage();
 const user = page.props.auth.user;
+
+const { state } = useSidebar();
 
 const mainNavItems: NavItem[] = [
     {
@@ -26,6 +30,16 @@ const mainNavItems: NavItem[] = [
         href: dashboard(),
         icon: LayoutGrid,
     },
+
+    ...(user.role === null
+        ? [
+              {
+                  title: 'Laporan',
+                  href: '/reports',
+                  icon: Users,
+              },
+          ]
+        : []),
 ];
 
 const masterNavItems: NavItem[] =
@@ -39,24 +53,12 @@ const masterNavItems: NavItem[] =
           ]
         : [];
 
-const footerNavItems: NavItem[] = [
-    /*
-    {
-        title: 'Repository',
-        href: 'https://github.com/laravel/vue-starter-kit',
-        icon: FolderGit2,
-    },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#vue',
-        icon: BookOpen,
-    },
-    */
-];
+const footerNavItems: NavItem[] = [];
 </script>
 
 <template>
-    <Sidebar collapsible="icon" variant="inset">
+    <Sidebar collapsible="icon" variant="inset" class="group">
+        <!-- HEADER -->
         <SidebarHeader>
             <SidebarMenu>
                 <SidebarMenuItem>
@@ -71,7 +73,8 @@ const footerNavItems: NavItem[] = [
 
         <SidebarContent>
             <div
-                v-if="masterNavItems.length"
+                v-if="mainNavItems.length"
+                v-show="state !== 'collapsed'"
                 class="px-2 text-xs font-semibold text-muted-foreground"
             >
                 MODUL
@@ -79,10 +82,12 @@ const footerNavItems: NavItem[] = [
 
             <NavMain :items="mainNavItems" />
 
-            <div v-if="masterNavItems.length" class="mx-2 my-4 border-t" />
+            <div v-if="masterNavItems.length" class="mx-2 border-t" />
 
+            <!-- MASTER -->
             <div
                 v-if="masterNavItems.length"
+                v-show="state !== 'collapsed'"
                 class="px-2 text-xs font-semibold text-muted-foreground"
             >
                 MASTER
@@ -91,11 +96,10 @@ const footerNavItems: NavItem[] = [
             <NavMain v-if="masterNavItems.length" :items="masterNavItems" />
         </SidebarContent>
 
+        <!-- FOOTER -->
         <SidebarFooter>
             <NavFooter :items="footerNavItems" />
             <NavUser />
         </SidebarFooter>
     </Sidebar>
-
-    <slot />
 </template>
