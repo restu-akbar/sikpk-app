@@ -71,7 +71,7 @@ async function submit() {
 
         cryptoStore.activate(privateKey);
 
-        router.visit('/dashboard');
+        router.visit('/satgas/dashboard');
     } catch (error: any) {
         if (error.response?.status === 422) {
             const raw = error.response.data.errors;
