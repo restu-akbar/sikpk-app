@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Head, useForm, usePage } from '@inertiajs/vue3';
 import { ref } from 'vue';
-import { update } from '@/actions/App/Http/Controllers/Auth/ChangePasswordController';
+import { update } from '@/routes/satgas/getting-started';
 import {
     setTemporaryError,
     downloadRecoveryFile,
@@ -69,7 +69,7 @@ const submit = async () => {
 
         const recoveryCode = encryption.recovery_code;
 
-        form.submit('put', update['/getting-started'].url(), {
+        form.submit(update(), {
             preserveState: true,
             onSuccess: () => {
                 setTimeout(() => {
@@ -87,7 +87,7 @@ const handleDownloadRecovery = () => {
     downloadRecoveryFile(pendingRecoveryCode.value, user.name);
 
     handleEdit(
-        '/getting-started/complete',
+        '/satgas/getting-started/complete',
         {},
         {
             success: 'Setup user berhasil',

@@ -70,7 +70,7 @@ class ChangePasswordController extends Controller
         ]);
 
         return redirect()
-            ->route('dashboard')
+            ->route('satgas.dashboard')
             ->with('success', 'Setup user berhasil');
     }
 }
