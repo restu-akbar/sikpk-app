@@ -15,19 +15,17 @@ class EnsurePasswordChanged
         if (
             $user &&
             $user->must_change_password &&
-            !$request->routeIs([
-                'getting-started.*',
-            ])
+            !$request->routeIs('satgas.getting-started.*')
         ) {
-            return redirect()->route('getting-started.index');
+            return redirect()->route('satgas.getting-started.index');
         }
 
         if (
             $user &&
             !$user->must_change_password &&
-            $request->routeIs('getting-started.*')
+            $request->routeIs('satgas.getting-started.*')
         ) {
-            return redirect()->route('dashboard');
+            return redirect()->route('satgas.dashboard');
         }
 
         return $next($request);

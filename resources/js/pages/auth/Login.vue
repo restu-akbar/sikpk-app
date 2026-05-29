@@ -54,7 +54,7 @@ async function submit() {
     try {
         const response = await axios.post('/satgas/login', form);
         if (response.data.must_change_password) {
-            window.location.href = '/getting-started';
+            window.location.href = '/satgas/getting-started';
             return;
         }
         const crypto = response.data.crypto;
