@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/sidebar';
 
 import { dashboard } from '@/routes/satgas';
+import { dashboard as reporterDashboard} from '@/routes';
 import type { NavItem } from '@/types';
 
 const page = usePage();
@@ -27,7 +28,7 @@ const { state } = useSidebar();
 const mainNavItems: NavItem[] = [
     {
         title: 'Dashboard',
-        href: dashboard(),
+        href: user.role !== null ? dashboard() : reporterDashboard(),
         icon: LayoutGrid,
     },
 

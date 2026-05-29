@@ -48,7 +48,9 @@ createInertiaApp({
             case name.startsWith('settings/'):
                 page.default.layout = [AppLayout, SettingsLayout];
                 break;
-
+            case name.includes('login'):
+                page.default.layout = null;
+                break;
             default:
                 page.default.layout = AppLayout;
                 break;
