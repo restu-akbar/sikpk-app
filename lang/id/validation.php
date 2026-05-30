@@ -140,7 +140,7 @@ return [
     'prohibited_unless' => 'The :attribute field is prohibited unless :other is in :values.',
     'prohibits' => 'The :attribute field prohibits :other from being present.',
     'regex' => 'The :attribute field format is invalid.',
-    'required' => 'The :attribute field is required.',
+    'required' => ':attribute wajib diisi.',
     'required_array_keys' => 'The :attribute field must contain entries for: :values.',
     'required_if' => 'The :attribute field is required when :other is :value.',
     'required_if_accepted' => 'The :attribute field is required when :other is accepted.',
@@ -195,6 +195,15 @@ return [
     |
     */
 
-    'attributes' => [],
+    'attributes' => [
+        'namaTerlapor' => 'Nama terlapor',
+        'statusTerlapor' => 'Status terlapor',
+        'jenisKekerasan' => 'Jenis kekerasan',
+        'tempatKejadian' => 'Tempat kejadian',
+        'waktuKejadian' => 'Waktu kejadian',
+        'kronologi' => 'Kronologi',
+        'disabilitas' => 'Disabilitas',
+        'file' => 'file',
+    ],
 
 ];
