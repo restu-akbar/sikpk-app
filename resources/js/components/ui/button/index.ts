@@ -19,6 +19,12 @@ export const buttonVariants = cva(
         ghost:
           "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
         link: "text-primary underline-offset-4 hover:underline",
+        /* Blue highlight buttons, e.g. secondary CTA, active states */
+        brand: "bg-brand text-brand-foreground hover:bg-brand/90 focus-visible:ring-brand/30",
+        /* Dark navy buttons, e.g. header actions, dark-section CTAs */
+        "brand-dark": "bg-brand-dark text-brand-dark-foreground hover:bg-brand-dark/90 focus-visible:ring-brand-dark/30",
+        /* Orange buttons, e.g. Masuk Dashboard, Buat Laporan (primary CTA) */
+        "brand-accent": "bg-brand-accent text-brand-accent-foreground hover:bg-brand-accent/90 focus-visible:ring-brand-accent/30",
       },
       size: {
         "default": "h-9 px-4 py-2 has-[>svg]:px-3",

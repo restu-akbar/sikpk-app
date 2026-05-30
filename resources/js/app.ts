@@ -7,6 +7,7 @@ import { createApp, h } from 'vue';
 import { initializeTheme } from '@/composables/useAppearance';
 import AppLayout from '@/layouts/AppLayout.vue';
 import AuthLayout from '@/layouts/AuthLayout.vue';
+import AuthCenterLayout from '@/layouts/auth/AuthCenterLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
 import { initializeFlashToast } from '@/lib/flashToast';
 
@@ -34,6 +35,10 @@ createInertiaApp({
 
             case name === 'GettingStarted':
                 page.default.layout = null;
+                break;
+
+            case name === 'auth/GoogleLogin':
+                page.default.layout = AuthCenterLayout;
                 break;
 
             case name.startsWith('auth/'):
