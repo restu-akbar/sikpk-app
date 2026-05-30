@@ -18,26 +18,35 @@ class GoogleAuthController extends Controller
 
     public function callback()
     {
-        $googleUser = Socialite::driver('google')
-            ->stateless()
-            ->user();
+        try {
+            if (request()->has('error')) {
+                return redirect()->route('google.login')
+                    ->with('error', 'Login dibatalkan atau tidak diizinkan oleh Google');
+            }
+            $googleUser = Socialite::driver('google')
+                ->stateless()
+                ->user();
 
-        $email = $googleUser->getEmail();
+            $email = $googleUser->getEmail();
+            if (!str_ends_with($email, '@polban.ac.id')) {
+                return redirect()->route('google.login')
+                    ->with('error', 'Login hanya diperbolehkan menggunakan akun email kampus (@polban.ac.id)');
+            }
 
-        if (!str_ends_with($email, '@polban.ac.id')) {
-            return redirect('/')->with('error', 'Email tidak diizinkan');
+            $user = Reporter::firstOrCreate(
+                ['email' => $email],
+                [
+                    'name' => $googleUser->getName(),
+                ]
+            );
+
+            Auth::guard('google')->login($user);
+
+            return redirect()->route('dashboard');
+        } catch (\Exception $e) {
+            return redirect()->route('google.login')
+                ->with('error', $e ?? 'Login gagal, silakan coba lagi');
         }
-
-        $user = Reporter::firstOrCreate(
-            ['email' => $email],
-            [
-                'name' => $googleUser->getName(),
-            ]
-        );
-
-        Auth::guard('google')->login($user);
-
-        return redirect('/dashboard');
     }
 
     public function logout()

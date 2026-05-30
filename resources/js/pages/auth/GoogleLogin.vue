@@ -1,7 +1,20 @@
 <script setup lang="ts">
+import { usePage } from '@inertiajs/vue3';
+import { watch } from 'vue';
 const loginWithGoogle = () => {
     window.location.href = '/auth/google';
 };
+const page = usePage();
+
+watch(
+    () => page.props.toast,
+    (toast) => {
+        if (toast) {
+            showToast(toast.type, toast.message);
+        }
+    },
+    { immediate: true },
+);
 </script>
 
 <template>
