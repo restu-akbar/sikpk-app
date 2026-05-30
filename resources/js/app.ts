@@ -6,10 +6,10 @@ import { createPinia } from 'pinia';
 import { createApp, h } from 'vue';
 import { initializeTheme } from '@/composables/useAppearance';
 import AppLayout from '@/layouts/AppLayout.vue';
-import AuthLayout from '@/layouts/AuthLayout.vue';
 import AuthCenterLayout from '@/layouts/auth/AuthCenterLayout.vue';
+import AuthLayout from '@/layouts/AuthLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
-import { initializeFlashToast } from '@/lib/flashToast';
+import RootLayout from './RootLayout.vue'
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -59,8 +59,12 @@ createInertiaApp({
 
     setup({ el, App, props, plugin }) {
         const pinia = createPinia();
-
-        const app = createApp({ render: () => h(App, props) })
+        const app = createApp({
+            render: () =>
+                h(RootLayout, null, {
+                    default: () => h(App, props),
+                }),
+        })
             .use(plugin)
             .use(pinia);
 
@@ -83,11 +87,3 @@ createInertiaApp({
 */
 
 initializeTheme();
-
-/*
-|--------------------------------------------------------------------------
-| Flash Toast
-|--------------------------------------------------------------------------
-*/
-
-initializeFlashToast();

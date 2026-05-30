@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\Reporter;
 use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 use Laravel\Socialite\Facades\Socialite;
 
 class GoogleAuthController extends Controller
@@ -29,8 +30,12 @@ class GoogleAuthController extends Controller
 
             $email = $googleUser->getEmail();
             if (!str_ends_with($email, '@polban.ac.id')) {
-                return redirect()->route('google.login')
-                    ->with('error', 'Login hanya diperbolehkan menggunakan akun email kampus (@polban.ac.id)');
+                return redirect()
+                    ->route('google.login')
+                    ->with('toast', [
+                        'type' => 'error',
+                        'message' => 'Login hanya diperbolehkan menggunakan akun email kampus (@polban.ac.id).'
+                    ]);
             }
 
             $user = Reporter::firstOrCreate(
