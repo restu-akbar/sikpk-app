@@ -18,6 +18,7 @@ const imgError = ref(false);
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 40 42"
         v-bind="$attrs"
+        :class="$props.class"
     >
         <path
             fill="currentColor"
@@ -32,6 +33,7 @@ const imgError = ref(false);
         src="/images/logo-satgas-icon.png"
         alt="Satgas PPK"
         v-bind="$attrs"
+        :class="['object-contain', $props.class]"
         @error="imgError = true"
     />
 </template>

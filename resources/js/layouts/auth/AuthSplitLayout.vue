@@ -10,37 +10,35 @@ import { home } from '@/routes';
         <!-- Left panel: brand identity (lg+ only) -->
         <div class="relative hidden h-full flex-col justify-between bg-brand p-10 text-white lg:flex">
 
-            <!-- Logo area: icon 56px + institution name -->
-            <Link :href="home()" class="flex items-center gap-4">
-                <div class="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white/15">
-                    <AppLogoIcon class="size-12" />
+            <!-- Logo area: icon 40px + institution name -->
+            <Link :href="home()" class="flex items-center gap-3">
+                <div class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl">
+                    <AppLogoIcon class="size-5" />
                 </div>
-                <div class="flex flex-col gap-1.5">
-                    <span class="font-display text-xl font-bold leading-none text-white">
+                <div class="flex flex-col gap-0.5">
+                    <span class="font-display text-sm font-bold leading-none text-white">
                         Satgas PPK
                     </span>
-                    <span class="font-display text-base leading-none text-white/70">
+                    <span class="font-display text-xs leading-none text-white/70">
                         Politeknik Negeri Bandung
                     </span>
                 </div>
             </Link>
 
-            <!-- App title: text-6xl = 60px, natural word-wrap creates 3 lines -->
+            <!-- App title: text-4xl = 36px, natural word-wrap -->
             <div>
-                <h1 class="font-display text-5xl font-extrabold leading-tight text-white">
+                <h1 class="font-display text-4xl font-extrabold leading-tight text-white">
                     Aplikasi Pengelolaan dan Pelaporan Kekerasan Politeknik Negeri Bandung
                 </h1>
             </div>
 
-            <!-- Pakta Integritas quote block
-                 text-xl (20px) wraps italic text to 2 lines.
-                 Attribution pada baris ke-3. -->
-            <div class="rounded-r-lg border-l-4 border-brand-accent bg-white/10 px-6 py-5">
-                <p class="font-display text-l italic leading-relaxed text-white/90">
+            <!-- Pakta Integritas quote block -->
+            <div class="rounded-r-lg border-l-4 border-brand-accent bg-white/10 px-5 py-4">
+                <p class="font-display text-base italic leading-relaxed text-white/90">
                     "Kerahasiaan adalah komitmen utama. Setiap data
                     yang Anda akses tunduk pada Pakta Integritas Satgas."
                 </p>
-                <p class="mt-3 font-display text-m font-semibold uppercase tracking-widest text-white/55">
+                <p class="mt-3 font-display text-[11px] font-semibold uppercase tracking-widest text-white/55">
                     Pakta Integritas &middot; Satgas SIKPK
                 </p>
             </div>

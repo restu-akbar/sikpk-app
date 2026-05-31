@@ -91,6 +91,26 @@
     --color-brand-dark-foreground: var(--brand-dark-foreground);
     --color-brand-accent: var(--brand-accent);
     --color-brand-accent-foreground: var(--brand-accent-foreground);
+
+    /* Navbar Satgas custom palette (from Figma)
+       - nav-bg          : #E8E3DA  sidebar background
+       - nav-muted       : #6B6862  panel label, subtitle, role text
+       - nav-text        : #3B3A37  inactive menu item text
+       - nav-active      : #134881  active menu background
+       - nav-indicator   : #F5821F  active menu left-border indicator
+       - nav-name        : #1B1A18  person name in footer card
+       - nav-footer-bg   : #F6F2EE  footer card background
+       - nav-stroke      : #E8E3DA  divider stroke (0.8 px in Figma)
+    */
+    --color-nav-bg: var(--nav-bg);
+    --color-nav-muted: var(--nav-muted);
+    --color-nav-text: var(--nav-text);
+    --color-nav-active-bg: var(--nav-active-bg);
+    --color-nav-active-text: var(--nav-active-text);
+    --color-nav-indicator: var(--nav-indicator);
+    --color-nav-name: var(--nav-name);
+    --color-nav-footer-bg: var(--nav-footer-bg);
+    --color-nav-stroke: var(--nav-stroke);
 }
 
 /* ============================================================
@@ -194,15 +214,26 @@
     --brand-accent-foreground: hsl(0 0% 100%);
 
     /* ---- Sidebar ---- */
-    --sidebar-background: hsl(0 0% 98%);
-    --sidebar-foreground: hsl(240 5.3% 26.1%);
-    --sidebar-primary: hsl(0 0% 10%);
-    --sidebar-primary-foreground: hsl(0 0% 98%);
-    --sidebar-accent: hsl(0 0% 94%);
-    --sidebar-accent-foreground: hsl(0 0% 30%);
-    --sidebar-border: hsl(0 0% 91%);
-    --sidebar-ring: hsl(214 70% 40%);
-    --sidebar: hsl(0 0% 98%);
+    --sidebar-background: #ffffff;
+    --sidebar-foreground: #3B3A37;
+    --sidebar-primary: #134881;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #E7EEF7;
+    --sidebar-accent-foreground: #134881;
+    --sidebar-border: #E8E3DA;
+    --sidebar-ring: #134881;
+    --sidebar: #ffffff;
+
+    /* ---- Navbar Satgas palette ---- */
+    --nav-bg: #ffffff;
+    --nav-muted: #6B6862;
+    --nav-text: #3B3A37;
+    --nav-active-bg: #E7EEF7;
+    --nav-active-text: #134881;
+    --nav-indicator: #F5821F;
+    --nav-name: #1B1A18;
+    --nav-footer-bg: #F6F2EE;
+    --nav-stroke: #E8E3DA;
 }
 
 /* ============================================================
@@ -249,15 +280,25 @@
     --brand-accent: hsl(33 92% 53%);
     --brand-accent-foreground: hsl(0 0% 100%);
 
-    --sidebar-background: hsl(222 47% 7%);
-    --sidebar-foreground: hsl(214 13% 90%);
-    --sidebar-primary: hsl(214 13% 96%);
-    --sidebar-primary-foreground: hsl(222 47% 8%);
-    --sidebar-accent: hsl(222 30% 14%);
-    --sidebar-accent-foreground: hsl(214 13% 90%);
-    --sidebar-border: hsl(222 30% 16%);
-    --sidebar-ring: hsl(214 70% 55%);
-    --sidebar: hsl(222 47% 7%);
+    /* Dark mode sidebar: keep Figma palette (sidebar ignores dark mode by design) */
+    --sidebar-background: #ffffff;
+    --sidebar-foreground: #3B3A37;
+    --sidebar-primary: #134881;
+    --sidebar-primary-foreground: #ffffff;
+    --sidebar-accent: #E7EEF7;
+    --sidebar-accent-foreground: #134881;
+    --sidebar-border: #E8E3DA;
+    --sidebar-ring: #134881;
+    --sidebar: #ffffff;
+    --nav-bg: #ffffff;
+    --nav-muted: #6B6862;
+    --nav-text: #3B3A37;
+    --nav-active-bg: #E7EEF7;
+    --nav-active-text: #134881;
+    --nav-indicator: #F5821F;
+    --nav-name: #1B1A18;
+    --nav-footer-bg: #F6F2EE;
+    --nav-stroke: #E8E3DA;
 }
 
 .form-card-section {

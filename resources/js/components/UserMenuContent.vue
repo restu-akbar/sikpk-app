@@ -1,21 +1,16 @@
 <script setup lang="ts">
-import { Link, router } from '@inertiajs/vue3';
 import axios from 'axios';
-import { LogOut, Settings } from 'lucide-vue-next';
+import { LogOut } from 'lucide-vue-next';
 import {
-    DropdownMenuGroup,
-    DropdownMenuItem,
     DropdownMenuLabel,
     DropdownMenuSeparator,
+    DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
 import UserInfo from '@/components/UserInfo.vue';
 import { logout } from '@/routes';
-import { edit } from '@/routes/satgas/settings/profile';
 import type { User } from '@/types';
 
-type Props = {
-    user: User;
-};
+const props = defineProps<{ user: User }>();
 
 const handleLogout = () => {
     const url = props.user.role ? logout().url : '/logout';
@@ -23,8 +18,6 @@ const handleLogout = () => {
         window.location.href = '/';
     });
 };
-
-const props = defineProps<Props>();
 </script>
 
 <template>
@@ -33,22 +26,9 @@ const props = defineProps<Props>();
             <UserInfo :user="user" :show-email="true" />
         </div>
     </DropdownMenuLabel>
+
     <DropdownMenuSeparator />
-    <template v-if="props.user.role">
-        <DropdownMenuGroup>
-            <DropdownMenuItem :as-child="true">
-                <Link
-                    class="block w-full cursor-pointer"
-                    :href="edit()"
-                    prefetch
-                >
-                    <Settings class="mr-2 h-4 w-4" />
-                    Settings
-                </Link>
-            </DropdownMenuItem>
-        </DropdownMenuGroup>
-        <DropdownMenuSeparator />
-    </template>
+
     <DropdownMenuItem :as-child="true">
         <button
             @click="handleLogout"
@@ -56,7 +36,7 @@ const props = defineProps<Props>();
             data-test="logout-button"
         >
             <LogOut class="mr-2 h-4 w-4" />
-            Log out
+            Keluar
         </button>
     </DropdownMenuItem>
 </template>

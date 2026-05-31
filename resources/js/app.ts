@@ -34,7 +34,7 @@ createInertiaApp({
                 break;
 
             case name === 'GettingStarted':
-                page.default.layout = null;
+                page.default.layout = AuthLayout;
                 break;
 
             case name === 'auth/GoogleLogin':

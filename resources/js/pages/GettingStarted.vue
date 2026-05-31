@@ -98,71 +98,73 @@ const handleDownloadRecovery = () => {
 </script>
 
 <template>
-    <Head title="Change Password" />
+    <Head title="Ganti Password" />
 
-    <div class="flex min-h-screen items-center justify-center bg-muted/30 px-4">
-        <div
-            class="w-full max-w-md rounded-2xl border bg-background p-8 shadow-sm"
-        >
-            <div class="mb-6 space-y-2 text-center">
-                <h1 class="text-2xl font-bold tracking-tight">
-                    Ganti Password Anda
-                </h1>
+    <!-- Right panel content: heading + form -->
+    <div class="flex flex-col gap-6">
 
-                <p class="text-sm text-muted-foreground">
-                    Untuk alasan keamanan, silakan ganti password sesuai
-                    preferensi anda sebelum lanjut.
-                </p>
-            </div>
-
-            <ChangePasswordForm :form="form" :on-submit="submit" />
+        <!-- Heading -->
+        <div class="flex flex-col gap-4">
+            <h2 class="font-display text-4xl font-bold tracking-tight text-foreground">
+                Ganti Password
+            </h2>
+            <p class="text-base leading-relaxed text-muted-foreground">
+                Untuk alasan keamanan, silakan ganti password sesuai
+                preferensi anda sebelum lanjut.
+            </p>
         </div>
 
-        <div
-            v-if="showRecoveryDialog"
-            class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
-        >
-            <div
-                class="w-full max-w-md rounded-2xl bg-background p-6 shadow-xl"
-            >
-                <div class="space-y-4">
-                    <div>
-                        <h2 class="text-lg font-semibold">
-                            Simpan Recovery Key Anda
-                        </h2>
+        <!-- Password form -->
+        <ChangePasswordForm
+            :form="form"
+            :on-submit="submit"
+            submit-label="Ubah Password"
+            processing-label="Mengubah..."
+        />
 
-                        <p class="mt-2 text-sm text-muted-foreground">
-                            Recovery key digunakan untuk memulihkan akses ke
-                            data terenkripsi anda apabila lupa password.
-                        </p>
-                    </div>
+    </div>
 
-                    <div
-                        class="rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-4 text-sm"
-                    >
-                        <ul class="list-disc space-y-1 pl-5">
-                            <li>File ini hanya dapat diunduh sekali.</li>
-                            <li>
-                                Jangan bagikan recovery key kepada siapapun.
-                            </li>
-                            <li>Simpan di tempat yang aman.</li>
-                            <li>
-                                Jika recovery key hilang dan password lupa, akun
-                                anda tidak dapat dipulihkan.
-                            </li>
-                        </ul>
-                    </div>
+    <!-- Recovery key dialog: fixed overlay, outside layout flow -->
+    <div
+        v-if="showRecoveryDialog"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm"
+    >
+        <div class="w-full max-w-md rounded-2xl bg-background p-8 shadow-2xl">
 
-                    <div class="flex justify-end gap-2">
-                        <button
-                            type="button"
-                            class="rounded-lg bg-primary px-4 py-2 text-sm text-primary-foreground"
-                            @click="handleDownloadRecovery"
-                        >
-                            Download Recovery Key
-                        </button>
-                    </div>
+            <div class="flex flex-col gap-6">
+
+                <!-- Header -->
+                <div class="flex flex-col gap-2">
+                    <h2 class="font-display text-xl font-bold text-foreground">
+                        Simpan Recovery Key Anda
+                    </h2>
+                    <p class="text-sm leading-relaxed text-muted-foreground">
+                        Recovery key digunakan untuk memulihkan akses ke data
+                        terenkripsi anda apabila lupa password.
+                    </p>
                 </div>
+
+                <!-- Warning list -->
+                <div class="rounded-xl border border-amber-500/30 bg-amber-500/10 px-5 py-4 text-sm text-amber-700">
+                    <ul class="list-disc space-y-1 pl-4">
+                        <li>File ini hanya dapat diunduh sekali.</li>
+                        <li>Jangan bagikan recovery key kepada siapapun.</li>
+                        <li>Simpan di tempat yang aman.</li>
+                        <li>Jika recovery key hilang dan password lupa, akun anda tidak dapat dipulihkan.</li>
+                    </ul>
+                </div>
+
+                <!-- Action -->
+                <div class="flex justify-end">
+                    <button
+                        type="button"
+                        class="h-12 rounded-xl bg-brand-accent px-6 font-display text-base font-semibold text-white transition-colors hover:bg-brand-accent/90"
+                        @click="handleDownloadRecovery"
+                    >
+                        Download Recovery Key
+                    </button>
+                </div>
+
             </div>
         </div>
     </div>

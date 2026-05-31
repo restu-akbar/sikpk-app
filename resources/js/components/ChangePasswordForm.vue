@@ -5,6 +5,7 @@ import InputError from '@/components/InputError.vue';
 import PasswordInput from '@/components/PasswordInput.vue';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Spinner } from '@/components/ui/spinner';
 
 interface ChangePasswordFormFields {
     current_password: string;
@@ -27,8 +28,8 @@ const props = withDefaults(
         processingLabel?: string;
     }>(),
     {
-        submitLabel: 'Save password',
-        processingLabel: 'Saving...',
+        submitLabel: 'Ubah Password',
+        processingLabel: 'Mengubah...',
     },
 );
 
@@ -76,54 +77,72 @@ defineExpose({ passwordMessage });
 </script>
 
 <template>
-    <form @submit.prevent="onSubmit" class="space-y-6">
-        <!-- Current Password -->
-        <div class="grid gap-2">
-            <Label for="current_password">Current password</Label>
-            <PasswordInput
-                id="current_password"
-                name="current_password"
-                v-model="form.current_password"
-                class="mt-1 block w-full"
-                autocomplete="current-password"
-                placeholder="Current password"
-            />
-            <InputError :message="form.errors.current_password" />
+    <form @submit.prevent="onSubmit" class="flex flex-col">
+
+        <!-- Fields: gap-4 (16px) antar field -->
+        <div class="flex flex-col gap-4">
+
+            <!-- Kata sandi lama -->
+            <div class="flex flex-col gap-2">
+                <Label for="current_password" class="text-base font-medium">
+                    Kata sandi lama
+                </Label>
+                <PasswordInput
+                    id="current_password"
+                    name="current_password"
+                    v-model="form.current_password"
+                    class="h-12 w-full text-base"
+                    autocomplete="current-password"
+                    placeholder="Kata sandi lama"
+                />
+                <InputError :message="form.errors.current_password" />
+            </div>
+
+            <!-- Kata sandi baru -->
+            <div class="flex flex-col gap-2">
+                <Label for="password" class="text-base font-medium">
+                    Kata sandi baru
+                </Label>
+                <PasswordInput
+                    id="password"
+                    name="password"
+                    v-model="form.password"
+                    class="h-12 w-full text-base"
+                    autocomplete="new-password"
+                    placeholder="Kata sandi baru"
+                />
+                <InputError :message="passwordMessage || form.errors.password" />
+            </div>
+
+            <!-- Konfirmasi kata sandi -->
+            <div class="flex flex-col gap-2">
+                <Label for="password_confirmation" class="text-base font-medium">
+                    Konfirmasi kata sandi
+                </Label>
+                <PasswordInput
+                    id="password_confirmation"
+                    name="password_confirmation"
+                    v-model="form.password_confirmation"
+                    class="h-12 w-full text-base"
+                    autocomplete="new-password"
+                    placeholder="Konfirmasi kata sandi baru"
+                />
+                <InputError :message="form.errors.password_confirmation" />
+            </div>
+
         </div>
 
-        <!-- New Password -->
-        <div class="grid gap-2">
-            <Label for="password">New password</Label>
-            <PasswordInput
-                id="password"
-                name="password"
-                v-model="form.password"
-                class="mt-1 block w-full"
-                autocomplete="new-password"
-                placeholder="New password"
-            />
-            <InputError :message="passwordMessage || form.errors.password" />
-        </div>
+        <!-- Submit: mt-6 (24px) = sama dengan gap heading-ke-form di halaman -->
+        <Button
+            type="submit"
+            variant="brand-accent"
+            size="lg"
+            class="mt-6 h-14 w-full font-display text-base font-semibold"
+            :disabled="form.processing"
+        >
+            <Spinner v-if="form.processing" />
+            {{ form.processing ? processingLabel : submitLabel }}
+        </Button>
 
-        <!-- Confirm Password -->
-        <div class="grid gap-2">
-            <Label for="password_confirmation">Confirm password</Label>
-            <PasswordInput
-                id="password_confirmation"
-                name="password_confirmation"
-                v-model="form.password_confirmation"
-                class="mt-1 block w-full"
-                autocomplete="new-password"
-                placeholder="Confirm password"
-            />
-            <InputError :message="form.errors.password_confirmation" />
-        </div>
-
-        <!-- Submit -->
-        <div class="flex items-center gap-4">
-            <Button :disabled="form.processing" type="submit">
-                {{ form.processing ? processingLabel : submitLabel }}
-            </Button>
-        </div>
     </form>
 </template>
