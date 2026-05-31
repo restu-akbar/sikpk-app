@@ -27,7 +27,7 @@ const loginWithGoogle = () => {
         <button
             type="button"
             @click="loginWithGoogle"
-            class="flex h-12 w-full items-center justify-center gap-3 rounded-xl border border-border bg-white text-sm font-medium text-foreground shadow-xs transition-all hover:bg-accent hover:shadow-sm active:scale-[0.99]"
+            class="flex h-12 w-full items-center justify-center gap-3 rounded-xl border border-border bg-auth-card-bg text-sm font-medium text-foreground shadow-xs transition-all hover:bg-accent hover:shadow-sm active:scale-[0.99]"
         >
             <!-- Colored Google G logo -->
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" class="size-5 shrink-0">
@@ -40,9 +40,9 @@ const loginWithGoogle = () => {
         </button>
 
         <!-- Domain restriction notice -->
-        <div class="flex w-full items-start gap-3 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3.5">
+        <div class="flex w-full items-start gap-3 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3.5 dark:border-blue-900 dark:bg-blue-950/50">
             <Shield class="mt-0.5 size-4 shrink-0 text-blue-500" />
-            <p class="text-sm leading-relaxed text-blue-700">
+            <p class="text-sm leading-relaxed text-blue-700 dark:text-blue-300">
                 Hanya akun Google dengan domain Polban yang dapat mengakses fitur aplikasi.
             </p>
         </div>

@@ -91,7 +91,7 @@ async function submit() {
         <!-- Status message from server (e.g. password reset success) -->
         <div
             v-if="status"
-            class="rounded-md bg-green-50 px-4 py-3 text-base font-medium text-green-700"
+            class="rounded-md bg-green-50 px-4 py-3 text-base font-medium text-green-700 dark:bg-green-950/50 dark:text-green-300"
         >
             {{ status }}
         </div>

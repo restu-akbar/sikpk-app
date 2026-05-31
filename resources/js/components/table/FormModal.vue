@@ -64,10 +64,10 @@ watch(
         class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
         @click.self="emit('close')"
     >
-        <div class="w-full max-w-2xl rounded-2xl border border-nav-stroke bg-background shadow-2xl">
+        <div class="w-full max-w-2xl rounded-2xl border border-border bg-background shadow-2xl">
 
             <!-- HEADER -->
-            <div class="flex items-start justify-between border-b border-nav-stroke px-6 py-2">
+            <div class="flex items-start justify-between border-b border-border px-6 py-2">
                 <div>
                     <h2 class="text-lg font-semibold text-foreground">{{ title }}</h2>
                     <p v-if="description" class="mt-0.5 text-sm text-muted-foreground">
@@ -100,7 +100,7 @@ watch(
                     <select
                         v-if="field.type === 'select'"
                         v-model="form[field.key]"
-                        class="h-11 w-full rounded-xl border border-nav-stroke bg-background px-4 text-sm text-foreground outline-none transition focus:border-[#F5821F] focus:ring-2 focus:ring-[#F5821F]/20"
+                        class="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground outline-none transition focus:border-[#F5821F] focus:ring-2 focus:ring-[#F5821F]/20"
                     >
                         <option
                             v-for="opt in getOptions(field)"
@@ -130,16 +130,16 @@ watch(
                         v-model="form[field.key]"
                         :type="field.type"
                         :placeholder="field.placeholder ?? ''"
-                        class="h-11 w-full rounded-xl border border-nav-stroke bg-background px-4 text-sm text-foreground outline-none transition focus:border-[#F5821F] focus:ring-2 focus:ring-[#F5821F]/20"
+                        class="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground outline-none transition focus:border-[#F5821F] focus:ring-2 focus:ring-[#F5821F]/20"
                     />
                 </div>
             </div>
 
             <!-- FOOTER -->
-            <div class="flex items-center justify-between rounded-b-2xl border-t border-nav-stroke bg-[#FBF9F5] px-6 py-4">
+            <div class="flex items-center justify-between rounded-b-2xl border-t border-border bg-surface px-6 py-4">
                 <!-- Batal — kiri -->
                 <button
-                    class="rounded-xl border border-nav-stroke bg-white px-5 py-2 text-sm font-medium text-foreground transition hover:bg-muted"
+                    class="rounded-xl border border-border bg-background px-5 py-2 text-sm font-medium text-foreground transition hover:bg-muted"
                     @click="emit('close')"
                 >
                     Batal

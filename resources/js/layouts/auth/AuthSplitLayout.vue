@@ -13,7 +13,7 @@ import { home } from '@/routes';
             <!-- Logo area: icon 40px + institution name -->
             <Link :href="home()" class="flex items-center gap-3">
                 <div class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl">
-                    <AppLogoIcon class="size-5" />
+                    <AppLogoIcon class="size-full object-contain" />
                 </div>
                 <div class="flex flex-col gap-0.5">
                     <span class="font-display text-sm font-bold leading-none text-white">
@@ -47,7 +47,7 @@ import { home } from '@/routes';
 
         <!-- Right panel: form content -->
         <!-- bg-[#F6F7F9] matches the Figma right-panel background -->
-        <div class="flex min-h-svh items-center justify-center bg-[#F6F7F9] px-8 py-12">
+        <div class="flex min-h-svh items-center justify-center bg-auth-bg px-8 py-12">
             <div class="w-full max-w-md">
                 <slot />
             </div>

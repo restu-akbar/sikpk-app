@@ -18,7 +18,7 @@ const emit = defineEmits<{
         class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
         @click.self="emit('close')"
     >
-        <div class="w-full max-w-sm rounded-2xl border border-nav-stroke bg-background shadow-xl">
+        <div class="w-full max-w-sm rounded-2xl border border-border bg-background shadow-xl">
 
             <!-- BODY -->
             <div class="flex flex-col items-center px-8 py-8 text-center">
@@ -52,10 +52,10 @@ const emit = defineEmits<{
             </div>
 
             <!-- FOOTER -->
-            <div class="flex items-center justify-between rounded-b-2xl border-t border-nav-stroke bg-[#FBF9F5] px-6 py-4">
+            <div class="flex items-center justify-between rounded-b-2xl border-t border-border bg-surface px-6 py-4">
                 <!-- Batal -->
                 <button
-                    class="rounded-xl border border-nav-stroke bg-white px-5 py-2 text-sm font-medium text-foreground transition hover:bg-muted"
+                    class="rounded-xl border border-border bg-background px-5 py-2 text-sm font-medium text-foreground transition hover:bg-muted"
                     @click="emit('close')"
                 >
                     Batal

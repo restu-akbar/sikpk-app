@@ -133,15 +133,15 @@ function validateUser(data: Partial<User>) {
         >
             <!-- Filter unsur -->
             <template #filter>
-                <div class="inline-flex h-9 items-center gap-0.5 rounded-lg border border-border bg-[#FBF9F5] p-1">
+                <div class="inline-flex h-9 items-center gap-0.5 rounded-lg border border-border bg-surface p-1">
                     <button
                         v-for="opt in unsurOptions"
                         :key="opt.value"
                         class="relative h-full rounded-md px-4 text-sm transition-all"
                         :class="
                             unsurFilter === opt.value
-                                ? 'bg-white text-foreground shadow-sm'
-                                : 'text-[#6B6862] hover:text-foreground'
+                                ? 'bg-background text-foreground shadow-sm'
+                                : 'text-nav-muted hover:text-foreground'
                         "
                         @click="unsurFilter = opt.value"
                     >

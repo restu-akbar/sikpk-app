@@ -181,7 +181,7 @@ function submitDelete() {
             <div class="hidden w-full overflow-x-auto md:block">
                 <table class="w-full min-w-[700px] text-sm">
                     <!-- HEAD -->
-                    <thead class="bg-[#FBF9F5]">
+                    <thead class="bg-surface">
                         <tr>
                             <th
                                 v-for="column in columns"
