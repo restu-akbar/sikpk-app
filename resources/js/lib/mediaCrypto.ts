@@ -1,5 +1,6 @@
 import { aesEncrypt } from '@/lib/crypto/aes-gcm';
 import { rsaEncrypt } from '@/lib/crypto/rsa-oaep';
+import { bufferToBase64 } from '@/lib/crypto/base64';
 
 export async function encryptFile(
     file: File,
@@ -7,22 +8,32 @@ export async function encryptFile(
 ): Promise<EncryptedFile> {
     const fileBuffer = await file.arrayBuffer();
 
-    const dek = crypto.getRandomValues(new Uint8Array(32));
+    const dekRaw = crypto.getRandomValues(new Uint8Array(32));
+
+    const dekKey = await crypto.subtle.importKey(
+        'raw',
+        dekRaw,
+        { name: 'AES-GCM' },
+        false,
+        ['encrypt'],
+    );
 
     const encryptedFile = await aesEncrypt({
-        key: dek,
+        key: dekKey,
         data: new Uint8Array(fileBuffer),
     });
 
-    const edek = await rsaEncrypt(publicKey, dek.buffer);
+    const encryptedDek = await rsaEncrypt(publicKey, dekRaw);
 
     return {
         filename: file.name,
         mimeType: file.type,
         size: file.size,
-
-        encryptedData: new Blob([JSON.stringify(encryptedFile)]),
-
-        edek: bufferToBase64(edek),
+        encryptedData: new File(
+            [JSON.stringify(encryptedFile)],
+            `${file.name}.enc`,
+            { type: 'application/octet-stream' },
+        ),
+        edek: bufferToBase64(encryptedDek),
     };
 }

@@ -1,5 +1,12 @@
 export function bufferToBase64(buffer: ArrayBuffer | Uint8Array): string {
-    return btoa(String.fromCharCode(...new Uint8Array(buffer)));
+    const bytes =
+        buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer);
+    let binary = '';
+    const chunkSize = 8192;
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+        binary += String.fromCharCode(...bytes.subarray(i, i + chunkSize));
+    }
+    return btoa(binary);
 }
 
 export function base64ToBuffer(base64: string): Uint8Array {

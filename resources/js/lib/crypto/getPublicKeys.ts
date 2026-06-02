@@ -1,14 +1,19 @@
 import { importPublicKey } from '@/lib/crypto/rsa-oaep';
+
 export async function getPublicKeys(
-    owners: string[],
+    owners?: string[],
 ): Promise<Record<string, CryptoKey>> {
     const params = new URLSearchParams();
 
-    owners.forEach((owner) => {
+    owners?.forEach((owner) => {
         params.append('owner[]', owner);
     });
 
-    const res = await fetch(`/api/public-key?${params.toString()}`);
+    const url = params.size
+        ? `/api/public-key?${params.toString()}`
+        : '/api/public-key';
+
+    const res = await fetch(url);
 
     const publicKeys: Record<string, string> = await res.json();
 
