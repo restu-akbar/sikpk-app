@@ -48,3 +48,6 @@ ps:
 ## --- Completely reset environment including volumes (danger) ---
 clean:
 	$(COMPOSE_DEV) down --volumes --remove-orphans
+
+clean-logs:
+	sudo sh -c 'truncate -s 0 $$(docker inspect --format="{{.LogPath}}" $$(docker ps -q))'
