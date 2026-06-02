@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\ChangePasswordController;
 use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\KeyController;
 use App\Http\Controllers\Master\UserController;
+use App\Http\Controllers\Module\ReportController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
@@ -20,6 +21,8 @@ Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback']);
 
 Route::middleware(['auth:google'])->group(function () {
     Route::inertia('/dashboard', 'dashboard/Dashboard')->name('dashboard');
+    Route::resource('reports', ReportController::class);
+
     Route::post('/logout', [GoogleAuthController::class, 'logout'])->name('reporter.logout');
 
     Route::get('/api/public-key', [KeyController::class, 'publicKey']);

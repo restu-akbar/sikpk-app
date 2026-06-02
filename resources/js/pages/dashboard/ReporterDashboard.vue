@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
+import { create } from '@/routes/reports';
 </script>
 
 <template>
@@ -17,7 +18,7 @@ import { Link } from '@inertiajs/vue3';
                 </div>
 
                 <Link
-                    href="/reports/create"
+                    :href="create()"
                     class="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700"
                 >
                     + Buat Laporan

@@ -1,8 +1,10 @@
 <script setup lang="ts">
+import ErrorField from './form/ErrorField.vue';
 const props = defineProps<{
     modelValue: boolean;
     title?: string;
     description?: string;
+    error?: string;
 }>();
 
 const emit = defineEmits<{
@@ -16,7 +18,8 @@ const toggle = () => {
 
 <template>
     <div
-        class="cursor-pointer rounded-xl border border-blue-200 bg-blue-50 p-4 mb-4"
+        data-field="agreed"
+        class="cursor-pointer rounded-xl border border-blue-200 bg-blue-50 p-4"
         @click="toggle"
     >
         <div class="flex items-start gap-3">
@@ -54,4 +57,5 @@ const toggle = () => {
             </p>
         </div>
     </div>
+    <ErrorField :error="error" />
 </template>
