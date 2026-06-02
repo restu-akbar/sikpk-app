@@ -9,6 +9,8 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
 use App\Http\Responses\LoginResponse;
+use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Notifications\Messages\MailMessage;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -30,6 +32,19 @@ class AppServiceProvider extends ServiceProvider
             LoginResponseContract::class,
             LoginResponse::class,
         );
+
+        ResetPassword::toMailUsing(function ($notifiable, string $token) {
+            $url = route('password.reset', ['token' => $token])
+                . '?email=' . urlencode($notifiable->getEmailForPasswordReset());
+
+            return (new MailMessage)
+                ->subject('Reset Password SIKPK POLBAN')
+                ->greeting('Halo!')
+                ->line('Kami menerima permintaan reset password untuk akun Anda.')
+                ->action('Reset Password', $url)
+                ->line('Link reset password berlaku selama 15 menit.')
+                ->line('Jika Anda tidak meminta reset password, abaikan email ini.');
+        });
     }
 
     /**
@@ -43,14 +58,15 @@ class AppServiceProvider extends ServiceProvider
             app()->isProduction(),
         );
 
-        Password::defaults(fn (): ?Password => app()->isProduction()
-            ? Password::min(12)
+        Password::defaults(
+            fn(): ?Password => app()->isProduction()
+                ? Password::min(12)
                 ->mixedCase()
                 ->letters()
                 ->numbers()
                 ->symbols()
                 ->uncompromised()
-            : null,
+                : null,
         );
     }
 }

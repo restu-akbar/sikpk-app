@@ -19,6 +19,7 @@ class UserController extends Controller
 
     public function index()
     {
+        dd("halo");
         return Inertia::render('master/user/Index', [
             'users'          => $this->userService->getAnggota(),
             'departments'    => Department::orderBy('name')->get(['id', 'name']),

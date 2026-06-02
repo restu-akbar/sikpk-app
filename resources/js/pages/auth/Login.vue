@@ -150,7 +150,7 @@ async function submit() {
             <!-- Forgot password link: right-aligned -->
             <div v-if="canResetPassword" class="text-right">
                 <Link
-                    href="/forgot-password"
+                    href="/satgas/forgot-password"
                     :tabindex="4"
                     class="text-base font-medium text-brand transition-colors underline-offset-4 hover:underline hover:text-brand/80"
                 >
