@@ -2,7 +2,6 @@
 import { useForm, router } from '@inertiajs/vue3';
 import { computed, ref, watch } from 'vue';
 import type { ReportForm } from '@/types';
-import { handleCreate } from '@/lib/handleRequest';
 import { store } from '@/routes/reports';
 
 import Agreement from '@/components/Agreement.vue';

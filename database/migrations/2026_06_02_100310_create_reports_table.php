@@ -14,6 +14,10 @@ return new class extends Migration
         Schema::create('reports', function (Blueprint $table) {
             $table->uuid('id')->primary();
 
+            $table->foreignUuid('reporter_id')
+                ->constrained('reporters')
+                ->nullOnDelete();
+
             $table->string('nama');
             $table->string('whatsapp', 30);
 
@@ -32,11 +36,33 @@ return new class extends Migration
 
             $table->json('disabilitas')->nullable();
 
-            $table->boolean('agreed');
+            $table->enum('progress', [
+                'Laporan Baru',
+                'Klarifikasi',
+                'Pemeriksaan',
+                'Kesimpulan',
+                'Pasca',
+                'Selesai',
+                'Laporan Dihentikan',
+                'Laporan Ditolak',
+            ])->default('Laporan Baru');
 
             $table->timestamps();
         });
 
+        Schema::create('report_handlers', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+
+            $table->foreignUuid('report_id')
+                ->constrained('reports')
+                ->cascadeOnDelete();
+
+            $table->foreignUuid('user_id')
+                ->constrained('users')
+                ->cascadeOnDelete();
+
+            $table->timestamps();
+        });
         Schema::create('report_evidences', function (Blueprint $table) {
             $table->uuid('id')->primary();
 
