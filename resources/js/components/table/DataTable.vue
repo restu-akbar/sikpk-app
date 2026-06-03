@@ -13,6 +13,9 @@ interface Column {
     sortable?: boolean;
 }
 
+const emit = defineEmits<{
+    rowClick: [row: any];
+}>();
 
 const props = defineProps<{
     title?: string;
@@ -45,7 +48,6 @@ const props = defineProps<{
     validator?: (data: any) => boolean;
 }>();
 
-
 const isCreateOpen = ref(false);
 const isEditOpen = ref(false);
 const isDeleteOpen = ref(false);
@@ -61,8 +63,8 @@ const filteredRows = computed(() => {
 
     // FILTER by key/value (e.g. unsur filter)
     if (props.filterKey && props.filterValue) {
-        data = data.filter((row) =>
-            String(row[props.filterKey!] ?? '') === props.filterValue,
+        data = data.filter(
+            (row) => String(row[props.filterKey!] ?? '') === props.filterValue,
         );
     }
 
@@ -167,12 +169,14 @@ function submitDelete() {
 
                 <!-- SEARCH -->
                 <div v-if="searchable" class="relative w-full sm:w-64">
-                    <Search class="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                    <Search
+                        class="absolute top-1/2 left-3 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground"
+                    />
                     <input
                         v-model="search"
                         type="text"
                         :placeholder="searchPlaceholder || 'Cari data...'"
-                        class="h-9 w-full rounded-lg border border-border bg-background pl-8 pr-3 text-sm outline-none transition focus:ring-2 focus:ring-primary"
+                        class="h-9 w-full rounded-lg border border-border bg-background pr-3 pl-8 text-sm transition outline-none focus:ring-2 focus:ring-primary"
                     />
                 </div>
             </div>
@@ -198,7 +202,9 @@ function submitDelete() {
                                         v-if="sortKey === column.key"
                                         class="text-xs"
                                     >
-                                        {{ sortDirection === 'asc' ? '↑' : '↓' }}
+                                        {{
+                                            sortDirection === 'asc' ? '↑' : '↓'
+                                        }}
                                     </span>
                                 </button>
 
@@ -219,7 +225,8 @@ function submitDelete() {
                         <tr
                             v-for="(row, index) in filteredRows"
                             :key="row.id || index"
-                            class="border-t border-border transition-colors hover:bg-muted/40"
+                            class="cursor-pointer border-t border-border transition-colors hover:bg-muted/40"
+                            @click="emit('rowClick', row)"
                         >
                             <td
                                 v-for="column in columns"
@@ -291,7 +298,8 @@ function submitDelete() {
                 <div
                     v-for="(row, index) in filteredRows"
                     :key="row.id || index"
-                    class="rounded-xl border border-border bg-background p-4 shadow-sm"
+                    class="cursor-pointer rounded-xl border border-border bg-background p-4 shadow-sm"
+                    @click="emit('rowClick', row)"
                 >
                     <div class="space-y-3">
                         <div v-for="column in columns" :key="column.key">
@@ -369,7 +377,7 @@ function submitDelete() {
                         :disabled="!rows.prev_page_url"
                         @click="
                             rows.prev_page_url &&
-                                router.visit(rows.prev_page_url)
+                            router.visit(rows.prev_page_url)
                         "
                     >
                         Sebelumnya
@@ -384,7 +392,7 @@ function submitDelete() {
                         :disabled="!rows.next_page_url"
                         @click="
                             rows.next_page_url &&
-                                router.visit(rows.next_page_url)
+                            router.visit(rows.next_page_url)
                         "
                     >
                         Selanjutnya
@@ -405,7 +413,12 @@ function submitDelete() {
 
     <FormModal
         :open="isEditOpen"
-        :title="editModalTitle || (createModalTitle ? createModalTitle.replace(/^Tambah/, 'Edit') : 'Edit Data')"
+        :title="
+            editModalTitle ||
+            (createModalTitle
+                ? createModalTitle.replace(/^Tambah/, 'Edit')
+                : 'Edit Data')
+        "
         :schema="formSchema || []"
         submit-label="Simpan Perubahan"
         :data="selectedRow"

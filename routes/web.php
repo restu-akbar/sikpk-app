@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\ChangePasswordController;
 use App\Http\Controllers\Auth\GoogleAuthController;
+use App\Http\Controllers\EvidenceController;
 use App\Http\Controllers\KeyController;
 use App\Http\Controllers\Master\UserController;
 use App\Http\Controllers\Module\ReportController;
@@ -57,6 +58,10 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
                 ->group(function () {
                     Route::resource('users', UserController::class);
                 });
+
+            Route::resource('reports', ReportController::class);
+            Route::get('crypto', [KeyController::class, 'show'])->name('crypto');
+            Route::get('evidences/{evidence}', [EvidenceController::class, 'show']);
         });
 });
 

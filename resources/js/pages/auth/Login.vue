@@ -41,6 +41,7 @@ async function submit() {
 
     try {
         const response = await axios.post('/satgas/login', form);
+        const user = response.data.user;
 
         if (response.data.must_change_password) {
             window.location.href = '/satgas/getting-started';
@@ -56,7 +57,7 @@ async function submit() {
             encrypted_private_key: crypto.encrypted_private_key,
         });
 
-        cryptoStore.activate(privateKey);
+        cryptoStore.activate(privateKey, user.id);
         router.visit('/satgas/dashboard');
     } catch (error: any) {
         if (error.response?.status === 422) {
@@ -77,10 +78,11 @@ async function submit() {
     <Head title="Masuk" />
 
     <div class="flex flex-col gap-8">
-
         <!-- Page heading -->
         <div class="flex flex-col gap-4">
-            <h2 class="font-display text-4xl font-bold tracking-tight text-foreground">
+            <h2
+                class="font-display text-4xl font-bold tracking-tight text-foreground"
+            >
                 Masuk Satgas
             </h2>
             <p class="text-base leading-relaxed text-muted-foreground">
@@ -97,7 +99,7 @@ async function submit() {
         </div>
 
         <!-- Login form: gap-6 = 24px antar field -->
-        <form @submit.prevent="submit" novalidate class="flex flex-col gap-6">
+       <form @submit.prevent="submit" novalidate class="flex flex-col gap-6">
 
             <!-- Email field -->
             <FormField
@@ -151,12 +153,11 @@ async function submit() {
                 <Link
                     href="/satgas/forgot-password"
                     :tabindex="4"
-                    class="text-base font-medium text-brand transition-colors underline-offset-4 hover:underline hover:text-brand/80"
+                    class="text-base font-medium text-brand underline-offset-4 transition-colors hover:text-brand/80 hover:underline"
                 >
                     Lupa kata sandi?
                 </Link>
             </div>
-
         </form>
     </div>
 </template>

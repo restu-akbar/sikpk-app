@@ -45,7 +45,7 @@ const dashboardUrl = dashboard.url();
 
 const ketuaNavItems: NavItem[] = [
     { title: 'Dashboard', href: dashboardUrl, icon: LayoutGrid },
-    { title: 'Manajemen Kasus', href: '/satgas/cases', icon: FileText },
+    { title: 'Manajemen Kasus', href: '/satgas/reports', icon: FileText },
     { title: 'Penanganan Kasus', href: '/satgas/handling', icon: Briefcase },
     { title: 'Arsip Kasus', href: '/satgas/archive', icon: Archive },
     { title: 'Manajemen Anggota', href: '/satgas/master/users', icon: Users },
