@@ -1,14 +1,13 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import DataTable from '@/components/table/DataTable.vue';
-import type { User, Department, StudyProgram } from '@/types/auth';
+import type { User } from '@/types/auth';
 import { getInitials, getAvatarColor } from '@/composables/useInitials';
 import { toast } from 'vue-sonner';
+import { jurusanList, prodiList } from '@/constants/jurusanProdi';
 
 const props = defineProps<{
     users: { data: User[] };
-    departments: Department[];
-    study_programs: StudyProgram[];
 }>();
 
 const rows = ref<User[]>([...props.users.data]);
@@ -46,43 +45,34 @@ const formSchema = [
     },
     {
         key: 'academic_role', label: 'Unsur', type: 'select', span: 'half',
-        required: true,
+        required: true, placeholder: 'Pilih unsur...',
         options: [
-            { label: 'Pilih unsur...', value: ''          },
-            { label: 'Dosen',          value: 'dosen'     },
-            { label: 'Mahasiswa',      value: 'mahasiswa' },
+            { label: 'Dosen',     value: 'dosen'     },
+            { label: 'Mahasiswa', value: 'mahasiswa' },
         ],
     },
     {
         key: 'role', label: 'Jabatan Satgas', type: 'select', span: 'half',
-        required: true,
+        required: true, placeholder: 'Pilih jabatan...',
         options: [
-            { label: 'Pilih jabatan...', value: ''           },
-            { label: 'Anggota',          value: 'anggota'    },
-            { label: 'Sekretaris',       value: 'sekretaris' },
-            { label: 'Wakil Ketua',      value: 'wakil_ketua'},
+            { label: 'Anggota',     value: 'anggota'     },
+            { label: 'Sekretaris',  value: 'sekretaris'  },
+            { label: 'Wakil Ketua', value: 'wakil_ketua' },
         ],
     },
     {
-        key: 'department_id', label: 'Jurusan', type: 'select', span: 'half',
-        required: true,
-        options: [
-            { label: 'Pilih jurusan...', value: '' },
-            ...props.departments.map(d => ({ label: d.name, value: d.id })),
-        ],
+        key: 'department', label: 'Jurusan', type: 'select', span: 'half',
+        required: true, placeholder: 'Pilih jurusan...',
+        options: jurusanList.map(j => ({ label: j.name, value: j.name })),
     },
     {
-        key: 'study_program_id', label: 'Program Studi', type: 'select', span: 'half',
-        required: false,
-        filteredBy: 'department_id',
-        options: [
-            { label: 'Pilih program studi...', value: '', department_id: null },
-            ...props.study_programs.map(sp => ({
-                label: `${sp.degree_level} ${sp.name}`,
-                value: sp.id,
-                department_id: sp.department_id,
-            })),
-        ],
+        key: 'study_program', label: 'Program Studi', type: 'select', span: 'half',
+        required: false, placeholder: 'Pilih program studi...', filteredBy: 'department',
+        options: prodiList.map(p => ({
+            label: `${p.degreeLevel} ${p.name}`,
+            value: `${p.degreeLevel} ${p.name}`,
+            department: p.jurusanName,
+        })),
     },
     {
         key: 'entry_year', label: 'Angkatan', type: 'number', span: 'half',
@@ -91,22 +81,21 @@ const formSchema = [
 ];
 
 function validateUser(data: Partial<User>) {
-    const errors: string[] = [];
-
-    if (!data.name?.trim())  errors.push('Nama wajib diisi');
-    if (!data.email?.trim()) errors.push('Email wajib diisi');
-
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (data.email && !emailRegex.test(data.email))
-        errors.push('Format email tidak valid');
+    if (data.email && !emailRegex.test(data.email)) {
+        toast.error('Format email tidak valid');
+        return false;
+    }
 
     const duplicate = rows.value.find(
         u => u.email === data.email && u.id !== data.id,
     );
-    if (duplicate) errors.push('Email sudah digunakan');
+    if (duplicate) {
+        toast.error('Email sudah digunakan');
+        return false;
+    }
 
-    errors.forEach(e => toast.error(e));
-    return errors.length === 0;
+    return true;
 }
 </script>
 
@@ -190,15 +179,7 @@ function validateUser(data: Partial<User>) {
 
             <!-- Jurusan -->
             <template #department="{ row }">
-                <span v-if="row.department">{{ row.department.name }}</span>
-                <span v-else class="text-muted-foreground">—</span>
-            </template>
-
-            <!-- Prodi -->
-            <template #study_program="{ row }">
-                <span v-if="row.study_program">
-                    {{ row.study_program.degree_level }} {{ row.study_program.name }}
-                </span>
+                <span v-if="row.department">{{ row.department }}</span>
                 <span v-else class="text-muted-foreground">—</span>
             </template>
 

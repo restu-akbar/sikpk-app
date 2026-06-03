@@ -18,17 +18,13 @@ return new class extends Migration
                 ->nullable()
                 ->after('academic_role');
 
-            $table->foreignId('department_id')
+            $table->string('department')
                 ->nullable()
-                ->after('entry_year')
-                ->constrained('departments')
-                ->nullOnDelete();
+                ->after('entry_year');
 
-            $table->foreignId('study_program_id')
+            $table->string('study_program')
                 ->nullable()
-                ->after('department_id')
-                ->constrained('study_programs')
-                ->nullOnDelete();
+                ->after('department');
         });
 
         // Expand role enum — PostgreSQL stores it as VARCHAR with CHECK constraint
@@ -50,9 +46,7 @@ return new class extends Migration
         ");
 
         Schema::table('users', function (Blueprint $table) {
-            $table->dropForeign(['study_program_id']);
-            $table->dropForeign(['department_id']);
-            $table->dropColumn(['academic_role', 'entry_year', 'department_id', 'study_program_id']);
+            $table->dropColumn(['academic_role', 'entry_year', 'department', 'study_program']);
         });
     }
 };

@@ -1,16 +1,3 @@
-export type Department = {
-    id: number;
-    name: string;
-};
-
-export type StudyProgram = {
-    id: number;
-    department_id: number;
-    name: string;
-    degree_level: string;
-    department?: Department;
-};
-
 export type User = {
     id: number;
     name: string;
@@ -21,10 +8,8 @@ export type User = {
     role: 'ketua' | 'wakil_ketua' | 'sekretaris' | 'anggota' | null;
     academic_role: 'dosen' | 'mahasiswa' | null;
     entry_year: number | null;
-    department_id: number | null;
-    study_program_id: number | null;
-    department?: Department;
-    study_program?: StudyProgram;
+    department: string | null;
+    study_program: string | null;
     created_at: string;
     updated_at: string;
     [key: string]: unknown;

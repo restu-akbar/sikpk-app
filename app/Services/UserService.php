@@ -22,7 +22,6 @@ class UserService extends BaseService
     public function getAnggota(int $perPage = 10)
     {
         return $this->query()
-            ->with(['department', 'studyProgram'])
             ->whereIn('role', ['ketua', 'wakil_ketua', 'sekretaris', 'anggota'])
             ->latest()
             ->paginate($perPage);
@@ -38,9 +37,9 @@ class UserService extends BaseService
             'role'            => $data['role'] ?? 'anggota',
             'academic_role'   => $data['academic_role'] ?? null,
             'entry_year'      => $data['entry_year'] ?? null,
-            'department_id'   => $data['department_id'] ?? null,
-            'study_program_id' => $data['study_program_id'] ?? null,
-            'password'        => Hash::make($plainPassword),
+            'department'    => $data['department'] ?? null,
+            'study_program' => $data['study_program'] ?? null,
+            'password'      => Hash::make($plainPassword),
         ]);
 
         $this->mailService->send(
@@ -61,11 +60,11 @@ class UserService extends BaseService
             'role'            => $data['role'] ?? $user->role,
             'academic_role'   => $data['academic_role'] ?? null,
             'entry_year'      => $data['entry_year'] ?? null,
-            'department_id'   => $data['department_id'] ?? null,
-            'study_program_id' => $data['study_program_id'] ?? null,
+            'department'    => $data['department'] ?? null,
+            'study_program' => $data['study_program'] ?? null,
         ]);
 
-        return $user->fresh(['department', 'studyProgram']);
+        return $user->fresh();
     }
 
     public function deleteAnggota(User $user): bool

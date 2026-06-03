@@ -1,5 +1,7 @@
 <script setup lang="ts">
-import { reactive, watch, computed } from 'vue';
+import { reactive, watch, ref, nextTick } from 'vue';
+import FormField from '@/components/form/FormField.vue';
+import DropdownField from '@/components/form/DropdownField.vue';
 
 const props = defineProps<{
     open: boolean;
@@ -16,11 +18,14 @@ const emit = defineEmits<{
 }>();
 
 const form = reactive<Record<string, any>>({});
+const errors = reactive<Record<string, string>>({});
+const isInitializing = ref(false);
 
 function initializeForm() {
-    Object.keys(form).forEach((key) => {
-        delete form[key];
-    });
+    isInitializing.value = true;
+
+    Object.keys(form).forEach((key) => delete form[key]);
+    Object.keys(errors).forEach((key) => delete errors[key]);
 
     props.schema.forEach((field) => {
         form[field.key] = field.type === 'checkbox' ? false : '';
@@ -29,6 +34,8 @@ function initializeForm() {
     if (props.data) {
         Object.assign(form, { ...props.data });
     }
+
+    nextTick(() => { isInitializing.value = false; });
 }
 
 // Kembalikan opsi yang sudah difilter berdasarkan field lain (cascading select)
@@ -41,13 +48,37 @@ function getOptions(field: any) {
     );
 }
 
-// Reset nilai field dependen saat parent berubah
-watch(
-    () => form['department_id'],
-    () => { form['study_program_id'] = ''; },
-);
+// Reset field dependen saat parent berubah — dinamis berdasarkan schema filteredBy
+watch(form, (_, oldForm) => {
+    if (isInitializing.value) return;
+
+    props.schema.forEach((field) => {
+        if (field.filteredBy && form[field.filteredBy] !== oldForm[field.filteredBy]) {
+            form[field.key] = '';
+        }
+        // Hapus error saat field diisi
+        if (errors[field.key] && form[field.key]) {
+            delete errors[field.key];
+        }
+    });
+});
+
+function validate(): boolean {
+    Object.keys(errors).forEach((key) => delete errors[key]);
+
+    props.schema.forEach((field) => {
+        if (!field.required) return;
+        const value = form[field.key];
+        if (value === '' || value === null || value === undefined) {
+            errors[field.key] = `${field.label} wajib diisi`;
+        }
+    });
+
+    return Object.keys(errors).length === 0;
+}
 
 function submit() {
+    if (!validate()) return;
     emit('submit', { ...form });
 }
 
@@ -87,29 +118,19 @@ watch(
                 <div
                     v-for="field in schema"
                     :key="field.key"
-                    class="space-y-1.5"
                     :class="field.span === 'half' ? 'col-span-1' : 'col-span-2'"
                 >
-                    <!-- Label -->
-                    <label class="flex items-center gap-1 text-sm font-medium text-foreground">
-                        {{ field.label }}
-                        <span v-if="field.required" class="text-[#F5821F]">*</span>
-                    </label>
-
                     <!-- SELECT -->
-                    <select
+                    <DropdownField
                         v-if="field.type === 'select'"
-                        v-model="form[field.key]"
-                        class="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground outline-none transition focus:border-[#F5821F] focus:ring-2 focus:ring-[#F5821F]/20"
-                    >
-                        <option
-                            v-for="opt in getOptions(field)"
-                            :key="opt.value"
-                            :value="opt.value"
-                        >
-                            {{ opt.label }}
-                        </option>
-                    </select>
+                        :label="field.label"
+                        :required="field.required"
+                        :options="getOptions(field)"
+                        :model-value="form[field.key]"
+                        :placeholder="field.placeholder"
+                        :error="errors[field.key]"
+                        @update:model-value="form[field.key] = $event"
+                    />
 
                     <!-- CHECKBOX -->
                     <label
@@ -125,12 +146,15 @@ watch(
                     </label>
 
                     <!-- TEXT / EMAIL / NUMBER / dll -->
-                    <input
+                    <FormField
                         v-else
-                        v-model="form[field.key]"
+                        :label="field.label"
+                        :required="field.required"
+                        :model-value="form[field.key]"
                         :type="field.type"
                         :placeholder="field.placeholder ?? ''"
-                        class="h-11 w-full rounded-xl border border-border bg-background px-4 text-sm text-foreground outline-none transition focus:border-[#F5821F] focus:ring-2 focus:ring-[#F5821F]/20"
+                        :error="errors[field.key]"
+                        @update:model-value="form[field.key] = $event"
                     />
                 </div>
             </div>

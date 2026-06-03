@@ -9,10 +9,10 @@ type InputVariant =
     | 'button';
 
 const baseClasses: Record<InputVariant, string> = {
-    input: 'w-full rounded-lg border px-3.5 py-2.5 text-sm transition-all',
-    select: 'w-full rounded-lg border px-3.5 py-2.5 text-sm transition-all bg-white appearance-none',
+    input: 'w-full rounded-lg border px-3.5 py-2.5 text-sm transition-all outline-none bg-background text-foreground',
+    select: 'w-full rounded-lg border px-3.5 py-2.5 text-sm transition-all appearance-none outline-none bg-background text-foreground',
     textarea:
-        'w-full rounded-lg border px-3.5 py-2.5 text-sm transition-all resize-y min-h-[100px]',
+        'w-full rounded-lg border px-3.5 py-2.5 text-sm transition-all resize-y min-h-[100px] outline-none bg-background text-foreground',
     checkbox: 'rounded border w-4 h-4 cursor-pointer',
     radio: 'rounded-full border w-4 h-4 cursor-pointer',
     button: 'rounded-lg border px-4 py-2 text-sm font-medium transition-all',
@@ -28,12 +28,12 @@ const errorClasses: Record<InputVariant, string> = {
 };
 
 const normalClasses: Record<InputVariant, string> = {
-    input: 'border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500',
-    select: 'border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500',
+    input: 'border-gray-300 focus:ring-2 focus:ring-[#F5821F]/20 focus:border-[#F5821F]',
+    select: 'border-gray-300 focus:ring-2 focus:ring-[#F5821F]/20 focus:border-[#F5821F]',
     textarea:
-        'border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500',
-    checkbox: 'border-gray-300 accent-blue-500',
-    radio: 'border-gray-300 accent-blue-500',
+        'border-gray-300 focus:ring-2 focus:ring-[#F5821F]/20 focus:border-[#F5821F]',
+    checkbox: 'border-gray-300 accent-[#F5821F]',
+    radio: 'border-gray-300 accent-[#F5821F]',
     button: 'border-gray-300',
 };
 

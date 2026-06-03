@@ -1,16 +1,20 @@
 <script setup lang="ts">
-import { Link, usePage } from '@inertiajs/vue3';
+import { Link, usePage, useForm } from '@inertiajs/vue3';
 import {
     Archive,
     BarChart3,
     Briefcase,
     FileText,
+    ChevronsUpDown,
+    KeyRound,
     LayoutGrid,
     LogOut,
     Users,
 } from 'lucide-vue-next';
+import { ref, onMounted, onUnmounted } from 'vue';
 import axios from 'axios';
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
+import ChangePasswordForm from '@/components/ChangePasswordForm.vue';
 import {
     Sidebar,
     SidebarContent,
@@ -23,6 +27,9 @@ import { dashboard } from '@/routes/satgas';
 import { dashboard as reporterDashboard} from '@/routes';
 import type { NavItem } from '@/types';
 import { getInitials, getAvatarColor } from '@/composables/useInitials';
+import { generateEncryption } from '@/lib/crypto';
+import { setTemporaryError } from '@/lib/utils';
+import { update } from '@/actions/App/Http/Controllers/Auth/ChangePasswordController';
 
 const page = usePage();
 const user = page.props.auth.user;
@@ -58,6 +65,71 @@ const handleLogout = () => {
     axios.post(url).finally(() => {
         window.location.href = '/';
     });
+};
+
+// Dropdown menu
+const showMenu = ref(false);
+
+const closeMenu = () => { showMenu.value = false; };
+onMounted(() => document.addEventListener('click', closeMenu));
+onUnmounted(() => document.removeEventListener('click', closeMenu));
+
+// Modal ganti kata sandi
+const showPasswordModal = ref(false);
+
+const passwordForm = useForm({
+    current_password: '',
+    password: '',
+    password_confirmation: '',
+    emek_password: '',
+    emek_password_salt: '',
+});
+
+const submitChangePassword = async () => {
+    try {
+        passwordForm.clearErrors();
+
+        if (!passwordForm.current_password) {
+            setTemporaryError(passwordForm, 'current_password', 'Kata sandi lama wajib diisi.');
+            return;
+        }
+        if (!passwordForm.password) {
+            setTemporaryError(passwordForm, 'password', 'Kata sandi baru wajib diisi.');
+            return;
+        }
+        if (!passwordForm.password_confirmation) {
+            setTemporaryError(passwordForm, 'password_confirmation', 'Konfirmasi kata sandi wajib diisi.');
+            return;
+        }
+        if (passwordForm.password !== passwordForm.password_confirmation) {
+            passwordForm.setError('password_confirmation', 'Konfirmasi kata sandi harus sama dengan kata sandi baru.');
+            return;
+        }
+
+        const encryption = await generateEncryption({
+            mode: 'change',
+            oldPassword: passwordForm.current_password,
+            newPassword: passwordForm.password,
+            emek_password: user.emek_password,
+            emek_password_salt: user.emek_password_salt,
+        });
+
+        passwordForm.emek_password = encryption.emek_password;
+        passwordForm.emek_password_salt = encryption.emek_password_salt;
+
+        passwordForm.submit('put', update['/settings/security'].url(), {
+            preserveScroll: true,
+            onSuccess: () => {
+                passwordForm.reset();
+                showPasswordModal.value = false;
+            },
+            onError: () => {
+                passwordForm.reset('current_password', 'password', 'password_confirmation');
+            },
+        });
+    } catch (error) {
+        console.error(error);
+    }
 };
 </script>
 
@@ -153,15 +225,69 @@ const handleLogout = () => {
                     </span>
                 </div>
 
-                <!-- Logout (hidden when collapsed) -->
-                <button
-                    class="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-nav-muted transition-colors hover:bg-black/10 hover:text-nav-text group-data-[collapsible=icon]:hidden"
-                    title="Keluar"
-                    @click="handleLogout"
-                >
-                    <LogOut class="h-4 w-4" />
-                </button>
+                <!-- Menu trigger (hidden when collapsed) -->
+                <div class="relative shrink-0 group-data-[collapsible=icon]:hidden">
+                    <button
+                        class="flex h-7 w-7 items-center justify-center rounded-md text-nav-muted transition-colors hover:bg-black/10 hover:text-nav-text"
+                        @click.stop="showMenu = !showMenu"
+                    >
+                        <ChevronsUpDown class="h-4 w-4" />
+                    </button>
+
+                    <!-- Dropdown -->
+                    <div
+                        v-if="showMenu"
+                        class="absolute bottom-full right-0 mb-2 w-48 rounded-xl border border-border bg-background shadow-lg"
+                        @click.stop
+                    >
+                        <button
+                            class="flex w-full items-center gap-2.5 rounded-t-xl px-4 py-2.5 text-sm text-foreground transition hover:bg-muted"
+                            @click="showMenu = false; showPasswordModal = true"
+                        >
+                            <KeyRound class="h-4 w-4 text-muted-foreground" />
+                            Ubah Kata Sandi
+                        </button>
+                        <div class="border-t border-border" />
+                        <button
+                            class="flex w-full items-center gap-2.5 rounded-b-xl px-4 py-2.5 text-sm text-red-500 transition hover:bg-red-50 dark:hover:bg-red-950/30"
+                            @click="showMenu = false; handleLogout()"
+                        >
+                            <LogOut class="h-4 w-4" />
+                            Keluar
+                        </button>
+                    </div>
+                </div>
             </div>
         </SidebarFooter>
     </Sidebar>
+
+    <!-- Modal Ganti Kata Sandi -->
+    <div
+        v-if="showPasswordModal"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+        @click.self="showPasswordModal = false"
+    >
+        <div class="w-full max-w-md rounded-2xl border border-border bg-background shadow-2xl">
+            <!-- Header -->
+            <div class="flex items-center justify-between border-b border-border px-6 py-4">
+                <h2 class="text-lg font-semibold text-foreground">Ganti Kata Sandi</h2>
+                <button
+                    class="rounded-lg p-2 text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                    @click="showPasswordModal = false"
+                >
+                    ✕
+                </button>
+            </div>
+
+            <!-- Body -->
+            <div class="p-6">
+                <ChangePasswordForm
+                    :form="passwordForm"
+                    :on-submit="submitChangePassword"
+                    submit-label="Simpan Kata Sandi"
+                    processing-label="Menyimpan..."
+                />
+            </div>
+        </div>
+    </div>
 </template>

@@ -3,12 +3,12 @@ import { Head, Link, router } from '@inertiajs/vue3';
 import axios from 'axios';
 import { reactive, ref } from 'vue';
 
-import InputError from '@/components/InputError.vue';
 import PasswordInput from '@/components/PasswordInput.vue';
+import FormField from '@/components/form/FormField.vue';
+import FieldLabel from '@/components/form/FieldLabel.vue';
+import ErrorField from '@/components/form/ErrorField.vue';
 
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 
 import { generateDecryption } from '@/lib/crypto';
@@ -97,29 +97,28 @@ async function submit() {
         </div>
 
         <!-- Login form: gap-6 = 24px antar field -->
-        <form @submit.prevent="submit" class="flex flex-col gap-6">
+        <form @submit.prevent="submit" novalidate class="flex flex-col gap-6">
 
             <!-- Email field -->
-            <div class="flex flex-col gap-2">
-                <Label for="email" class="text-base font-medium">Email Polban</Label>
-                <Input
-                    v-model="form.email"
-                    id="email"
-                    type="email"
-                    name="email"
-                    required
-                    autofocus
-                    :tabindex="1"
-                    autocomplete="email"
-                    placeholder="r.satgas@polban.ac.id"
-                    class="h-12 text-base"
-                />
-                <InputError :message="errors.email" />
-            </div>
+            <FormField
+                v-model="form.email"
+                label="Email Polban"
+                :error="errors.email"
+                :validator="(v) => v && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? 'Format email tidak valid' : undefined"
+                required
+                id="email"
+                type="email"
+                name="email"
+                autofocus
+                :tabindex="1"
+                autocomplete="email"
+                placeholder="r.satgas@polban.ac.id"
+                class="h-12 text-base"
+            />
 
             <!-- Password field -->
-            <div class="flex flex-col gap-2">
-                <Label for="password" class="text-base font-medium">Kata sandi</Label>
+            <div>
+                <FieldLabel required>Kata sandi</FieldLabel>
                 <PasswordInput
                     v-model="form.password"
                     id="password"
@@ -130,7 +129,7 @@ async function submit() {
                     placeholder="Kata sandi"
                     class="h-12 text-base"
                 />
-                <InputError :message="errors.password" />
+                <ErrorField :error="errors.password" />
             </div>
 
             <!-- Submit button: h-14 = 56px (4px * 14) -->

@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { computed, toRef, ref } from 'vue';
 
+defineOptions({ inheritAttrs: false });
+
 import FieldLabel from './FieldLabel.vue';
 import ErrorField from './ErrorField.vue';
 import { useFieldErrorClass } from '@/composables/useFieldErrorClass';

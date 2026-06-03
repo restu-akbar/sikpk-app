@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed, watch } from 'vue';
 import type { InertiaForm } from '@inertiajs/vue3';
-import InputError from '@/components/InputError.vue';
 import PasswordInput from '@/components/PasswordInput.vue';
+import FieldLabel from '@/components/form/FieldLabel.vue';
+import ErrorField from '@/components/form/ErrorField.vue';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 
 interface ChangePasswordFormFields {
@@ -83,10 +83,8 @@ defineExpose({ passwordMessage });
         <div class="flex flex-col gap-4">
 
             <!-- Kata sandi lama -->
-            <div class="flex flex-col gap-2">
-                <Label for="current_password" class="text-base font-medium">
-                    Kata sandi lama
-                </Label>
+            <div>
+                <FieldLabel required>Kata sandi lama</FieldLabel>
                 <PasswordInput
                     id="current_password"
                     name="current_password"
@@ -95,14 +93,12 @@ defineExpose({ passwordMessage });
                     autocomplete="current-password"
                     placeholder="Kata sandi lama"
                 />
-                <InputError :message="form.errors.current_password" />
+                <ErrorField :error="form.errors.current_password" />
             </div>
 
             <!-- Kata sandi baru -->
-            <div class="flex flex-col gap-2">
-                <Label for="password" class="text-base font-medium">
-                    Kata sandi baru
-                </Label>
+            <div>
+                <FieldLabel required>Kata sandi baru</FieldLabel>
                 <PasswordInput
                     id="password"
                     name="password"
@@ -111,14 +107,12 @@ defineExpose({ passwordMessage });
                     autocomplete="new-password"
                     placeholder="Kata sandi baru"
                 />
-                <InputError :message="passwordMessage || form.errors.password" />
+                <ErrorField :error="passwordMessage || form.errors.password" />
             </div>
 
             <!-- Konfirmasi kata sandi -->
-            <div class="flex flex-col gap-2">
-                <Label for="password_confirmation" class="text-base font-medium">
-                    Konfirmasi kata sandi
-                </Label>
+            <div>
+                <FieldLabel required>Konfirmasi kata sandi</FieldLabel>
                 <PasswordInput
                     id="password_confirmation"
                     name="password_confirmation"
@@ -127,7 +121,7 @@ defineExpose({ passwordMessage });
                     autocomplete="new-password"
                     placeholder="Konfirmasi kata sandi baru"
                 />
-                <InputError :message="form.errors.password_confirmation" />
+                <ErrorField :error="form.errors.password_confirmation" />
             </div>
 
         </div>
