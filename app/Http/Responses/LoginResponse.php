@@ -11,7 +11,13 @@ class LoginResponse implements LoginResponseContract
      */
     public function toResponse($request)
     {
+        $user = $request->user();
         return response()->json([
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+            ],
             'crypto' => [
                 'encrypted_private_key'
                 => $request->user()->encrypted_private_key,

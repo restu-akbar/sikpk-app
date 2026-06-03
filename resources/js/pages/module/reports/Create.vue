@@ -251,8 +251,7 @@ const handleSubmit = async () => {
 
         const encryptedFiles = await Promise.all(
             form.bukti.map((file) => {
-                const [, publicKey] = Object.entries(publicKeys)[0];
-                return encryptFile(file, publicKey);
+                return encryptFile(file, publicKeys);
             }),
         );
 
@@ -273,7 +272,13 @@ const handleSubmit = async () => {
 
         encryptedFiles.forEach((item, index) => {
             formData.append(`bukti[${index}][file]`, item.encryptedData);
-            formData.append(`bukti[${index}][edeks]`, item.edek);
+            formData.append(`bukti[${index}][filename]`, item.filename);
+            formData.append(`bukti[${index}][mime_type]`, item.mimeType);
+            formData.append(`bukti[${index}][size]`, item.size.toString());
+            formData.append(
+                `bukti[${index}][edeks]`,
+                JSON.stringify(item.edeks),
+            );
         });
 
         router.post(store().url, formData, {

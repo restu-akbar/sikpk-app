@@ -22,4 +22,15 @@ class KeyController extends Controller
 
         return response()->json($publicKeys);
     }
+
+    public function show(Request $request)
+    {
+        $user = $request->user();
+
+        return response()->json([
+            'emek_password' => $user->emek_password,
+            'emek_password_salt' => $user->emek_password_salt,
+            'encrypted_private_key' => $user->encrypted_private_key,
+        ]);
+    }
 }

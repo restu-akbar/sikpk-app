@@ -71,9 +71,10 @@ return new class extends Migration
                 ->cascadeOnDelete();
 
             $table->string('path');
-
             $table->json('edeks');
-
+            $table->string('original_filename')->nullable();
+            $table->string('mime_type')->nullable();
+            $table->unsignedBigInteger('size')->nullable();
             $table->timestamps();
         });
     }

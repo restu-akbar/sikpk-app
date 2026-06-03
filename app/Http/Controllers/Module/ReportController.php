@@ -20,7 +20,9 @@ class ReportController extends Controller
 
     public function index()
     {
-        return Inertia::render('module/reports/Index');
+        return Inertia::render('module/reports/Index', [
+            'rows' => $this->reportService->index()
+        ]);
     }
 
     public function create()
@@ -62,7 +64,6 @@ class ReportController extends Controller
                     'message' => $firstError ?? 'Silakan periksa kembali form Anda.',
                 ]);
         }
-
         $this->reportService->store($validated, $request);
 
         return back()->with('toast', [

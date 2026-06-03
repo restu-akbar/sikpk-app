@@ -14,6 +14,9 @@ class ReportEvidence extends Model
         'report_id',
         'path',
         'edeks',
+        'original_filename',
+        'mime_type',
+        'size',
     ];
 
     public function report(): BelongsTo
