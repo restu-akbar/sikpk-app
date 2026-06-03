@@ -1,11 +1,11 @@
-import { aesEncrypt } from '@/lib/crypto/aes-gcm';
-import { rsaEncrypt } from '@/lib/crypto/rsa-oaep';
-import { bufferToBase64 } from '@/lib/crypto/base64';
+import { aesEncrypt, aesDecrypt } from '@/lib/crypto/aes-gcm';
+import { bufferToBase64, base64ToBuffer } from '@/lib/crypto/base64';
+import { rsaEncrypt, rsaDecrypt } from '@/lib/crypto/rsa-oaep';
 
 export async function encryptFile(
     file: File,
-    publicKey: CryptoKey,
-): Promise<EncryptedFile> {
+    publicKeys: Record<string, CryptoKey>,
+) {
     const fileBuffer = await file.arrayBuffer();
 
     const dekRaw = crypto.getRandomValues(new Uint8Array(32));
@@ -22,8 +22,15 @@ export async function encryptFile(
         key: dekKey,
         data: new Uint8Array(fileBuffer),
     });
+    const edeksEntries = await Promise.all(
+        Object.entries(publicKeys).map(async ([userId, publicKey]) => {
+            const encryptedDek = await rsaEncrypt(publicKey, dekRaw);
 
-    const encryptedDek = await rsaEncrypt(publicKey, dekRaw);
+            return [userId, bufferToBase64(encryptedDek)] as const;
+        }),
+    );
+
+    const edeks = Object.fromEntries(edeksEntries);
 
     return {
         filename: file.name,
@@ -34,6 +41,42 @@ export async function encryptFile(
             `${file.name}.enc`,
             { type: 'application/octet-stream' },
         ),
-        edek: bufferToBase64(encryptedDek),
+        edeks,
     };
+}
+
+export async function decryptFile({
+    encryptedFile,
+    edek,
+    privateKey,
+    filename,
+    mimeType,
+}: {
+    encryptedFile: Blob;
+    edek: string;
+    privateKey: CryptoKey;
+    filename: string;
+    mimeType: string;
+}) {
+    const encryptedDek = base64ToBuffer(edek);
+
+    const dekRaw = await rsaDecrypt(privateKey, encryptedDek);
+
+    const dekKey = await crypto.subtle.importKey(
+        'raw',
+        dekRaw,
+        { name: 'AES-GCM' },
+        false,
+        ['decrypt'],
+    );
+
+    const encryptedPayload = JSON.parse(await encryptedFile.text());
+
+    const decrypted = await aesDecrypt({
+        key: dekKey,
+        iv: encryptedPayload.iv,
+        data: encryptedPayload.data,
+    });
+
+    return new File([decrypted], filename, { type: mimeType });
 }
