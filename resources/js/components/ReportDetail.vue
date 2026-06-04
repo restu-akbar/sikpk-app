@@ -244,13 +244,25 @@ function formatSize(bytes: number) {
                         </button>
                         <div class="flex gap-2">
                             <button
-                                class="inline-flex h-9 items-center gap-1.5 rounded-lg border border-red-300 bg-red-50 px-4 text-sm font-medium text-red-700 hover:bg-red-100"
+                                class="inline-flex h-9 items-center gap-1.5 rounded-lg border px-4 text-sm font-medium transition-colors"
+                                :class="
+                                    report.progress === 'Laporan Baru'
+                                        ? 'border-red-300 bg-red-50 text-red-700 hover:bg-red-100'
+                                        : 'cursor-not-allowed border-gray-200 bg-gray-50 text-gray-400'
+                                "
+                                :disabled="report.progress !== 'Laporan Baru'"
                                 @click="$emit('reject', report.id)"
                             >
                                 <X class="h-3.5 w-3.5" /> Tolak Laporan
                             </button>
                             <button
-                                class="inline-flex h-9 items-center gap-1.5 rounded-lg bg-orange-500 px-4 text-sm font-medium text-white hover:bg-orange-600"
+                                class="inline-flex h-9 items-center gap-1.5 rounded-lg px-4 text-sm font-medium text-white transition-colors"
+                                :class="
+                                    report.progress === 'Laporan Baru'
+                                        ? 'bg-orange-500 hover:bg-orange-600'
+                                        : 'cursor-not-allowed bg-gray-300 text-gray-500'
+                                "
+                                :disabled="report.progress !== 'Laporan Baru'"
                                 @click="$emit('accept', report.id)"
                             >
                                 <Check class="h-3.5 w-3.5" /> Terima Laporan

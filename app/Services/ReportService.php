@@ -84,4 +84,17 @@ class ReportService
             return $report;
         });
     }
+
+    public function assignHandlers($request, $id)
+    {
+        $request->validate([
+            'anggota' => ['required', 'array'],
+            'anggota.*' => ['uuid'],
+        ]);
+
+        $report = Report::findOrFail($id);
+        $report->update(['progress' => 'Klarifikasi']);
+        $report->handlers()->sync($request->anggota);
+        return;
+    }
 }

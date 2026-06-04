@@ -7,6 +7,9 @@ import CryptoUnlockDialog from '@/components/CryptoUnlockDialog.vue';
 import { ref } from 'vue';
 import { useCryptoUnlock } from '@/composables/useCryptoUnlock';
 import { ChevronRight } from 'lucide-vue-next';
+import FormTimKlarifikasi from '@/components/report/FormTimKlarifikasi.vue';
+import axios from 'axios';
+import { satgasApi } from '@/lib/axios';
 
 const {
     showUnlockDialog,
@@ -54,6 +57,50 @@ const selectedReport = ref<any>(null);
 function openDetail(row: any) {
     selectedReport.value = row;
     isDetailOpen.value = true;
+}
+
+const isTimKlarifikasiOpen = ref(false);
+const satgasMembers = ref({
+    data: [],
+    current_page: 1,
+    last_page: 1,
+    next_page_url: null,
+    prev_page_url: null,
+    total: 0,
+});
+
+async function handleAccept(id: number) {
+    isDetailOpen.value = false;
+
+    if (!satgasMembers.value.data.length) {
+        const { data } = await satgasApi.get('/users');
+        satgasMembers.value = {
+            ...satgasMembers.value,
+            ...data,
+        };
+    }
+
+    isTimKlarifikasiOpen.value = true;
+}
+
+function handleReject(id: number) {
+    // logika tolak laporan
+}
+
+function handleBack() {
+    isDetailOpen.value = true;
+    isTimKlarifikasiOpen.value = false;
+}
+
+function handleCloseTim() {
+    isTimKlarifikasiOpen.value = false;
+    isDetailOpen.value = false;
+    selectedReport.value = null;
+}
+
+function handleTimSubmitted() {
+    isTimKlarifikasiOpen.value = false;
+    selectedReport.value = null;
 }
 </script>
 
@@ -136,6 +183,15 @@ Ketua, Anda hanya dapat melihat progress, bukan isi dokumen penanganan."
             :error="unlockError"
             @submit="unlockCrypto"
             @cancel="cancelUnlock"
+        />
+        <FormTimKlarifikasi
+            v-show="isTimKlarifikasiOpen"
+            :open="isTimKlarifikasiOpen"
+            :report="selectedReport"
+            :satgas-members="satgasMembers"
+            @back="handleBack"
+            @close="handleCloseTim"
+            @submitted="handleTimSubmitted"
         />
     </div>
 </template>

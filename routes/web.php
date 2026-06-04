@@ -59,9 +59,20 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
                     Route::resource('users', UserController::class);
                 });
 
+            Route::prefix('reports')->name('reports.')->group(function () {
+                Route::post('assign/{id}', [ReportController::class, 'assign'])->name('assign');
+            });
+
             Route::resource('reports', ReportController::class);
             Route::get('crypto', [KeyController::class, 'show'])->name('crypto');
             Route::get('evidences/{evidence}', [EvidenceController::class, 'show']);
+
+            Route::prefix('api')
+                ->name('api.')
+                ->group(function () {
+                    Route::get('/users', [UserController::class, 'data'])
+                        ->name('users');
+                });
         });
 });
 

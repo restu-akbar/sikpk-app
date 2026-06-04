@@ -11,15 +11,14 @@ type Deletable = {
     id: string | number;
 };
 
-export function handleCreate(form: any, url: string, options?: ActionOptions) {
-    form.post(url, {
-        onSuccess: () => {
-            options?.onSuccess?.();
-        },
-
-        onError: () => {
-            options?.onError?.();
-        },
+export function handleCreate(
+    form: any,
+    route: { url: string; method: string },
+    options?: ActionOptions,
+) {
+    form.post(route.url, {
+        onSuccess: () => options?.onSuccess?.(),
+        onError: () => options?.onError?.(),
     });
 }
 

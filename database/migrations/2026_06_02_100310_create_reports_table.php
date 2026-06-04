@@ -51,15 +51,15 @@ return new class extends Migration
         });
 
         Schema::create('report_handlers', function (Blueprint $table) {
-            $table->uuid('id')->primary();
-
             $table->foreignUuid('report_id')
                 ->constrained('reports')
-                ->cascadeOnDelete();
+                ->cascadeOnDelete()
+                ->primary();
 
             $table->foreignUuid('user_id')
                 ->constrained('users')
-                ->cascadeOnDelete();
+                ->cascadeOnDelete()
+                ->primary();
 
             $table->timestamps();
         });

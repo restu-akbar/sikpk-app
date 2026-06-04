@@ -15,6 +15,12 @@ class UserController extends Controller
         protected UserService $userService
     ) {}
 
+    public function data()
+    {
+        return $this->userService->getAnggota();
+    }
+
+
     public function index()
     {
         return Inertia::render('master/users/Index', [

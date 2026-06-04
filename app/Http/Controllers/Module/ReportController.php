@@ -30,8 +30,6 @@ class ReportController extends Controller
         return Inertia::render('module/reports/Create');
     }
 
-
-
     public function store(Request $request)
     {
         try {
@@ -105,5 +103,14 @@ class ReportController extends Controller
             'success',
             'User berhasil dihapus',
         );
+    }
+
+    public function assign(Request $request, $id)
+    {
+        $this->reportService->assignHandlers($request, $id);
+        return back()->with('toast', [
+            'type' => 'success',
+            'message' => 'Berhasil assign anggota',
+        ]);
     }
 }
