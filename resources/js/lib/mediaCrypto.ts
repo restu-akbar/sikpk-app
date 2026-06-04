@@ -20,8 +20,10 @@ export async function encryptFile(
 
     const encryptedFile = await aesEncrypt({
         key: dekKey,
-        data: new Uint8Array(fileBuffer),
+        data: fileBuffer,
+        encoding: 'binary',
     });
+
     const edeksEntries = await Promise.all(
         Object.entries(publicKeys).map(async ([userId, publicKey]) => {
             const encryptedDek = await rsaEncrypt(publicKey, dekRaw);
@@ -32,15 +34,22 @@ export async function encryptFile(
 
     const edeks = Object.fromEntries(edeksEntries);
 
+    const payload = new Uint8Array(
+        encryptedFile.iv.length + encryptedFile.data.length,
+    );
+
+    payload.set(encryptedFile.iv, 0);
+    payload.set(encryptedFile.data, encryptedFile.iv.length);
+
+    const encryptedBlob = new File([payload], `${file.name}.enc`, {
+        type: 'application/octet-stream',
+    });
+
     return {
         filename: file.name,
         mimeType: file.type,
         size: file.size,
-        encryptedData: new File(
-            [JSON.stringify(encryptedFile)],
-            `${file.name}.enc`,
-            { type: 'application/octet-stream' },
-        ),
+        encryptedData: encryptedBlob,
         edeks,
     };
 }
@@ -70,12 +79,16 @@ export async function decryptFile({
         ['decrypt'],
     );
 
-    const encryptedPayload = JSON.parse(await encryptedFile.text());
+    const payload = new Uint8Array(await encryptedFile.arrayBuffer());
+
+    const iv = payload.slice(0, 12);
+    const ciphertext = payload.slice(12);
 
     const decrypted = await aesDecrypt({
         key: dekKey,
-        iv: encryptedPayload.iv,
-        data: encryptedPayload.data,
+        iv,
+        data: ciphertext,
+        encoding: 'binary',
     });
 
     return new File([decrypted], filename, { type: mimeType });

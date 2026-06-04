@@ -1,9 +1,10 @@
-import { base64ToBuffer, bufferToBase64 } from './base64';
+import { bufferToBase64, base64ToBuffer } from './base64';
 
 export async function aesEncrypt(params: {
     key: CryptoKey;
     data: ArrayBuffer;
     iv?: Uint8Array;
+    encoding?: 'base64' | 'binary';
 }) {
     const iv = params.iv ?? crypto.getRandomValues(new Uint8Array(12));
 
@@ -16,6 +17,13 @@ export async function aesEncrypt(params: {
         params.data,
     );
 
+    if (params.encoding === 'binary') {
+        return {
+            iv,
+            data: new Uint8Array(encrypted),
+        };
+    }
+
     return {
         iv: bufferToBase64(iv),
         data: bufferToBase64(encrypted),
@@ -24,17 +32,26 @@ export async function aesEncrypt(params: {
 
 export async function aesDecrypt(params: {
     key: CryptoKey;
-    iv: string;
-    data: string;
+    iv: string | Uint8Array;
+    data: string | Uint8Array;
+    encoding?: 'base64' | 'binary';
 }) {
-    const decrypted = await crypto.subtle.decrypt(
+    const iv =
+        params.encoding === 'binary'
+            ? params.iv
+            : base64ToBuffer(params.iv as string);
+
+    const data =
+        params.encoding === 'binary'
+            ? params.data
+            : base64ToBuffer(params.data as string);
+
+    return crypto.subtle.decrypt(
         {
             name: 'AES-GCM',
-            iv: base64ToBuffer(params.iv),
+            iv,
         },
         params.key,
-        base64ToBuffer(params.data),
+        data,
     );
-
-    return decrypted;
 }
