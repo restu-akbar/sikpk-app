@@ -25,8 +25,6 @@ Route::middleware(['auth:google'])->group(function () {
     Route::resource('reports', ReportController::class);
 
     Route::post('/logout', [GoogleAuthController::class, 'logout'])->name('reporter.logout');
-
-    Route::get('/api/public-key', [KeyController::class, 'publicKey']);
 });
 
 Route::middleware(['auth', 'password.changed'])->group(function () {
@@ -75,5 +73,7 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
                 });
         });
 });
+
+Route::get('/api/public-key', [KeyController::class, 'publicKey']);
 
 require __DIR__ . '/settings.php';

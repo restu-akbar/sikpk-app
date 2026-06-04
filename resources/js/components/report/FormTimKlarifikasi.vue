@@ -19,6 +19,9 @@ import { formatDate } from '@/lib/formatDate';
 import { satgasApi } from '@/lib/axios';
 import { handleCreate } from '@/lib/handleRequest';
 import { assign } from '@/routes/satgas/reports';
+import { useCryptoStore } from '@/lib/crypto/store';
+import { getPublicKeys } from '@/lib/crypto/getPublicKeys';
+import { reEncryptEdeks } from '@/lib/crypto/re-encrypt-edeks';
 
 const props = defineProps<{
     open: boolean;
@@ -134,14 +137,38 @@ const form = useForm({
 async function submit() {
     if (selected.value.length === 0) return;
 
+    const cryptoStore = useCryptoStore();
+
+    if (!cryptoStore.privateKey) {
+        throw new Error('Private key belum tersedia');
+    }
+
+    const publicKeys = await getPublicKeys(selected.value);
+
+    const edekUpdates = await reEncryptEdeks({
+        evidences: props.report.evidences,
+        currentUserId: cryptoStore.userId,
+        privateKey: cryptoStore.privateKey,
+        targetPublicKeys: publicKeys,
+    });
+
+    console.log(edekUpdates)
+
     form.anggota = selected.value;
 
-    handleCreate(form, assign(props.report.id), {
-        onSuccess: () => {
-            selected.value = [];
-            emit('submitted');
+    handleCreate(
+        form.transform((data) => ({
+            ...data,
+            edek_updates: edekUpdates,
+        })),
+        assign(props.report.id),
+        {
+            onSuccess: () => {
+                selected.value = [];
+                emit('submitted');
+            },
         },
-    });
+    );
 }
 
 function handleClose() {

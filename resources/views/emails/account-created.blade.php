@@ -15,7 +15,7 @@
     <p>Password: {{ $password }}</p>
 
     <p>
-        <a href="{{ config('app.url') }}/login">
+        <a href="{{ config('app.url') }}/satgas/login">
             Login Sekarang
         </a>
     </p>

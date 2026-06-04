@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Report;
+use App\Models\ReportEvidence;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -90,11 +91,33 @@ class ReportService
         $request->validate([
             'anggota' => ['required', 'array'],
             'anggota.*' => ['uuid'],
+
+            'edek_updates' => ['required', 'array'],
+            'edek_updates.*.evidence_id' => ['required', 'uuid'],
+            'edek_updates.*.edeks' => ['required', 'array'],
         ]);
 
         $report = Report::findOrFail($id);
-        $report->update(['progress' => 'Klarifikasi']);
+
+        $report->update([
+            'progress' => 'Klarifikasi',
+        ]);
+
         $report->handlers()->sync($request->anggota);
-        return;
+
+        foreach ($request->edek_updates as $update) {
+            $evidence = ReportEvidence::findOrFail(
+                $update['evidence_id']
+            );
+
+            $existingEdeks = $evidence->edeks ?? [];
+
+            $evidence->update([
+                'edeks' => array_merge(
+                    $existingEdeks,
+                    $update['edeks']
+                ),
+            ]);
+        }
     }
 }

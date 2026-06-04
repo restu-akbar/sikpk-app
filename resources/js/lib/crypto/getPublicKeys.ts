@@ -3,6 +3,7 @@ import { importPublicKey } from '@/lib/crypto/rsa-oaep';
 export async function getPublicKeys(
     owners?: string[],
 ): Promise<Record<string, CryptoKey>> {
+    console.log(owners)
     const params = new URLSearchParams();
 
     owners?.forEach((owner) => {

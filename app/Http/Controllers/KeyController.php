@@ -9,6 +9,7 @@ class KeyController extends Controller
 {
     public function publicKey(Request $request)
     {
+
         $owners = $request->query('owner', []);
 
         $publicKeys = User::query()
