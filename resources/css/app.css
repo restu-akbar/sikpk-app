@@ -219,7 +219,7 @@
     --brand-dark-foreground: hsl(0 0% 100%);
 
     /* Orange / amber - primary CTA buttons (e.g. Masuk Dashboard, Buat Laporan) */
-    --brand-accent: hsl(33 92% 53%);
+    --brand-accent: #F5821F;
     --brand-accent-foreground: hsl(0 0% 100%);
 
     /* ---- Sidebar ---- */

@@ -13,6 +13,8 @@ Route::inertia('/', 'Welcome', [
     'canRegister' => Features::enabled(Features::registration()),
 ])->name('home');
 
+Route::inertia('/landing', 'Landing')->name('landing');
+
 Route::middleware(['guest:google'])->group(function () {
     Route::get('/auth/google', [GoogleAuthController::class, 'redirect']);
     Route::inertia('/login', 'auth/GoogleLogin')->name('google.login');

@@ -8,6 +8,7 @@ import { initializeTheme } from '@/composables/useAppearance';
 import AppLayout from '@/layouts/AppLayout.vue';
 import AuthCenterLayout from '@/layouts/auth/AuthCenterLayout.vue';
 import AuthLayout from '@/layouts/AuthLayout.vue';
+import PublicLayout from '@/layouts/PublicLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
 import RootLayout from './RootLayout.vue'
 
@@ -33,6 +34,10 @@ createInertiaApp({
                 page.default.layout = null;
                 break;
 
+            case name === 'Landing':
+                page.default.layout = PublicLayout;
+                break;
+
             case name === 'GettingStarted':
                 page.default.layout = AuthLayout;
                 break;
@@ -47,9 +52,6 @@ createInertiaApp({
 
             case name.startsWith('settings/'):
                 page.default.layout = [AppLayout, SettingsLayout];
-                break;
-            case name.includes('login'):
-                page.default.layout = null;
                 break;
             default:
                 page.default.layout = AppLayout;
