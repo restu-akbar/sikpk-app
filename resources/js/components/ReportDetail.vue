@@ -43,8 +43,8 @@ defineProps<{
 
 defineEmits<{
     close: [];
-    accept: [id: number];
-    reject: [id: number];
+    accept: [id: string];
+    reject: [id: string];
 }>();
 
 function identitasFields(report: any) {
@@ -73,11 +73,6 @@ function fileIcon(name: string) {
     if (/\.pdf$/i.test(name)) return 'file-type-pdf';
     if (/\.(m4a|mp3|wav)$/i.test(name)) return 'music';
     return 'file';
-}
-
-function formatSize(bytes: number) {
-    if (bytes >= 1_000_000) return (bytes / 1_000_000).toFixed(1) + ' MB';
-    return Math.round(bytes / 1000) + ' KB';
 }
 </script>
 

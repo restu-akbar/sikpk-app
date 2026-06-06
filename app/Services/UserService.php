@@ -68,6 +68,14 @@ class UserService extends BaseService
 
     public function deleteAnggota(User $user): bool
     {
+        if ($user->id === auth()->id()) {
+            throw new \Exception('Anda tidak dapat menghapus akun sendiri.');
+        }
+
+        if ($user->role === 'ketua') {
+            throw new \Exception('Ketua tidak dapat dihapus.');
+        }
+
         return $user->delete();
     }
 }

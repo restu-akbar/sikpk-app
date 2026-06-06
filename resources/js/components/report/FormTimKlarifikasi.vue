@@ -152,8 +152,6 @@ async function submit() {
         targetPublicKeys: publicKeys,
     });
 
-    console.log(edekUpdates)
-
     form.anggota = selected.value;
 
     handleCreate(

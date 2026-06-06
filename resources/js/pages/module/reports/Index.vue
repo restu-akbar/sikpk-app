@@ -1,15 +1,20 @@
 <script setup lang="ts">
+import { useForm } from '@inertiajs/vue3';
 import DataTable from '@/components/table/DataTable.vue';
 import { formatDate } from '@/lib/formatDate';
 import { getInitials, getAvatarColor } from '@/composables/useInitials';
 import ReportDetailDialog from '@/components/ReportDetail.vue';
 import CryptoUnlockDialog from '@/components/CryptoUnlockDialog.vue';
-import { ref } from 'vue';
+import ConfirmDialog from '@/components/ConfirmDialog.vue';
+import { computed, ref } from 'vue';
 import { useCryptoUnlock } from '@/composables/useCryptoUnlock';
 import { ChevronRight } from 'lucide-vue-next';
 import FormTimKlarifikasi from '@/components/report/FormTimKlarifikasi.vue';
+import { reject } from '@/routes/satgas/reports';
 import axios from 'axios';
 import { satgasApi } from '@/lib/axios';
+import { REJECTED_REASON_MAPPING } from '@/types/reports';
+import { handleEdit } from '@/lib/handleRequest';
 
 const {
     showUnlockDialog,
@@ -53,7 +58,40 @@ const initialsColor = (inisial: string) => {
 
 const isDetailOpen = ref(false);
 const selectedReport = ref<any>(null);
+const rejectReason = ref('');
+const rejectNote = ref('');
+const isRejectOpen = ref(false);
+const rejectOptions = computed(() => {
+    const progress = selectedReport.value?.progress;
 
+    const options =
+        REJECTED_REASON_MAPPING[
+            progress as keyof typeof REJECTED_REASON_MAPPING
+        ] ?? [];
+
+    return options;
+});
+
+const form = useForm({
+    type: '',
+    reason: '',
+    note: '',
+});
+
+function openRejectDialog(report: any) {
+    selectedReport.value = report;
+    isRejectOpen.value = true;
+}
+async function submitReject() {
+    if (!selectedReport.value) return;
+
+    form.type = 'reject';
+    form.reason = rejectReason.value;
+    form.note = rejectNote.value;
+
+    handleEdit(form, reject(selectedReport.value.id));
+    isRejectOpen.value = false;
+}
 function openDetail(row: any) {
     selectedReport.value = row;
     isDetailOpen.value = true;
@@ -83,8 +121,13 @@ async function handleAccept(id: number) {
     isTimKlarifikasiOpen.value = true;
 }
 
-function handleReject(id: number) {
-    // logika tolak laporan
+function handleReject() {
+    isDetailOpen.value = false;
+
+    rejectReason.value = '';
+    rejectNote.value = '';
+
+    isRejectOpen.value = true;
 }
 
 function handleBack() {
@@ -159,16 +202,6 @@ Ketua, Anda hanya dapat melihat progress, bukan isi dokumen penanganan."
                     {{ row.progress }}
                 </span>
             </template>
-
-            <!-- Chevron di akhir baris -->
-            <template #aksi="{ row }">
-                <button
-                    class="flex h-8 w-8 items-center justify-center rounded-lg border border-border hover:bg-muted"
-                    @click.stop="openDetail(row)"
-                >
-                    <ChevronRight class="h-4 w-4 text-muted-foreground" />
-                </button>
-            </template>
         </DataTable>
         <ReportDetailDialog
             :open="isDetailOpen"
@@ -185,13 +218,29 @@ Ketua, Anda hanya dapat melihat progress, bukan isi dokumen penanganan."
             @cancel="cancelUnlock"
         />
         <FormTimKlarifikasi
-            v-show="isTimKlarifikasiOpen"
             :open="isTimKlarifikasiOpen"
             :report="selectedReport"
             :satgas-members="satgasMembers"
             @back="handleBack"
             @close="handleCloseTim"
             @submitted="handleTimSubmitted"
+        />
+        <ConfirmDialog
+            :open="isRejectOpen"
+            icon="warning"
+            title="Tolak laporan"
+            :row-name="selectedReport?.nomor_laporan"
+            description="Pelapor akan diberitahu alasan penolakan. Tindakan ini tidak dapat dibatalkan."
+            action-label="Tolak Laporan"
+            :show-select="true"
+            select-label="Kategori Penolakan"
+            :select-options="rejectOptions"
+            v-model:select-value="rejectReason"
+            :show-textarea="true"
+            textarea-label="Alasan Penolakan"
+            v-model:textarea-value="rejectNote"
+            @close="isRejectOpen = false"
+            @confirm="submitReject"
         />
     </div>
 </template>

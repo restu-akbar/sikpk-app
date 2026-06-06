@@ -7,10 +7,6 @@ type ActionOptions = {
     onError?: () => void;
 };
 
-type Deletable = {
-    id: string | number;
-};
-
 export function handleCreate(
     form: any,
     route: { url: string; method: string },
@@ -22,30 +18,23 @@ export function handleCreate(
     });
 }
 
-export function handleEdit<T>(url: string, data: T, options?: ActionOptions) {
-    router.put(url, data, {
-        onSuccess: () => {
-            options?.onSuccess?.();
-        },
-
-        onError: () => {
-            options?.onError?.();
-        },
+export function handleEdit(
+    form: any,
+    route: { url: string; method: string },
+    options?: ActionOptions,
+) {
+    form.put(route.url, {
+        onSuccess: () => options?.onSuccess?.(),
+        onError: () => options?.onError?.(),
     });
 }
 
-export function handleDelete<T extends Deletable>(
-    resourceRoute: string,
-    row: T,
+export function handleDelete(
+    route: { url: string; method: string },
     options?: ActionOptions,
 ) {
-    router.delete(`${resourceRoute}/${row.id}`, {
-        onSuccess: () => {
-            options?.onSuccess?.();
-        },
-
-        onError: () => {
-            options?.onError?.();
-        },
+    router.delete(route.url, {
+        onSuccess: () => options?.onSuccess?.(),
+        onError: () => options?.onError?.(),
     });
 }

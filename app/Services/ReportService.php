@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 
 class ReportService
 {
@@ -119,5 +120,22 @@ class ReportService
                 ),
             ]);
         }
+    }
+
+    public function rejectReport(Request $request, string $id): void
+    {
+        $request->validate([
+            'type' => ['required', Rule::in(['stop', 'reject'])],
+            'reason' => ['required', 'string'],
+        ]);
+
+        $report = Report::findOrFail($id);
+
+        $report->update([
+            'progress' => $request->type === 'stop'
+                ? 'Laporan Dihentikan'
+                : 'Laporan Ditolak',
+            'reject_reason' => $request->reason,
+        ]);
     }
 }

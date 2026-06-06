@@ -5,6 +5,9 @@ import type { User } from '@/types/auth';
 import { getInitials, getAvatarColor } from '@/composables/useInitials';
 import { toast } from 'vue-sonner';
 import { jurusanList, prodiList } from '@/constants/jurusanProdi';
+import ConfirmDialog from '@/components/ConfirmDialog.vue';
+import { handleDelete } from '@/lib/handleRequest';
+import { destroy } from '@/routes/satgas/master/users';
 
 const props = defineProps<{
     users: { data: User[] };
@@ -20,63 +23,92 @@ const unsurOptions = [
 ];
 
 const columns = [
-    { key: 'name',          label: 'Nama',    sortable: true  },
-    { key: 'email',         label: 'Email',   sortable: true  },
-    { key: 'academic_role', label: 'Unsur',   sortable: true  },
-    { key: 'role',          label: 'Jabatan', sortable: true  },
-    { key: 'department',    label: 'Jurusan', sortable: false },
+    { key: 'name', label: 'Nama', sortable: true },
+    { key: 'email', label: 'Email', sortable: true },
+    { key: 'academic_role', label: 'Unsur', sortable: true },
+    { key: 'role', label: 'Jabatan', sortable: true },
+    { key: 'department', label: 'Jurusan', sortable: false },
 ];
 
 const roleLabels: Record<string, string> = {
-    ketua:       'Ketua',
+    ketua: 'Ketua',
     wakil_ketua: 'Wakil Ketua',
-    sekretaris:  'Sekretaris',
-    anggota:     'Anggota',
+    sekretaris: 'Sekretaris',
+    anggota: 'Anggota',
 };
 
 const formSchema = [
     {
-        key: 'name', label: 'Nama Lengkap', type: 'text', span: 'full',
-        required: true, placeholder: 'Contoh: Dr. Hendra Wijaya, M.T.',
+        key: 'name',
+        label: 'Nama Lengkap',
+        type: 'text',
+        span: 'full',
+        required: true,
+        placeholder: 'Contoh: Dr. Hendra Wijaya, M.T.',
     },
     {
-        key: 'email', label: 'Email', type: 'email', span: 'full',
-        required: true, placeholder: 'nama@polban.ac.id',
+        key: 'email',
+        label: 'Email',
+        type: 'email',
+        span: 'full',
+        required: true,
+        placeholder: 'nama@polban.ac.id',
     },
     {
-        key: 'academic_role', label: 'Unsur', type: 'select', span: 'half',
-        required: true, placeholder: 'Pilih unsur...',
+        key: 'academic_role',
+        label: 'Unsur',
+        type: 'select',
+        span: 'half',
+        required: true,
+        placeholder: 'Pilih unsur...',
         options: [
-            { label: 'Dosen',     value: 'dosen'     },
+            { label: 'Dosen', value: 'dosen' },
             { label: 'Mahasiswa', value: 'mahasiswa' },
         ],
     },
     {
-        key: 'role', label: 'Jabatan Satgas', type: 'select', span: 'half',
-        required: true, placeholder: 'Pilih jabatan...',
+        key: 'role',
+        label: 'Jabatan Satgas',
+        type: 'select',
+        span: 'half',
+        required: true,
+        placeholder: 'Pilih jabatan...',
         options: [
-            { label: 'Anggota',     value: 'anggota'     },
-            { label: 'Sekretaris',  value: 'sekretaris'  },
+            { label: 'Anggota', value: 'anggota' },
+            { label: 'Sekretaris', value: 'sekretaris' },
             { label: 'Wakil Ketua', value: 'wakil_ketua' },
         ],
     },
     {
-        key: 'department', label: 'Jurusan', type: 'select', span: 'half',
-        required: true, placeholder: 'Pilih jurusan...',
-        options: jurusanList.map(j => ({ label: j.name, value: j.name })),
+        key: 'department',
+        label: 'Jurusan',
+        type: 'select',
+        span: 'half',
+        required: true,
+        placeholder: 'Pilih jurusan...',
+        options: jurusanList.map((j) => ({ label: j.name, value: j.name })),
     },
     {
-        key: 'study_program', label: 'Program Studi', type: 'select', span: 'half',
-        required: false, placeholder: 'Pilih program studi...', filteredBy: 'department',
-        options: prodiList.map(p => ({
+        key: 'study_program',
+        label: 'Program Studi',
+        type: 'select',
+        span: 'half',
+        required: false,
+        placeholder: 'Pilih program studi...',
+        filteredBy: 'department',
+        options: prodiList.map((p) => ({
             label: `${p.degreeLevel} ${p.name}`,
             value: `${p.degreeLevel} ${p.name}`,
             department: p.jurusanName,
         })),
     },
     {
-        key: 'entry_year', label: 'Angkatan', type: 'number', span: 'half',
-        required: false, placeholder: new Date().getFullYear().toString(),
+        key: 'entry_year',
+        label: 'Angkatan',
+        type: 'number',
+        span: 'half',
+        required: false,
+        placeholder: new Date().getFullYear().toString(),
     },
 ];
 
@@ -88,7 +120,7 @@ function validateUser(data: Partial<User>) {
     }
 
     const duplicate = rows.value.find(
-        u => u.email === data.email && u.id !== data.id,
+        (u) => u.email === data.email && u.id !== data.id,
     );
     if (duplicate) {
         toast.error('Email sudah digunakan');
@@ -96,6 +128,22 @@ function validateUser(data: Partial<User>) {
     }
 
     return true;
+}
+
+const selectedRow = ref(null);
+const isDeleteOpen = ref(false);
+
+function openDeleteDialog(row: any) {
+    selectedRow.value = row;
+    isDeleteOpen.value = true;
+}
+
+function submitDelete() {
+    handleDelete(destroy(selectedRow.value), {
+        onSuccess: () => {
+            isDeleteOpen.value = false;
+        },
+    });
 }
 </script>
 
@@ -119,10 +167,13 @@ function validateUser(data: Partial<User>) {
             :filter-value="unsurFilter"
             create-modal-title="Tambah Anggota Satgas"
             edit-modal-title="Edit Anggota Satgas"
+            @delete="openDeleteDialog"
         >
             <!-- Filter unsur -->
             <template #filter>
-                <div class="inline-flex h-9 items-center gap-0.5 rounded-lg border border-border bg-surface p-1">
+                <div
+                    class="inline-flex h-9 items-center gap-0.5 rounded-lg border border-border bg-surface p-1"
+                >
                     <button
                         v-for="opt in unsurOptions"
                         :key="opt.value"
@@ -137,8 +188,13 @@ function validateUser(data: Partial<User>) {
                         <span class="invisible font-bold">{{ opt.label }}</span>
                         <span
                             class="absolute inset-0 flex items-center justify-center"
-                            :class="unsurFilter === opt.value ? 'font-bold' : 'font-normal'"
-                        >{{ opt.label }}</span>
+                            :class="
+                                unsurFilter === opt.value
+                                    ? 'font-bold'
+                                    : 'font-normal'
+                            "
+                            >{{ opt.label }}</span
+                        >
                     </button>
                 </div>
             </template>
@@ -189,5 +245,13 @@ function validateUser(data: Partial<User>) {
                 <span v-else class="text-muted-foreground">—</span>
             </template>
         </DataTable>
+        <ConfirmDialog
+            :open="isDeleteOpen"
+            title="Hapus anggota?"
+            description="akan dihapus dari daftar anggota satgas."
+            :row-name="selectedRow?.name"
+            @close="isDeleteOpen = false"
+            @confirm="submitDelete"
+        />
     </div>
 </template>

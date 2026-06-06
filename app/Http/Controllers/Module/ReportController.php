@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Module;
 
+use App\Helpers\Toast;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\ReportService;
@@ -57,10 +58,9 @@ class ReportController extends Controller
             return back()
                 ->withInput()
                 ->withErrors($e->errors())
-                ->with('toast', [
-                    'type' => 'error',
-                    'message' => $firstError ?? 'Silakan periksa kembali form Anda.',
-                ]);
+                ->with('toast', Toast::error(
+                    $firstError ?? 'Silakan periksa kembali form Anda.'
+                ));
         }
         $this->reportService->store($validated, $request);
 
@@ -108,9 +108,19 @@ class ReportController extends Controller
     public function assign(Request $request, $id)
     {
         $this->reportService->assignHandlers($request, $id);
-        return back()->with('toast', [
-            'type' => 'success',
-            'message' => 'Berhasil assign anggota',
-        ]);
+        return back()->with('toast', Toast::success('Berhasil assign anggota'));
+    }
+
+    public function reject(Request $request, $id)
+    {
+        $this->reportService->rejectReport($request, $id);
+
+        $message = match ($request->type) {
+            'stop' => 'Laporan dihentikan',
+            'reject' => 'Laporan ditolak',
+            default => 'Status laporan diperbarui',
+        };
+
+        return back()->with('toast', Toast::success($message));
     }
 }

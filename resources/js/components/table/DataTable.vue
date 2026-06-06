@@ -2,9 +2,7 @@
 import { computed, ref } from 'vue';
 import { Pencil, Search, Trash2 } from 'lucide-vue-next';
 import FormModal from './FormModal.vue';
-import ConfirmDialog from '../ConfirmDialog.vue';
 import { handleCreate, handleEdit, handleDelete } from '@/lib/utils';
-import ErrorAlert from '@/components/ErrorAlert.vue';
 import { router } from '@inertiajs/vue3';
 
 interface Column {
@@ -15,6 +13,8 @@ interface Column {
 
 const emit = defineEmits<{
     rowClick: [row: any];
+    edit: [row: any];
+    delete: [row: any];
 }>();
 
 const props = defineProps<{
@@ -50,7 +50,6 @@ const props = defineProps<{
 
 const isCreateOpen = ref(false);
 const isEditOpen = ref(false);
-const isDeleteOpen = ref(false);
 const selectedRow = ref<any>(null);
 
 const search = ref('');
@@ -114,11 +113,6 @@ function submitEdit(data: any) {
     if (props.validator && !props.validator(data)) return;
     handleEdit(`${props.resourceRoute}/${data.id}`, data);
     isEditOpen.value = false;
-}
-
-function submitDelete() {
-    handleDelete(props.resourceRoute!, selectedRow.value);
-    isDeleteOpen.value = false;
 }
 </script>
 
@@ -261,10 +255,7 @@ function submitDelete() {
                                     <button
                                         class="flex h-8 w-8 items-center justify-center rounded-lg border border-red-200 bg-red-50 text-red-500 transition hover:bg-red-100"
                                         title="Hapus"
-                                        @click="
-                                            selectedRow = row;
-                                            isDeleteOpen = true;
-                                        "
+                                        @click.stop="emit('delete', row)"
                                     >
                                         <Trash2 class="h-3.5 w-3.5" />
                                     </button>
@@ -339,10 +330,7 @@ function submitDelete() {
 
                         <button
                             class="flex h-9 flex-1 items-center justify-center gap-1.5 rounded-lg border border-red-200 bg-red-50 text-sm text-red-600 transition hover:bg-red-100"
-                            @click="
-                                selectedRow = row;
-                                isDeleteOpen = true;
-                            "
+                            @click.stop="emit('delete', row)"
                         >
                             <Trash2 class="h-3.5 w-3.5" />
                             Hapus
@@ -424,14 +412,5 @@ function submitDelete() {
         :data="selectedRow"
         @close="isEditOpen = false"
         @submit="submitEdit"
-    />
-
-    <ConfirmDialog
-        :open="isDeleteOpen"
-        title="Hapus anggota?"
-        description="akan dihapus dari daftar anggota satgas. Tindakan ini tidak dapat dibatalkan."
-        :row-name="selectedRow?.name"
-        @close="isDeleteOpen = false"
-        @confirm="submitDelete"
     />
 </template>

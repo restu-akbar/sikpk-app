@@ -61,6 +61,7 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
 
             Route::prefix('reports')->name('reports.')->group(function () {
                 Route::post('assign/{id}', [ReportController::class, 'assign'])->name('assign');
+                Route::put('reject/{id}', [ReportController::class, 'reject'])->name('reject');
             });
 
             Route::resource('reports', ReportController::class);

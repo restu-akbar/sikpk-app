@@ -55,3 +55,31 @@ export type ReportForm = {
 
     agreed: boolean;
 };
+
+export const REJECTED_REASON_MAPPING = {
+    'Laporan Baru': [
+        {
+            value: 'ranah_satgas',
+            label: 'Bukan Ranah Satgas',
+        },
+        {
+            value: 'unit_lain',
+            label: 'Dialihkan ke Unit Lain',
+        },
+    ],
+
+    'Pemeriksaan': [
+        {
+            value: 'ranah_satgas',
+            label: 'Bukan Ranah Satgas',
+        },
+        {
+            value: 'unit_lain',
+            label: 'Dialihkan ke Unit Lain',
+        },
+        {
+            value: 'bukti_tidak_cukup',
+            label: 'Bukti Tidak Cukup',
+        },
+    ],
+} as const;

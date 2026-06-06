@@ -47,6 +47,11 @@ return new class extends Migration
                 'Laporan Ditolak',
             ])->default('Laporan Baru');
 
+            $table->enum('rejected_reason', [
+                'ranah_satgas',
+                'unit_lain',
+                'tidak_berkenan',
+            ])->nullable();
             $table->timestamps();
         });
 
