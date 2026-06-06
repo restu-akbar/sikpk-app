@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { useForm, router } from '@inertiajs/vue3';
-import { computed, ref, watch } from 'vue';
+import { computed, provide, ref, watch } from 'vue';
+
 import type { ReportForm } from '@/types';
 import { store } from '@/routes/reports';
 
 import Agreement from '@/components/Agreement.vue';
+import MethodSelector from '@/components/MethodSelector.vue';
 import FormCardSection from '@/components/form/FormCardSection.vue';
 import FormField from '@/components/form/FormField.vue';
 import ButtonGroup from '@/components/form/ButtonGroup.vue';
@@ -16,16 +18,28 @@ import FileUploadField from '@/components/form/FileUploadField.vue';
 import { disabilityOptions } from '@/constants/disability';
 import {
     statusCivitasOptions,
+    statusTerlaporrOptions,
     statusOptions,
 } from '@/constants/statusCivitasOptions';
 import { jenisKekerasanOptions } from '@/constants/jenisKekerasanOptions';
 import { phonePattern } from '@/constants/phonePattern';
+import { methods } from '@/constants/methods';
 
 import { getPublicKeys } from '@/lib/crypto/getPublicKeys';
 import { encryptFile } from '@/lib/mediaCrypto';
 
-const selectedMethod = ref<'form' | 'voice'>('form');
+provide('formTheme', 'blue');
+
+const selectedMethod = ref<'form' | 'audio'>('form');
 const currentStep = ref(1);
+
+const nextButtonLabel = computed(() => {
+    const labels: Record<number, string> = {
+        1: 'Lanjut ke Detail Kejadian',
+        2: 'Lanjut ke Konfirmasi',
+    };
+    return labels[currentStep.value] ?? 'Lanjut';
+});
 
 const steps = [
     {
@@ -52,7 +66,7 @@ const form = useForm<ReportForm>({
     statusCivitas: '',
 
     namaTerlapor: '',
-    statusTerlapor: '',
+    statusTerlapor: 'tidak_diketahui',
 
     jenisKekerasan: '',
     tempatKejadian: '',
@@ -85,10 +99,7 @@ const stepValidators = {
         ['statusPelapor', 'Status pelapor wajib dipilih'],
         ['statusCivitas', 'Status civitas akademik wajib dipilih'],
     ],
-
     2: [
-        ['namaTerlapor', 'Nama terlapor wajib diisi'],
-        ['statusTerlapor', 'Status terlapor wajib dipilih'],
         ['jenisKekerasan', 'Jenis kekerasan wajib dipilih'],
         ['tempatKejadian', 'Tempat kejadian wajib diisi'],
         ['waktuKejadian', 'Waktu kejadian wajib diisi'],
@@ -102,7 +113,7 @@ const validateStep = (step: 1 | 2 | 3) => {
     let isValid = true;
 
     for (const [field, message] of stepValidators[step]) {
-        const value = form[field];
+        const value = form[field as keyof typeof form];
 
         const isEmpty =
             value === null ||
@@ -210,20 +221,30 @@ const toggleDisability = (value: Disabilitas) => {
 
 const display = (value?: string) => value || '-';
 
+const formatDateTime = (value: string) => {
+    if (!value) return '-';
+    const d = new Date(value);
+    return d.toLocaleString('id-ID', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+    });
+};
+
 const summaryItems = computed(() => [
     {
         label: 'Status Pelapor',
-        value:
-            statusOptions.find((item) => item.value === form.statusPelapor)
-                ?.label ?? '-',
+        value: statusOptions.find((item) => item.value === form.statusPelapor)?.label ?? '-',
     },
     {
         label: 'Pelapor Sebagai',
-        value: display(form.statusCivitas),
+        value: statusCivitasOptions.find((item) => item.value === form.statusCivitas)?.label ?? '-',
     },
     {
         label: 'Jenis Dugaan',
-        value: display(form.jenisKekerasan),
+        value: jenisKekerasanOptions.find((item) => item.value === form.jenisKekerasan)?.label ?? '-',
     },
     {
         label: 'Tempat Kejadian',
@@ -231,11 +252,11 @@ const summaryItems = computed(() => [
     },
     {
         label: 'Waktu Kejadian',
-        value: display(form.waktuKejadian),
+        value: formatDateTime(form.waktuKejadian),
     },
     {
         label: 'Terlapor',
-        value: display(form.namaTerlapor),
+        value: display(form.namaTerlapor) === '-' ? 'Tidak Diketahui' : display(form.namaTerlapor),
     },
 ]);
 
@@ -261,7 +282,7 @@ const handleSubmit = async () => {
         formData.append('whatsapp', form.whatsapp);
         formData.append('statusPelapor', form.statusPelapor);
         formData.append('statusCivitas', form.statusCivitas);
-        formData.append('namaTerlapor', form.namaTerlapor);
+        formData.append('namaTerlapor', form.namaTerlapor || 'Tidak Diketahui');
         formData.append('statusTerlapor', form.statusTerlapor);
         formData.append('jenisKekerasan', form.jenisKekerasan);
         formData.append('tempatKejadian', form.tempatKejadian);
@@ -298,39 +319,41 @@ const handleSubmit = async () => {
 
 <template>
     <div
-        class="flex min-h-screen flex-col overflow-y-auto"
+        class="flex min-h-screen flex-col overflow-x-hidden overflow-y-auto"
         style="font-family: 'Plus Jakarta Sans', sans-serif"
     >
         <!-- Main Content -->
         <main class="mx-auto w-full max-w-4xl flex-1 px-4 py-10">
             <!-- Page Header -->
-            <div class="mb-10 text-center">
-                <h1 class="mb-3 text-3xl font-bold">Buat Laporan</h1>
+            <div class="mb-6 text-center">
+                <h1 class="mb-2 text-3xl font-bold">Buat Laporan</h1>
                 <p class="mx-auto max-w-md text-sm leading-relaxed">
-                    Pilih metode pelaporan yang paling nyaman. Identitas Anda
-                    dilindungi dan hanya dapat diakses oleh Satgas PPK.
+                    <span class="font-bold text-gray-900">Pilih metode pelaporan yang paling nyaman.</span>
+                    <span class="text-gray-500"> Identitas Anda dilindungi dan hanya dapat diakses oleh Satgas PPK.</span>
                 </p>
             </div>
 
-            <MethodSelector v-model="selectedMethod" :options="methods" />
+            <!-- Divider full-width -->
+            <div class="mb-6 border-b border-gray-200" style="width: 100vw; margin-left: calc(50% - 50vw);"></div>
 
-            <div class="my-6 rounded-2xl border border-gray-200 p-6 shadow-sm">
+            <!-- Method Selector -->
+            <div class="mb-6">
+                <MethodSelector v-model="selectedMethod" :options="methods" />
+            </div>
+
+            <div class="my-6 overflow-hidden rounded-2xl border border-gray-200 bg-[#ECE8E2] shadow-sm">
                 <!-- STEP INDICATOR -->
-                <div class="border-b border-gray-100 p-6">
-                    <div
-                        class="mx-auto flex max-w-lg items-center justify-between"
-                    >
+                <div class="border-b border-gray-200 bg-white px-10 py-5">
+                    <div class="flex items-start">
                         <template v-for="(step, index) in steps" :key="index">
-                            <div class="flex flex-col items-center gap-1.5">
+                            <div class="flex flex-col items-center gap-1.5" style="min-width: 110px">
                                 <!-- Circle -->
                                 <div
                                     class="flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold transition-all"
                                     :class="[
-                                        currentStep > index + 1
+                                        currentStep >= index + 1
                                             ? 'bg-[#1A5BA6] text-white'
-                                            : currentStep === index + 1
-                                              ? 'border-2 border-[#1A5BA6] bg-[#1A5BA6] text-white'
-                                              : 'border-2 border-gray-300 text-gray-400',
+                                            : 'border-2 border-gray-300 bg-white text-gray-400',
                                     ]"
                                 >
                                     <svg
@@ -351,29 +374,28 @@ const handleSubmit = async () => {
                                 </div>
 
                                 <span
-                                    class="text-center text-xs font-semibold"
+                                    class="text-center text-xs font-bold"
                                     :class="
                                         currentStep >= index + 1
-                                            ? 'text-[#2563EB]'
-                                            : 'text-gray-500'
+                                            ? 'text-gray-900'
+                                            : 'text-gray-400'
                                     "
                                 >
                                     {{ step.title }}
                                 </span>
 
-                                <span
-                                    class="max-w-[120px] text-center text-[10px] text-gray-400"
-                                >
+                                <span class="max-w-[110px] text-center text-[10px] leading-tight text-gray-400">
                                     {{ step.desc }}
                                 </span>
                             </div>
 
+                            <!-- Connector line -->
                             <div
                                 v-if="index < steps.length - 1"
-                                class="mx-3 mb-5 h-0.5 flex-1"
+                                class="mt-4 h-0.5 flex-1"
                                 :class="
                                     currentStep > index + 1
-                                        ? 'bg-[#2563EB]'
+                                        ? 'bg-[#1A5BA6]'
                                         : 'bg-gray-200'
                                 "
                             />
@@ -383,15 +405,17 @@ const handleSubmit = async () => {
 
                 <!-- Form Card -->
                 <form @submit.prevent="handleSubmit">
-                    <div class="p-8">
+                    <div class="bg-white p-8">
                         <!-- STEP 1 -->
                         <div v-if="currentStep === 1">
-                            <!-- Section: Identitas Pelapor -->
+                            <h2 class="mb-1 text-xl font-bold text-gray-900">Data Pelapor</h2>
+                            <p class="mb-8 text-sm text-gray-500">
+                                Identitas Anda hanya diakses oleh Ketua Satgas. Nomor WhatsApp digunakan untuk komunikasi tindak lanjut.
+                            </p>
+
                             <FormCardSection>
                                 <FormSectionTitle title="Identitas Anda" />
-                                <div
-                                    class="grid grid-cols-1 gap-5 md:grid-cols-2"
-                                >
+                                <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
                                     <FormField
                                         name="nama"
                                         v-model="form.nama"
@@ -400,19 +424,17 @@ const handleSubmit = async () => {
                                         :error="stepErrors.nama"
                                         placeholder="Mis. Annisa Putri"
                                     />
-
                                     <FormField
                                         name="whatsapp"
                                         v-model="form.whatsapp"
                                         label="Nomor WhatsApp aktif"
                                         required
                                         :error="stepErrors.whatsapp"
-                                        placeholder="Mis. 0812-3456-7890"
+                                        placeholder="Mis. 081234567890"
                                         :pattern="phonePattern"
                                         hint="Format: 08xxxxxxxxxx, 10-13 panjang angka"
                                     />
                                 </div>
-
                                 <div class="mt-5 flex flex-col gap-2">
                                     <ButtonGroup
                                         name="statusPelapor"
@@ -425,11 +447,8 @@ const handleSubmit = async () => {
                                 </div>
                             </FormCardSection>
 
-                            <!-- Section: Status Pelapor -->
                             <FormCardSection>
-                                <FormSectionTitle
-                                    title="Pelapor sebagai (Civitas Akademika)"
-                                />
+                                <FormSectionTitle title="Pelapor sebagai (Civitas Akademika)" />
                                 <DropdownField
                                     name="statusCivitas"
                                     v-model="form.statusCivitas"
@@ -441,13 +460,12 @@ const handleSubmit = async () => {
                                 />
                             </FormCardSection>
 
-                            <!-- Section: Kebutuhan Khusus -->
                             <FormCardSection>
                                 <FormSectionTitle title="Kebutuhan Khusus" />
                                 <div>
-                                    <FieldLabel :required="required">
-                                        {{ label }}
-                                    </FieldLabel>
+                                    <p class="mb-2 text-sm font-medium text-gray-700">
+                                        Apakah Anda memiliki kebutuhan disabilitas tertentu?
+                                    </p>
                                     <div class="flex flex-wrap gap-2.5">
                                         <button
                                             type="button"
@@ -455,24 +473,18 @@ const handleSubmit = async () => {
                                             :key="opt.value"
                                             @click="toggleDisability(opt.value)"
                                             :class="[
-                                                'rounded-lg border-2 px-4 py-2 text-sm font-medium transition-all',
-                                                form.disabilitas.includes(
-                                                    opt.value,
-                                                )
-                                                    ? 'border-[#2563EB] bg-blue-50 text-[#2563EB]'
+                                                'rounded-lg border px-4 py-2 text-sm font-medium transition-all',
+                                                form.disabilitas.includes(opt.value)
+                                                    ? 'border-[#1A5BA6] bg-[#EDF3FB] text-[#1A5BA6]'
                                                     : 'border-gray-300 text-gray-600 hover:border-gray-400',
                                             ]"
                                         >
                                             {{ opt.label }}
                                         </button>
                                     </div>
-                                    <ErrorField
-                                        :error="form.errors.disabilitas"
-                                    />
+                                    <ErrorField :error="form.errors.disabilitas" />
                                     <p class="mt-3 text-[11px] text-gray-400">
-                                        Informasi ini membantu Satgas
-                                        menyediakan akomodasi yang sesuai pada
-                                        tahap klarifikasi.
+                                        Informasi ini membantu Satgas menyediakan akomodasi yang sesuai pada tahap klarifikasi.
                                     </p>
                                 </div>
                             </FormCardSection>
@@ -480,47 +492,36 @@ const handleSubmit = async () => {
 
                         <!-- STEP 2 -->
                         <div v-if="currentStep === 2">
-                            <h2 class="mb-1 text-xl font-bold">
-                                Detail Kejadian
-                            </h2>
+                            <h2 class="mb-1 text-xl font-bold">Detail Kejadian</h2>
                             <p class="mb-8 text-sm text-gray-500">
                                 Sampaikan apa yang terjadi seakurat mungkin.
-                                Hindari mencantumkan data pribadi pihak lain
-                                jika belum diperlukan.
+                                Hindari mencantumkan data pribadi pihak lain jika belum diperlukan.
                             </p>
 
                             <FormCardSection>
                                 <FormSectionTitle title="Identitas Terlapor" />
-                                <div
-                                    class="grid grid-cols-1 gap-5 md:grid-cols-2"
-                                >
+                                <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
                                     <FormField
                                         name="namaTerlapor"
                                         v-model="form.namaTerlapor"
                                         label="Nama dugaan terlapor"
-                                        required
                                         :error="stepErrors.namaTerlapor"
                                         placeholder="Nama / inisial pihak terlapor"
-                                        hint="Boleh inisial bila Anda belum siap menyebut nama lengkap."
+                                        hint="Anda dapat mengosongkan nama dugaan terlapor jika belum tahu/yakin."
                                     />
                                     <DropdownField
                                         name="statusTerlapor"
                                         v-model="form.statusTerlapor"
                                         label="Terlapor sebagai"
                                         placeholder="Pilih status terlapor..."
-                                        :options="statusCivitasOptions"
+                                        :options="statusTerlaporrOptions"
                                         :error="stepErrors.statusTerlapor"
-                                        required
                                     />
                                 </div>
                             </FormCardSection>
 
-                            <!-- Section: Jenis & Tempat Kejadian -->
                             <FormCardSection>
-                                <FormSectionTitle
-                                    title="Jenis & Tempat Kejadian"
-                                />
-
+                                <FormSectionTitle title="Jenis & Tempat Kejadian" />
                                 <div class="mb-5">
                                     <DropdownField
                                         name="jenisKekerasan"
@@ -532,10 +533,7 @@ const handleSubmit = async () => {
                                         required
                                     />
                                 </div>
-
-                                <div
-                                    class="grid grid-cols-1 gap-5 md:grid-cols-2"
-                                >
+                                <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
                                     <FormField
                                         name="tempatKejadian"
                                         v-model="form.tempatKejadian"
@@ -555,23 +553,20 @@ const handleSubmit = async () => {
                                 </div>
                             </FormCardSection>
 
-                            <!-- Section: Kronologi -->
                             <FormCardSection>
                                 <FormSectionTitle title="Kronologi" />
-
                                 <TextareaField
                                     name="kronologi"
                                     v-model="form.kronologi"
                                     label="Kronologi kejadian"
-                                    placeholder="Jelaskan apa yang terjadi: latar belakang, kronologi, pihak yang terlibat, dan dampak yang Anda rasakan."
+                                    placeholder="Ceritakan apa yang terjadi"
                                     rows="6"
                                     required
-                                    hint="Tulis sejelas mungkin."
+                                    hint="Tidak perlu sempurna. Ceritakan sesuai yang Anda ingat dan rasakan. Anda bisa mulai dari apa yang melatarbelakangi kejadian, apa yang terjadi, dan bagaimana dampaknya terhadap Anda. Detail lebih lanjut dapat dilengkapi di tahap klarifikasi bersama Satgas."
                                     :error="stepErrors.kronologi"
                                 />
                             </FormCardSection>
 
-                            <!-- Section: Bukti -->
                             <FormCardSection>
                                 <FormSectionTitle title="Bukti Pendukung" />
                                 <FileUploadField
@@ -585,56 +580,36 @@ const handleSubmit = async () => {
                         <!-- STEP 3 -->
                         <div v-if="currentStep === 3">
                             <div class="flex flex-col gap-2">
-                                <!-- Header -->
                                 <div>
-                                    <h1
-                                        class="text-2xl font-bold text-gray-900"
-                                    >
+                                    <h1 class="text-2xl font-bold text-gray-900">
                                         Konfirmasi & Kirim Laporan
                                     </h1>
                                     <p class="mt-1 text-sm text-gray-500">
-                                        Periksa kembali ringkasan laporan Anda
-                                        sebelum dikirim ke Satgas PPK .
+                                        Periksa kembali ringkasan laporan Anda sebelum dikirim ke Satgas PPK.
                                     </p>
                                 </div>
 
-                                <!-- Ringkasan Laporan -->
                                 <FormCardSection>
                                     <div class="flex flex-col gap-6">
-                                        <span
-                                            class="text-xs font-semibold tracking-widest text-gray-400 uppercase"
-                                        >
+                                        <span class="text-xs font-semibold tracking-widest text-gray-400 uppercase">
                                             Ringkasan Laporan
                                         </span>
-
-                                        <div
-                                            class="grid grid-cols-1 sm:grid-cols-2"
-                                        >
+                                        <div class="grid grid-cols-1 sm:grid-cols-2">
                                             <div
-                                                v-for="(
-                                                    item, index
-                                                ) in summaryItems"
+                                                v-for="(item, index) in summaryItems"
                                                 :key="item.label"
                                                 :class="[
                                                     'py-4',
-                                                    index <
-                                                    summaryItems.length - 2
+                                                    index < summaryItems.length - 2
                                                         ? 'border-b border-dashed border-gray-200'
                                                         : '',
-                                                    index % 2 === 1
-                                                        ? 'sm:pl-6'
-                                                        : '',
+                                                    index % 2 === 1 ? 'sm:pl-6' : '',
                                                 ]"
                                             >
-                                                <p
-                                                    class="mb-1 text-xs font-semibold tracking-widest text-gray-400 uppercase"
-                                                >
+                                                <p class="mb-1 text-xs font-semibold tracking-widest text-gray-400 uppercase">
                                                     {{ item.label }}
                                                 </p>
-
-                                                <p
-                                                    class="text-sm text-gray-800"
-                                                >
+                                                <p class="text-sm text-gray-800">
                                                     {{ item.value }}
                                                 </p>
                                             </div>
@@ -642,38 +617,33 @@ const handleSubmit = async () => {
                                     </div>
                                 </FormCardSection>
 
-                                <!-- Pernyataan -->
                                 <Agreement
                                     v-model="form.agreed"
-                                    title="Saya menyatakan bahwa seluruh informasi yang saya sampaikan dalam laporan ini adalah benar sesuai pengetahuan saya dan disampaikan dengan itikad baik. "
+                                    title="Saya menyatakan bahwa seluruh informasi yang saya sampaikan dalam laporan ini adalah benar sesuai pengetahuan saya dan disampaikan dengan itikad baik."
                                     description="Saya memahami konsekuensi atas penyampaian informasi yang tidak benar atau sengaja menyesatkan."
                                     :error="stepErrors.agreed"
                                 />
                             </div>
                         </div>
-                        <div
-                            class="mt-4 flex items-center justify-between border-t border-[#ECE8E2] bg-[#FDFCFB] p-8 px-8 py-5 dark:border-gray-800 dark:bg-gray-950"
-                        >
+                    </div>
+                    <!-- /bg-white p-8 -->
+
+                    <!-- Footer full-width -->
+                    <div class="flex items-center justify-between border-t border-[#ECE8E2] bg-[#FDFCFB] px-8 py-5">
+                        <span class="text-xs text-gray-500">
+                            Langkah {{ currentStep }} dari {{ steps.length }}
+                        </span>
+
+                        <div class="flex items-center gap-3">
                             <button
+                                v-if="currentStep > 1"
                                 type="button"
                                 @click="prevStep"
-                                :disabled="currentStep === 1"
-                                class="flex items-center gap-2 rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-medium transition-all hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                                class="flex items-center gap-2 rounded-lg border border-gray-400 bg-white px-5 py-2.5 text-sm font-medium transition-all hover:bg-gray-50"
                             >
-                                <svg
-                                    class="h-4 w-4"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M15 19l-7-7 7-7"
-                                    />
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
                                 </svg>
-
                                 Kembali
                             </button>
 
@@ -683,28 +653,21 @@ const handleSubmit = async () => {
                                 @click="nextStep"
                                 class="flex items-center gap-2 rounded-lg bg-[#F97316] px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-orange-600"
                             >
-                                Lanjut
-                                <svg
-                                    class="h-4 w-4"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M9 5l7 7-7 7"
-                                    />
+                                {{ nextButtonLabel }}
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                                 </svg>
                             </button>
 
                             <button
                                 v-else
                                 type="submit"
-                                class="rounded-lg bg-orange-500 px-6 py-2.5 text-sm font-semibold text-white hover:bg-orange-600"
+                                class="flex items-center gap-2 rounded-lg bg-[#F97316] px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-orange-600"
                             >
                                 Kirim Laporan
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                </svg>
                             </button>
                         </div>
                     </div>

@@ -64,9 +64,9 @@ class ReportController extends Controller
         }
         $this->reportService->store($validated, $request);
 
-        return back()->with('toast', [
+        return redirect()->route('landing')->with('toast', [
             'type' => 'success',
-            'message' => 'Laporan anda berhasil disimpan',
+            'message' => 'Laporan Anda berhasil disimpan. Terima kasih telah melapor.',
         ]);
     }
 

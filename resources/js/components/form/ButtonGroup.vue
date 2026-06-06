@@ -44,8 +44,8 @@ function select(value: string | number) {
                 :class="[
                     ...buttonClass,
                     modelValue === item.value
-                        ? 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-300'
-                        : 'bg-white text-gray-600 hover:border-gray-400 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300',
+                        ? 'border-[#1A5BA6] bg-[#EDF3FB] text-[#1A5BA6]'
+                        : 'bg-white text-gray-600 hover:border-gray-400',
                 ]"
             >
                 {{ item.label }}

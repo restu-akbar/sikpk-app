@@ -38,6 +38,10 @@ createInertiaApp({
                 page.default.layout = PublicLayout;
                 break;
 
+            case name === 'module/reports/Create':
+                page.default.layout = PublicLayout;
+                break;
+
             case name === 'GettingStarted':
                 page.default.layout = AuthLayout;
                 break;

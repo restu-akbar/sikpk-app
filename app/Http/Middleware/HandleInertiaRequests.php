@@ -39,21 +39,40 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'name' => config('app.name'),
             'auth' => [
-                'user' => fn() => $request->user()
-                    ? [
-                        'id' => $request->user()->id,
-                        'name' => $request->user()->name,
-                        'email' => $request->user()->email,
+                'user' => function () use ($request) {
+                    $reporter = $request->user('google');
+                    $satgas   = $request->user();
 
-                        'public_key' => $request->user()->public_key,
+                    if ($reporter) {
+                        // Reporter: hanya field yang relevan, tanpa data kripto Satgas
+                        return [
+                            'id'    => $reporter->id,
+                            'name'  => $reporter->name,
+                            'email' => $reporter->email,
+                            'role'  => null,
+                            'must_change_password' => false,
+                            'public_key'           => null,
+                            'emek_password'        => null,
+                            'emek_password_salt'   => null,
+                        ];
+                    }
 
-                        'emek_password' => $request->user()->emek_password,
-                        'emek_password_salt' => $request->user()->emek_password_salt,
+                    if ($satgas) {
+                        // Satgas: semua field termasuk data kripto
+                        return [
+                            'id'    => $satgas->id,
+                            'name'  => $satgas->name,
+                            'email' => $satgas->email,
+                            'role'  => $satgas->role,
+                            'must_change_password' => $satgas->must_change_password,
+                            'public_key'           => $satgas->public_key,
+                            'emek_password'        => $satgas->emek_password,
+                            'emek_password_salt'   => $satgas->emek_password_salt,
+                        ];
+                    }
 
-                        'role' => $request->user()->role,
-                        'must_change_password' => $request->user()->must_change_password,
-                    ]
-                    : null,
+                    return null;
+                },
             ],
             'flash' => [
                 'toast' => fn() => $request->session()->get('toast'),

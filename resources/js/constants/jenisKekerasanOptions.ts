@@ -1,5 +1,9 @@
 export const jenisKekerasanOptions = [
     {
+        value: 'belum_yakin',
+        label: 'Saya belum yakin',
+    },
+    {
         value: 'seksual',
         label: 'Kekerasan Seksual',
     },
@@ -13,14 +17,14 @@ export const jenisKekerasanOptions = [
     },
     {
         value: 'psikis',
-        label: 'Kekerasan Psikis / Verbal',
+        label: 'Kekerasan Psikis',
     },
     {
         value: 'diskriminasi',
-        label: 'Diskriminasi',
+        label: 'Diskriminasi dan Intoleransi',
     },
     {
-        value: 'lainnya',
-        label: 'Lainnya',
+        value: 'kebijakan',
+        label: 'Kebijakan yang mengandung kekerasan',
     },
 ];

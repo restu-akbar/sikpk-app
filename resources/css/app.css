@@ -333,3 +333,9 @@
 .form-card-section {
     @apply mb-4 rounded-xl border border-[#ECE8E2] bg-[#FDFCFB] p-8 dark:border-gray-800 dark:bg-gray-950;
 }
+
+/* Offset anchor scroll agar tidak tertutup sticky navbar (~96px) */
+html {
+    scroll-padding-top: 90px;
+    scroll-behavior: smooth;
+}

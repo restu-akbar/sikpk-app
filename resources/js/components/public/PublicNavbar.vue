@@ -8,6 +8,8 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import { Button } from '@/components/ui/button';
 import { home } from '@/routes';
 import { logout } from '@/routes/reporter';
+import { create } from '@/routes/reports';
+import { login as loginGoogle } from '@/routes/google';
 
 interface Props {
     currentPage?: string;
@@ -20,7 +22,12 @@ withDefaults(defineProps<Props>(), {
 const page = usePage<{ auth: Auth }>();
 const user = computed(() => page.props.auth?.user ?? null);
 
-const navItems = ['Beranda', 'Lacak Kasus', 'Informasi', 'Lokasi Satgas'] as const;
+const navItems = [
+    { label: 'Beranda',       href: null },
+    { label: 'Informasi',     href: '#informasi' },
+    { label: 'Lokasi Satgas', href: '#lokasi-satgas' },
+    { label: 'Lacak Kasus',   href: null },
+] as const;
 
 const dropdownOpen = ref(false);
 let closeTimer: ReturnType<typeof setTimeout> | null = null;
@@ -100,18 +107,20 @@ function avatarColor(name: string): string {
 
                 <!-- Nav items -->
                 <div class="flex items-center gap-1">
-                    <span
+                    <a
                         v-for="item in navItems"
-                        :key="item"
+                        :key="item.label"
+                        :href="item.href ?? undefined"
                         :class="[
-                            'cursor-default rounded px-4 py-1.5 text-sm font-semibold transition-colors',
-                            item === currentPage
+                            'rounded px-4 py-1.5 text-sm font-semibold transition-colors',
+                            item.href ? 'cursor-pointer' : 'cursor-default',
+                            item.label === currentPage
                                 ? 'bg-[#E7EEF7] text-[#0F3A6C]'
                                 : 'text-[#403B34] hover:bg-accent hover:text-foreground',
                         ]"
                     >
-                        {{ item }}
-                    </span>
+                        {{ item.label }}
+                    </a>
                 </div>
 
                 <!-- Right side actions -->
@@ -120,17 +129,17 @@ function avatarColor(name: string): string {
                     <!-- Not logged in -->
                     <template v-if="!user">
                         <Button as-child variant="outline" size="default">
-                            <Link href="/login">Masuk</Link>
+                            <Link :href="loginGoogle()">Masuk</Link>
                         </Button>
-                        <Button variant="brand-accent" size="default">
-                            Buat Laporan
+                        <Button as-child variant="brand-accent" size="default">
+                            <Link :href="loginGoogle()">Buat Laporan</Link>
                         </Button>
                     </template>
 
                     <!-- Logged in -->
                     <template v-else>
-                        <Button variant="brand-accent" size="default">
-                            Buat Laporan
+                        <Button as-child variant="brand-accent" size="default">
+                            <Link :href="create().url">Buat Laporan</Link>
                         </Button>
 
                         <!-- User avatar + dropdown -->
@@ -146,13 +155,18 @@ function avatarColor(name: string): string {
                                 {{ getInitials(user.name) }}
                             </div>
 
-                            <!-- Dropdown card -->
+                            <!-- Dropdown wrapper + segitiga -->
                             <div
                                 v-if="dropdownOpen"
-                                class="absolute right-0 top-full mt-2 w-60 rounded-xl border border-border bg-white shadow-lg"
+                                class="absolute right-0 top-full z-50 mt-2 w-60"
                                 @mouseenter="openDropdown"
                                 @mouseleave="scheduleClose"
                             >
+                                <!-- Segitiga menjorok ke avatar -->
+                                <div class="absolute right-3 -top-1 h-3 w-3 rotate-45 border-l border-t border-border bg-white" />
+
+                                <!-- Card -->
+                                <div class="rounded-xl border border-border bg-white shadow-lg overflow-hidden">
                                 <!-- User info -->
                                 <div class="px-4 py-3">
                                     <p class="text-sm font-semibold text-foreground">{{ user.name }}</p>
@@ -172,7 +186,8 @@ function avatarColor(name: string): string {
                                         Keluar
                                     </Button>
                                 </div>
-                            </div>
+                                </div><!-- end card -->
+                            </div><!-- end wrapper -->
                         </div>
                     </template>
 

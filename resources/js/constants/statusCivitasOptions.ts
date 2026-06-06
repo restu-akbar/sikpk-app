@@ -1,27 +1,18 @@
 export const statusCivitasOptions = [
-    {
-        value: 'mahasiswa',
-        label: 'Mahasiswa',
-    },
-    {
-        value: 'dosen',
-        label: 'Dosen',
-    },
-    {
-        value: 'tendik',
-        label: 'Tenaga Kependidikan',
-    },
-    {
-        value: 'alumni',
-        label: 'Alumni',
-    },
-    {
-        value: 'tamu',
-        label: 'Tamu / Pihak Luar',
-    },
+    { value: 'mahasiswa', label: 'Mahasiswa' },
+    { value: 'dosen', label: 'Dosen' },
+    { value: 'tendik', label: 'Tenaga Kependidikan' },
+];
+
+export const statusTerlaporrOptions = [
+    { value: 'mahasiswa', label: 'Mahasiswa' },
+    { value: 'dosen', label: 'Dosen' },
+    { value: 'tendik', label: 'Tenaga Kependidikan' },
+    { value: 'masyarakat_umum', label: 'Masyarakat Umum' },
+    { value: 'tidak_diketahui', label: 'Tidak Diketahui' },
 ];
 
 export const statusOptions = [
     { label: 'Korban langsung', value: 'korban' },
-    { label: 'Saksi pihak ketiga', value: 'saksi' },
+    { label: 'Saksi', value: 'saksi' },
 ];

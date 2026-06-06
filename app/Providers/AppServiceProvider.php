@@ -11,6 +11,7 @@ use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
 use App\Http\Responses\LoginResponse;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Auth\Middleware\RedirectIfAuthenticated;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -28,6 +29,14 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+
+        // Google reporter yang sudah login diarahkan ke /landing, bukan /dashboard
+        RedirectIfAuthenticated::redirectUsing(function ($request) {
+            if (auth('google')->check()) {
+                return route('landing');
+            }
+            return route('satgas.dashboard');
+        });
         $this->app->singleton(
             LoginResponseContract::class,
             LoginResponse::class,

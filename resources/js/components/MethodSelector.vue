@@ -17,44 +17,47 @@ const select = (value: string) => {
 </script>
 
 <template>
-    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+    <!-- Outer card pembungkus -->
+    <div class="flex gap-3 rounded-xl border border-gray-200 bg-white p-3 shadow-sm">
+        <!-- Inner card per metode -->
         <button
-            v-for="opt in options"
+            v-for="(opt, index) in options"
             :key="opt.value"
             type="button"
             @click="select(opt.value)"
-            :class="[
-                'rounded-xl border-2 p-5 text-left transition-all',
+            class="flex-1 rounded-xl border-2 border-transparent p-4 text-left transition-all"
+            :class="
                 modelValue === opt.value
-                    ? 'border-[#2563EB] shadow-sm'
-                    : 'hover:border-gray-300',
-            ]"
+                    ? 'bg-[#EDF3FB]'
+                    : 'hover:bg-gray-50'
+            "
         >
-            <div class="mb-2 flex items-center justify-between gap-2">
+            <div class="mb-3 flex items-center justify-between gap-2">
                 <span
                     class="text-[10px] font-semibold tracking-widest uppercase"
+                    :class="modelValue === opt.value ? 'text-[#0F3A6C]' : 'text-[#847B6E]'"
                 >
-                    {{ opt.value === 'form' ? 'Metode 01' : 'Metode 02' }}
+                    {{ `Metode 0${index + 1}` }}
                 </span>
 
                 <span
                     v-if="opt.badge"
-                    class="rounded-full px-2 py-0.5 text-[10px] font-bold"
+                    class="rounded-full px-2.5 py-0.5 text-[10px] font-semibold"
                     :class="
                         modelValue === opt.value
-                            ? 'bg-blue-500 text-white'
-                            : 'text-gray-400'
+                            ? 'bg-[#D5E2F4] text-[#0F3A6C]'
+                            : 'bg-[#ECE8E2] text-[#847B6E]'
                     "
                 >
                     {{ opt.badge }}
                 </span>
             </div>
 
-            <h3 class="mb-1 text-base font-bold">
+            <h3 class="mb-1.5 text-base font-bold" style="color: #181613">
                 {{ opt.title }}
             </h3>
 
-            <p class="text-xs leading-relaxed text-gray-600">
+            <p class="text-xs leading-relaxed" style="color: #0F3A6C">
                 {{ opt.description }}
             </p>
         </button>

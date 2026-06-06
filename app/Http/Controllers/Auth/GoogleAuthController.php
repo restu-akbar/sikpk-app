@@ -47,7 +47,7 @@ class GoogleAuthController extends Controller
 
             Auth::guard('google')->login($user);
 
-            return redirect()->route('dashboard');
+            return redirect()->route('landing');
         } catch (\Exception $e) {
             return redirect()->route('google.login')
                 ->with('error', $e ?? 'Login gagal, silakan coba lagi');

@@ -1,6 +1,6 @@
 <template>
     <div class="mb-5 flex items-center gap-2">
-        <span class="text-xs font-semibold tracking-widest uppercase">
+        <span class="text-xs font-bold tracking-widest uppercase" style="color: #847B6E">
             {{ title }}
         </span>
     </div>

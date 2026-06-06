@@ -1,4 +1,4 @@
-import { computed, type Ref } from 'vue';
+import { computed, inject, type Ref } from 'vue';
 
 type InputVariant =
     | 'input'
@@ -27,22 +27,35 @@ const errorClasses: Record<InputVariant, string> = {
     button: 'border-red-500 ring-1 ring-red-500',
 };
 
-const normalClasses: Record<InputVariant, string> = {
-    input: 'border-gray-300 focus:ring-2 focus:ring-[#F5821F]/20 focus:border-[#F5821F]',
-    select: 'border-gray-300 focus:ring-2 focus:ring-[#F5821F]/20 focus:border-[#F5821F]',
-    textarea:
-        'border-gray-300 focus:ring-2 focus:ring-[#F5821F]/20 focus:border-[#F5821F]',
-    checkbox: 'border-gray-300 accent-[#F5821F]',
-    radio: 'border-gray-300 accent-[#F5821F]',
-    button: 'border-gray-300',
+const normalClassesByTheme: Record<'orange' | 'blue', Record<InputVariant, string>> = {
+    orange: {
+        input: 'border-gray-300 focus:ring-2 focus:ring-[#F5821F]/20 focus:border-[#F5821F]',
+        select: 'border-gray-300 focus:ring-2 focus:ring-[#F5821F]/20 focus:border-[#F5821F]',
+        textarea: 'border-gray-300 focus:ring-2 focus:ring-[#F5821F]/20 focus:border-[#F5821F]',
+        checkbox: 'border-gray-300 accent-[#F5821F]',
+        radio: 'border-gray-300 accent-[#F5821F]',
+        button: 'border-gray-300',
+    },
+    blue: {
+        input: 'border-gray-300 focus:ring-2 focus:ring-[#1A5BA6]/20 focus:border-[#1A5BA6]',
+        select: 'border-gray-300 focus:ring-2 focus:ring-[#1A5BA6]/20 focus:border-[#1A5BA6]',
+        textarea: 'border-gray-300 focus:ring-2 focus:ring-[#1A5BA6]/20 focus:border-[#1A5BA6]',
+        checkbox: 'border-gray-300 accent-[#1A5BA6]',
+        radio: 'border-gray-300 accent-[#1A5BA6]',
+        button: 'border-gray-300',
+    },
 };
 
 export function useFieldErrorClass(
     error: Ref<string | null | undefined>,
     variant: InputVariant = 'input',
 ) {
+    const theme = inject<'orange' | 'blue'>('formTheme', 'orange');
+
     return computed(() => [
         baseClasses[variant],
-        error.value ? errorClasses[variant] : normalClasses[variant],
+        error.value
+            ? errorClasses[variant]
+            : normalClassesByTheme[theme][variant],
     ]);
 }

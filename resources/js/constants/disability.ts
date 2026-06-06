@@ -5,7 +5,6 @@ export const disabilityOptions: {
     label: string;
 }[] = [
     { value: 'tidak_ada', label: 'Tidak ada' },
-    { value: 'penglihatan', label: 'Disabilitas penglihatan' },
     { value: 'pendengaran', label: 'Disabilitas pendengaran / wicara' },
     { value: 'fisik', label: 'Disabilitas fisik / mobilitas' },
     { value: 'lainnya', label: 'Lainnya' },
