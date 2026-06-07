@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\ChangePasswordController;
 use App\Http\Controllers\Auth\GoogleAuthController;
+use App\Http\Controllers\AudioRecordingController;
 use App\Http\Controllers\EvidenceController;
 use App\Http\Controllers\KeyController;
 use App\Http\Controllers\Master\UserController;
@@ -67,6 +68,7 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
             Route::resource('reports', ReportController::class);
             Route::get('crypto', [KeyController::class, 'show'])->name('crypto');
             Route::get('evidences/{evidence}', [EvidenceController::class, 'show']);
+            Route::get('audio-recordings/{audioRecording}', [AudioRecordingController::class, 'show'])->name('audio-recordings.show');
 
             Route::prefix('api')
                 ->name('api.')

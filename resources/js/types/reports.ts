@@ -5,6 +5,18 @@ export type Disabilitas =
     | 'fisik'
     | 'lainnya';
 
+export type AudioRecording = {
+    id: string;
+    report_id: string;
+    path: string;
+    mime_type: string | null;
+    size: number | null;
+    duration: number | null;
+    order: number;
+    created_at: string;
+    updated_at: string;
+};
+
 export type Report = {
     id: string;
 
@@ -18,14 +30,15 @@ export type Report = {
     statusTerlapor: string;
 
     jenisKekerasan: string;
-    tempatKejadian: string;
-    waktuKejadian: string;
+    tempatKejadian: string | null;
+    waktuKejadian: string | null;
 
-    kronologi: string;
+    kronologi: string | null;
 
     disabilitas: Disabilitas[];
 
     bukti: string[];
+    audio_recordings?: AudioRecording[];
 
     agreed: boolean;
 

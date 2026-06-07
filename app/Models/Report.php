@@ -56,4 +56,9 @@ class Report extends Model
     {
         return $this->hasMany(ReportEvidence::class);
     }
+
+    public function audioRecordings(): HasMany
+    {
+        return $this->hasMany(AudioRecording::class)->orderBy('order');
+    }
 }

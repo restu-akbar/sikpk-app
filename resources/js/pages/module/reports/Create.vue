@@ -14,6 +14,8 @@ import FormSectionTitle from '@/components/form/FormSectionTitle.vue';
 import DropdownField from '@/components/form/DropdownField.vue';
 import TextareaField from '@/components/form/TextareaField.vue';
 import FileUploadField from '@/components/form/FileUploadField.vue';
+import VoiceRecorder from '@/components/form/VoiceRecorder.vue';
+import type { AudioRecording } from '@/components/form/VoiceRecorder.vue';
 
 import { disabilityOptions } from '@/constants/disability';
 import {
@@ -32,6 +34,7 @@ provide('formTheme', 'blue');
 
 const selectedMethod = ref<'form' | 'audio'>('form');
 const currentStep = ref(1);
+const audioRecordings = ref<AudioRecording[]>([]);
 
 const nextButtonLabel = computed(() => {
     const labels: Record<number, string> = {
@@ -92,7 +95,7 @@ const scrollToField = (field: string) => {
     });
 };
 
-const stepValidators = {
+const stepValidatorsForm = {
     1: [
         ['nama', 'Nama wajib diisi'],
         ['whatsapp', 'No WhatsApp wajib diisi'],
@@ -108,11 +111,36 @@ const stepValidators = {
     3: [['agreed', 'Pernyataan persetujuan harus diceklis']],
 } as const;
 
+const stepValidatorsAudio = {
+    1: [
+        ['nama', 'Nama wajib diisi'],
+        ['whatsapp', 'No WhatsApp wajib diisi'],
+        ['statusPelapor', 'Status pelapor wajib dipilih'],
+        ['statusCivitas', 'Status civitas akademik wajib dipilih'],
+    ],
+    2: [
+        ['jenisKekerasan', 'Jenis kekerasan wajib dipilih'],
+    ],
+    3: [['agreed', 'Pernyataan persetujuan harus diceklis']],
+} as const;
+
 const validateStep = (step: 1 | 2 | 3) => {
     const newErrors = { ...stepErrors.value };
     let isValid = true;
 
-    for (const [field, message] of stepValidators[step]) {
+    const validators = selectedMethod.value === 'audio' ? stepValidatorsAudio : stepValidatorsForm;
+
+    if (step === 2 && selectedMethod.value === 'audio') {
+        if (audioRecordings.value.length === 0) {
+            newErrors['audioRecordings'] = 'Minimal satu rekaman suara wajib ditambahkan';
+            stepErrors.value = newErrors;
+            scrollToField('audioRecordings');
+            return false;
+        }
+        delete newErrors['audioRecordings'];
+    }
+
+    for (const [field, message] of validators[step]) {
         const value = form[field as keyof typeof form];
 
         const isEmpty =
@@ -233,32 +261,42 @@ const formatDateTime = (value: string) => {
     });
 };
 
-const summaryItems = computed(() => [
-    {
-        label: 'Status Pelapor',
-        value: statusOptions.find((item) => item.value === form.statusPelapor)?.label ?? '-',
-    },
-    {
-        label: 'Pelapor Sebagai',
-        value: statusCivitasOptions.find((item) => item.value === form.statusCivitas)?.label ?? '-',
-    },
-    {
-        label: 'Jenis Dugaan',
-        value: jenisKekerasanOptions.find((item) => item.value === form.jenisKekerasan)?.label ?? '-',
-    },
-    {
-        label: 'Tempat Kejadian',
-        value: display(form.tempatKejadian),
-    },
-    {
-        label: 'Waktu Kejadian',
-        value: formatDateTime(form.waktuKejadian),
-    },
-    {
-        label: 'Terlapor',
-        value: display(form.namaTerlapor) === '-' ? 'Tidak Diketahui' : display(form.namaTerlapor),
-    },
-]);
+const summaryItems = computed(() => {
+    const base = [
+        {
+            label: 'Status Pelapor',
+            value: statusOptions.find((item) => item.value === form.statusPelapor)?.label ?? '-',
+        },
+        {
+            label: 'Pelapor Sebagai',
+            value: statusCivitasOptions.find((item) => item.value === form.statusCivitas)?.label ?? '-',
+        },
+        {
+            label: 'Jenis Dugaan',
+            value: jenisKekerasanOptions.find((item) => item.value === form.jenisKekerasan)?.label ?? '-',
+        },
+        {
+            label: 'Terlapor',
+            value: display(form.namaTerlapor) === '-' ? 'Tidak Diketahui' : display(form.namaTerlapor),
+        },
+    ];
+
+    if (selectedMethod.value === 'audio') {
+        base.push({
+            label: 'Rekaman Suara',
+            value: audioRecordings.value.length > 0
+                ? `${audioRecordings.value.length} rekaman`
+                : '-',
+        });
+    } else {
+        base.push(
+            { label: 'Tempat Kejadian', value: display(form.tempatKejadian) },
+            { label: 'Waktu Kejadian', value: formatDateTime(form.waktuKejadian) },
+        );
+    }
+
+    return base;
+});
 
 const handleSubmit = async () => {
     stepErrors.value = {};
@@ -271,9 +309,7 @@ const handleSubmit = async () => {
         const publicKeys = await getPublicKeys();
 
         const encryptedFiles = await Promise.all(
-            form.bukti.map((file) => {
-                return encryptFile(file, publicKeys);
-            }),
+            form.bukti.map((file) => encryptFile(file, publicKeys)),
         );
 
         const formData = new FormData();
@@ -285,9 +321,10 @@ const handleSubmit = async () => {
         formData.append('namaTerlapor', form.namaTerlapor || 'Tidak Diketahui');
         formData.append('statusTerlapor', form.statusTerlapor);
         formData.append('jenisKekerasan', form.jenisKekerasan);
-        formData.append('tempatKejadian', form.tempatKejadian);
-        formData.append('waktuKejadian', form.waktuKejadian);
-        formData.append('kronologi', form.kronologi);
+        formData.append('tempatKejadian', selectedMethod.value === 'audio' ? (form.tempatKejadian || '') : form.tempatKejadian);
+        formData.append('waktuKejadian', selectedMethod.value === 'audio' ? (form.waktuKejadian || '') : form.waktuKejadian);
+        formData.append('kronologi', selectedMethod.value === 'audio' ? '' : form.kronologi);
+        formData.append('metode', selectedMethod.value);
         formData.append('agreed', form.agreed ? '1' : '0');
         form.disabilitas.forEach((d) => formData.append('disabilitas[]', d));
 
@@ -302,12 +339,20 @@ const handleSubmit = async () => {
             );
         });
 
+        audioRecordings.value.forEach((rec, index) => {
+            const file = new File([rec.blob], `rekaman-${index + 1}.webm`, { type: rec.blob.type || 'audio/webm' });
+            formData.append(`audio_recordings[${index}][file]`, file);
+            formData.append(`audio_recordings[${index}][duration]`, rec.duration.toString());
+            formData.append(`audio_recordings[${index}][order]`, (index + 1).toString());
+        });
+
         router.post(store().url, formData, {
             onSuccess: () => {
                 form.reset();
                 currentStep.value = 1;
                 stepErrors.value = {};
                 selectedMethod.value = 'form';
+                audioRecordings.value = [];
             },
             onError: () => {},
         });
@@ -336,8 +381,8 @@ const handleSubmit = async () => {
             <!-- Divider full-width -->
             <div class="mb-6 border-b border-gray-200" style="width: 100vw; margin-left: calc(50% - 50vw);"></div>
 
-            <!-- Method Selector -->
-            <div class="mb-6">
+            <!-- Method Selector — hanya tampil di step 1 dan 2 -->
+            <div v-if="currentStep < 3" class="mb-6">
                 <MethodSelector v-model="selectedMethod" :options="methods" />
             </div>
 
@@ -490,8 +535,8 @@ const handleSubmit = async () => {
                             </FormCardSection>
                         </div>
 
-                        <!-- STEP 2 -->
-                        <div v-if="currentStep === 2">
+                        <!-- STEP 2 — Formulir Lengkap -->
+                        <div v-if="currentStep === 2 && selectedMethod === 'form'">
                             <h2 class="mb-1 text-xl font-bold">Detail Kejadian</h2>
                             <p class="mb-8 text-sm text-gray-500">
                                 Sampaikan apa yang terjadi seakurat mungkin.
@@ -522,7 +567,7 @@ const handleSubmit = async () => {
 
                             <FormCardSection>
                                 <FormSectionTitle title="Jenis & Tempat Kejadian" />
-                                <div class="mb-5">
+                                <div class="mb-5 grid grid-cols-1 gap-5 md:grid-cols-2">
                                     <DropdownField
                                         name="jenisKekerasan"
                                         v-model="form.jenisKekerasan"
@@ -531,16 +576,6 @@ const handleSubmit = async () => {
                                         :options="jenisKekerasanOptions"
                                         :error="stepErrors.jenisKekerasan"
                                         required
-                                    />
-                                </div>
-                                <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
-                                    <FormField
-                                        name="tempatKejadian"
-                                        v-model="form.tempatKejadian"
-                                        label="Tempat kejadian"
-                                        required
-                                        :error="stepErrors.tempatKejadian"
-                                        placeholder="Mis. Gedung Elektro, R. 304"
                                     />
                                     <FormField
                                         name="waktuKejadian"
@@ -551,6 +586,14 @@ const handleSubmit = async () => {
                                         :error="stepErrors.waktuKejadian"
                                     />
                                 </div>
+                                <FormField
+                                    name="tempatKejadian"
+                                    v-model="form.tempatKejadian"
+                                    label="Tempat kejadian"
+                                    required
+                                    :error="stepErrors.tempatKejadian"
+                                    placeholder="Mis. Gedung Elektro, R. 304"
+                                />
                             </FormCardSection>
 
                             <FormCardSection>
@@ -572,6 +615,46 @@ const handleSubmit = async () => {
                                 <FileUploadField
                                     v-model="form.bukti"
                                     label="Unggah bukti digital berupa gambar, dokumen, video, atau audio untuk mendukung laporan yang Anda sampaikan. (opsional)"
+                                    hint="Privasi dan keamanan data Anda menjadi prioritas. Seluruh bukti digital disimpan secara terenkripsi dan dikelola secara terbatas sesuai kebutuhan penanganan kasus."
+                                />
+                            </FormCardSection>
+                        </div>
+
+                        <!-- STEP 2 — Formulir + Rekaman Suara -->
+                        <div v-if="currentStep === 2 && selectedMethod === 'audio'">
+                            <h2 class="mb-1 text-xl font-bold">Rekam Kronologi Kejadian</h2>
+                            <p class="mb-8 text-sm text-gray-500">
+                                Sampaikan kejadian dengan suara Anda. Tidak perlu sempurna.
+                                Anda dapat merekam ulang kapan saja sebelum mengirim laporan.
+                            </p>
+
+                            <FormCardSection>
+                                <div data-field="audioRecordings">
+                                    <VoiceRecorder
+                                        v-model="audioRecordings"
+                                        :error="stepErrors.audioRecordings"
+                                    />
+                                </div>
+                            </FormCardSection>
+
+                            <FormCardSection>
+                                <FormSectionTitle title="Jenis Dugaan Kekerasan" />
+                                <DropdownField
+                                    name="jenisKekerasan"
+                                    v-model="form.jenisKekerasan"
+                                    label="Jenis Dugaan Kekerasan"
+                                    placeholder="Pilih jenis dugaan kekerasan..."
+                                    :options="jenisKekerasanOptions"
+                                    :error="stepErrors.jenisKekerasan"
+                                    required
+                                />
+                            </FormCardSection>
+
+                            <FormCardSection>
+                                <FormSectionTitle title="Bukti Digital" />
+                                <FileUploadField
+                                    v-model="form.bukti"
+                                    label="Unggah bukti digital berupa gambar, video, atau audio untuk mendukung laporan yang Anda sampaikan."
                                     hint="Privasi dan keamanan data Anda menjadi prioritas. Seluruh bukti digital disimpan secara terenkripsi dan dikelola secara terbatas sesuai kebutuhan penanganan kasus."
                                 />
                             </FormCardSection>

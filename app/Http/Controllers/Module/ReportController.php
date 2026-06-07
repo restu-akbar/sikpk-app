@@ -34,6 +34,8 @@ class ReportController extends Controller
     public function store(Request $request)
     {
         try {
+            $isAudio = $request->input('metode') === 'audio';
+
             $validated = $request->validate([
                 'nama' => ['required', 'string', 'max:255'],
                 'whatsapp' => ['required', 'string', 'max:30'],
@@ -42,15 +44,21 @@ class ReportController extends Controller
                 'namaTerlapor' => ['required', 'string', 'max:255'],
                 'statusTerlapor' => ['required', 'string'],
                 'jenisKekerasan' => ['required', 'string'],
-                'tempatKejadian' => ['required', 'string'],
-                'waktuKejadian' => ['required', 'date'],
-                'kronologi' => ['required', 'string'],
+                'tempatKejadian' => [$isAudio ? 'nullable' : 'required', 'string'],
+                'waktuKejadian' => [$isAudio ? 'nullable' : 'required', 'date'],
+                'kronologi' => [$isAudio ? 'nullable' : 'required', 'string'],
+                'metode' => ['nullable', 'string', 'in:form,audio'],
                 'agreed' => ['accepted'],
                 'disabilitas' => ['required', 'array', 'min:1'],
 
                 'bukti' => ['nullable', 'array'],
                 'bukti.*.file' => ['required'],
                 'bukti.*.edeks' => ['required', 'string'],
+
+                'audio_recordings' => [$isAudio ? 'required' : 'nullable', 'array', 'min:1'],
+                'audio_recordings.*.file' => ['required', 'file'],
+                'audio_recordings.*.duration' => ['nullable', 'integer', 'min:0'],
+                'audio_recordings.*.order' => ['required', 'integer', 'min:1'],
             ]);
         } catch (ValidationException $e) {
             $firstError = collect($e->errors())->flatten()->first();

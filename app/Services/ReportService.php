@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\AudioRecording;
 use App\Models\Report;
 use App\Models\ReportEvidence;
 use Illuminate\Http\Request;
@@ -52,10 +53,10 @@ class ReportService
 
                 'jenis_kekerasan' => $data['jenisKekerasan'],
 
-                'tempat_kejadian' => $data['tempatKejadian'],
-                'waktu_kejadian' => $data['waktuKejadian'],
+                'tempat_kejadian' => $data['tempatKejadian'] ?? null,
+                'waktu_kejadian' => $data['waktuKejadian'] ?? null,
 
-                'kronologi' => $data['kronologi'],
+                'kronologi' => $data['kronologi'] ?? null,
 
                 'disabilitas' => $data['disabilitas'],
             ]);
@@ -80,6 +81,24 @@ class ReportService
                     'original_filename' => $item['filename'] ?? null,
                     'mime_type' => $item['mime_type'] ?? null,
                     'size' => $item['size'] ?? null,
+                ]);
+            }
+
+            foreach ($request->input('audio_recordings', []) as $index => $item) {
+                $file = $request->file("audio_recordings.$index.file");
+
+                $path = Storage::disk('private')->putFileAs(
+                    'audio-recordings',
+                    $file,
+                    Str::uuid() . '.' . ($file->guessExtension() ?? 'webm')
+                );
+
+                $report->audioRecordings()->create([
+                    'path' => $path,
+                    'mime_type' => $file->getMimeType(),
+                    'size' => $file->getSize(),
+                    'duration' => $item['duration'] ?? null,
+                    'order' => $item['order'],
                 ]);
             }
 
