@@ -28,7 +28,20 @@ class ReportController extends Controller
 
     public function create()
     {
-        return Inertia::render('module/reports/Create');
+        $reporter      = auth('google')->user();
+        $isFirstReport = !$reporter || !$reporter->reports()->exists();
+
+        return Inertia::render('module/reports/Create', [
+            'isFirstReport' => $isFirstReport,
+            'reporterData'  => $isFirstReport ? null : [
+                'nama'          => $reporter->name,
+                'whatsapp'      => $reporter->whatsapp,
+                'statusCivitas' => $reporter->status_civitas,
+                'jurusan'       => $reporter->jurusan,
+                'prodi'         => $reporter->prodi,
+                'disabilitas'   => $reporter->disabilitas ?? [],
+            ],
+        ]);
     }
 
     public function store(Request $request)
@@ -37,10 +50,12 @@ class ReportController extends Controller
             $isAudio = $request->input('metode') === 'audio';
 
             $validated = $request->validate([
-                'nama' => ['required', 'string', 'max:255'],
+                'nama' => ['nullable', 'string', 'max:255'],
                 'whatsapp' => ['required', 'string', 'max:30'],
                 'statusPelapor' => ['required', 'string'],
                 'statusCivitas' => ['required', 'string'],
+                'jurusan' => ['nullable', 'string'],
+                'prodi' => ['nullable', 'string'],
                 'namaTerlapor' => ['required', 'string', 'max:255'],
                 'statusTerlapor' => ['required', 'string'],
                 'jenisKekerasan' => ['required', 'string'],

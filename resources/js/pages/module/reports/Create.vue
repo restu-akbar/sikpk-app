@@ -2,6 +2,18 @@
 import { useForm, router } from '@inertiajs/vue3';
 import { computed, provide, ref, watch } from 'vue';
 
+const props = defineProps<{
+    isFirstReport: boolean;
+    reporterData?: {
+        nama: string;
+        whatsapp: string;
+        statusCivitas: string;
+        jurusan: string;
+        prodi: string;
+        disabilitas: string[];
+    } | null;
+}>();
+
 import type { ReportForm } from '@/types';
 import { store } from '@/routes/reports';
 
@@ -26,6 +38,7 @@ import {
 import { jenisKekerasanOptions } from '@/constants/jenisKekerasanOptions';
 import { phonePattern } from '@/constants/phonePattern';
 import { methods } from '@/constants/methods';
+import { jurusanList, prodiList, getProdiByJurusan } from '@/constants/jurusanProdi';
 
 import { getPublicKeys } from '@/lib/crypto/getPublicKeys';
 import { encryptFile } from '@/lib/mediaCrypto';
@@ -62,11 +75,13 @@ const steps = [
 const stepErrors = ref<Record<string, string>>({});
 
 const form = useForm<ReportForm>({
-    nama: '',
-    whatsapp: '',
+    nama: props.reporterData?.nama ?? '',
+    whatsapp: props.reporterData?.whatsapp ?? '',
+    jurusan: props.reporterData?.jurusan ?? '',
+    prodi: props.reporterData?.prodi ?? '',
 
     statusPelapor: '',
-    statusCivitas: '',
+    statusCivitas: props.reporterData?.statusCivitas ?? '',
 
     namaTerlapor: '',
     statusTerlapor: 'tidak_diketahui',
@@ -77,12 +92,16 @@ const form = useForm<ReportForm>({
 
     kronologi: '',
 
-    disabilitas: ['tidak_ada'],
+    disabilitas: props.reporterData?.disabilitas ?? ['tidak_ada'],
 
     bukti: [],
 
     agreed: false,
 });
+
+const filteredProdi = computed(() =>
+    form.jurusan ? getProdiByJurusan(form.jurusan) : prodiList
+);
 
 const scrollToField = (field: string) => {
     const element =
@@ -95,13 +114,27 @@ const scrollToField = (field: string) => {
     });
 };
 
-const stepValidatorsForm = {
-    1: [
-        ['nama', 'Nama wajib diisi'],
-        ['whatsapp', 'No WhatsApp wajib diisi'],
-        ['statusPelapor', 'Status pelapor wajib dipilih'],
-        ['statusCivitas', 'Status civitas akademik wajib dipilih'],
-    ],
+const isFirstReport = computed(() => props.isFirstReport);
+
+const step1Fields = computed(() => {
+    const fields: [string, string][] = [];
+    if (isFirstReport.value) {
+        fields.push(['nama', 'Nama wajib diisi']);
+    }
+    fields.push(['whatsapp', 'No WhatsApp wajib diisi']);
+    if (isFirstReport.value) {
+        fields.push(['jurusan', 'Jurusan wajib dipilih']);
+        fields.push(['prodi', 'Program studi wajib dipilih']);
+    }
+    fields.push(['statusPelapor', 'Status pelapor wajib dipilih']);
+    if (isFirstReport.value) {
+        fields.push(['statusCivitas', 'Status civitas akademik wajib dipilih']);
+    }
+    return fields;
+});
+
+const stepValidatorsForm = computed(() => ({
+    1: step1Fields.value,
     2: [
         ['jenisKekerasan', 'Jenis kekerasan wajib dipilih'],
         ['tempatKejadian', 'Tempat kejadian wajib diisi'],
@@ -109,26 +142,21 @@ const stepValidatorsForm = {
         ['kronologi', 'Kronologi kejadian wajib diisi'],
     ],
     3: [['agreed', 'Pernyataan persetujuan harus diceklis']],
-} as const;
+}));
 
-const stepValidatorsAudio = {
-    1: [
-        ['nama', 'Nama wajib diisi'],
-        ['whatsapp', 'No WhatsApp wajib diisi'],
-        ['statusPelapor', 'Status pelapor wajib dipilih'],
-        ['statusCivitas', 'Status civitas akademik wajib dipilih'],
-    ],
+const stepValidatorsAudio = computed(() => ({
+    1: step1Fields.value,
     2: [
         ['jenisKekerasan', 'Jenis kekerasan wajib dipilih'],
     ],
     3: [['agreed', 'Pernyataan persetujuan harus diceklis']],
-} as const;
+}));
 
 const validateStep = (step: 1 | 2 | 3) => {
     const newErrors = { ...stepErrors.value };
     let isValid = true;
 
-    const validators = selectedMethod.value === 'audio' ? stepValidatorsAudio : stepValidatorsForm;
+    const validators = selectedMethod.value === 'audio' ? stepValidatorsAudio.value : stepValidatorsForm.value;
 
     if (step === 2 && selectedMethod.value === 'audio') {
         if (audioRecordings.value.length === 0) {
@@ -193,6 +221,8 @@ const prevStep = () => {
 const watchedFields = [
     'nama',
     'whatsapp',
+    'jurusan',
+    'prodi',
     'statusPelapor',
     'statusCivitas',
     'namaTerlapor',
@@ -203,6 +233,11 @@ const watchedFields = [
     'kronologi',
     'agreed',
 ] as const;
+
+watch(
+    () => form.jurusan,
+    () => { form.prodi = ''; },
+);
 
 watchedFields.forEach((field) => {
     watch(
@@ -316,6 +351,8 @@ const handleSubmit = async () => {
 
         formData.append('nama', form.nama);
         formData.append('whatsapp', form.whatsapp);
+        formData.append('jurusan', form.jurusan);
+        formData.append('prodi', form.prodi);
         formData.append('statusPelapor', form.statusPelapor);
         formData.append('statusCivitas', form.statusCivitas);
         formData.append('namaTerlapor', form.namaTerlapor || 'Tidak Diketahui');
@@ -465,7 +502,8 @@ const handleSubmit = async () => {
                                         name="nama"
                                         v-model="form.nama"
                                         label="Nama lengkap pelapor"
-                                        required
+                                        :required="isFirstReport"
+                                        :readonly="!isFirstReport"
                                         :error="stepErrors.nama"
                                         placeholder="Mis. Annisa Putri"
                                     />
@@ -478,6 +516,26 @@ const handleSubmit = async () => {
                                         placeholder="Mis. 081234567890"
                                         :pattern="phonePattern"
                                         hint="Format: 08xxxxxxxxxx, 10-13 panjang angka"
+                                    />
+                                    <DropdownField
+                                        name="jurusan"
+                                        v-model="form.jurusan"
+                                        label="Jurusan"
+                                        placeholder="Pilih jurusan..."
+                                        :options="jurusanList.map((j) => ({ label: j.name, value: j.name }))"
+                                        :error="stepErrors.jurusan"
+                                        :required="isFirstReport"
+                                        :disabled="!isFirstReport"
+                                    />
+                                    <DropdownField
+                                        name="prodi"
+                                        v-model="form.prodi"
+                                        label="Program Studi"
+                                        placeholder="Pilih program studi..."
+                                        :options="filteredProdi.map((p) => ({ label: `${p.name} (${p.degreeLevel})`, value: p.name }))"
+                                        :error="stepErrors.prodi"
+                                        :required="isFirstReport"
+                                        :disabled="!isFirstReport"
                                     />
                                 </div>
                                 <div class="mt-5 flex flex-col gap-2">
@@ -501,7 +559,8 @@ const handleSubmit = async () => {
                                     placeholder="Pilih status civitas akademika..."
                                     :options="statusCivitasOptions"
                                     :error="stepErrors.statusCivitas"
-                                    required
+                                    :required="isFirstReport"
+                                    :disabled="!isFirstReport"
                                 />
                             </FormCardSection>
 

@@ -37,28 +37,44 @@ class ReportService
     public function store(array $data, Request $request): Report
     {
         return DB::transaction(function () use ($data, $request) {
+            $reporter   = auth('google')->user();
+            $reporterId = $reporter?->id;
+
+            if ($reporter) {
+                $isFirstReport = !$reporter->reports()->exists();
+
+                if ($isFirstReport) {
+                    $reporter->update([
+                        'name'           => $data['nama'] ?? '',
+                        'whatsapp'       => $data['whatsapp'],
+                        'status_civitas' => $data['statusCivitas'] ?? null,
+                        'jurusan'        => $data['jurusan'] ?? null,
+                        'prodi'          => $data['prodi'] ?? null,
+                        'disabilitas'    => $data['disabilitas'] ?? null,
+                    ]);
+                } else {
+                    // Hanya whatsapp dan disabilitas yang boleh diubah
+                    $reporter->update([
+                        'whatsapp'    => $data['whatsapp'],
+                        'disabilitas' => $data['disabilitas'] ?? null,
+                    ]);
+                }
+            }
 
             $report = Report::create([
-                'reporter_id' => auth('google')->check()
-                    ? auth('google')->id()
-                    : null,
-                'nama' => $data['nama'],
-                'whatsapp' => $data['whatsapp'],
+                'reporter_id'   => $reporterId,
 
                 'status_pelapor' => $data['statusPelapor'],
-                'status_civitas' => $data['statusCivitas'] ?? null,
 
-                'nama_terlapor' => $data['namaTerlapor'],
+                'nama_terlapor'  => $data['namaTerlapor'],
                 'status_terlapor' => $data['statusTerlapor'],
 
                 'jenis_kekerasan' => $data['jenisKekerasan'],
 
                 'tempat_kejadian' => $data['tempatKejadian'] ?? null,
-                'waktu_kejadian' => $data['waktuKejadian'] ?? null,
+                'waktu_kejadian'  => $data['waktuKejadian'] ?? null,
 
                 'kronologi' => $data['kronologi'] ?? null,
-
-                'disabilitas' => $data['disabilitas'],
             ]);
 
             foreach ($request->input('bukti', []) as $index => $item) {

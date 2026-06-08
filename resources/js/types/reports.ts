@@ -20,11 +20,7 @@ export type AudioRecording = {
 export type Report = {
     id: string;
 
-    nama: string;
-    whatsapp: string;
-
     statusPelapor: string;
-    statusCivitas: string;
 
     namaTerlapor: string;
     statusTerlapor: string;
@@ -49,7 +45,8 @@ export type Report = {
 export type ReportForm = {
     nama: string;
     whatsapp: string;
-
+    jurusan: string;
+    prodi: string;
     statusPelapor: string;
     statusCivitas: string;
 

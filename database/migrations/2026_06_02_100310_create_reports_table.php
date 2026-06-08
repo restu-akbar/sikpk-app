@@ -18,23 +18,17 @@ return new class extends Migration
                 ->constrained('reporters')
                 ->nullOnDelete();
 
-            $table->string('nama');
-            $table->string('whatsapp', 30);
-
             $table->string('status_pelapor');
-            $table->string('status_civitas')->nullable();
 
             $table->string('nama_terlapor');
             $table->string('status_terlapor');
 
-            $table->string('jenis_kekerasan');
+            $table->string('jenis_kekerasan')->nullable();
 
-            $table->string('tempat_kejadian');
-            $table->timestamp('waktu_kejadian');
+            $table->string('tempat_kejadian')->nullable();
+            $table->timestamp('waktu_kejadian')->nullable();
 
-            $table->longText('kronologi');
-
-            $table->json('disabilitas')->nullable();
+            $table->longText('kronologi')->nullable();
 
             $table->enum('progress', [
                 'Laporan Baru',

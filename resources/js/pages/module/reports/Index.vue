@@ -175,13 +175,13 @@ Ketua, Anda hanya dapat melihat progress, bukan isi dokumen penanganan."
                 <div class="flex items-center gap-2">
                     <div
                         class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold"
-                        :class="getAvatarColor(row.nama)"
+                        :class="getAvatarColor(row.reporter?.name)"
                     >
-                        {{ getInitials(row.nama) }}
+                        {{ getInitials(row.reporter?.name) }}
                     </div>
 
                     <div>
-                        <p class="text-sm font-medium">{{ row.nama }}</p>
+                        <p class="text-sm font-medium">{{ row.reporter?.name }}</p>
 
                         <p class="text-xs text-muted-foreground">
                             {{ row.nim }} · {{ row.angkatan }}

@@ -17,17 +17,13 @@ class Report extends Model
     protected $fillable = [
         'reporter_id',
         'handled_by',
-        'nama',
-        'whatsapp',
         'status_pelapor',
-        'status_civitas',
         'nama_terlapor',
         'status_terlapor',
         'jenis_kekerasan',
         'tempat_kejadian',
         'waktu_kejadian',
         'kronologi',
-        'disabilitas',
         'progress',
     ];
 
@@ -35,7 +31,6 @@ class Report extends Model
     {
         return [
             'waktu_kejadian' => 'datetime',
-            'disabilitas' => 'array',
         ];
     }
 

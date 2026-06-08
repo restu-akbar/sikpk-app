@@ -56,13 +56,13 @@ function identitasFields(report: any) {
         },
         {
             label: 'Peran Pelapor',
-            value: getLabel(statusCivitasOptions, report.status_civitas),
+            value: getLabel(statusCivitasOptions, report.reporter?.status_civitas),
         },
-        { label: 'No. Whatsapp', value: report.whatsapp },
+        { label: 'No. Whatsapp', value: report.reporter?.whatsapp },
         { label: 'Email', value: report.reporter?.email },
         {
             label: 'Disabilitas',
-            value: getLabel(disabilityOptions, report.disabilitas),
+            value: getLabel(disabilityOptions, report.reporter?.disabilitas),
         },
         { label: 'Jurusan', value: report.reporter?.jurusan },
         { label: 'Prodi', value: report.reporter?.prodi },

@@ -40,9 +40,7 @@ class GoogleAuthController extends Controller
 
             $user = Reporter::firstOrCreate(
                 ['email' => $email],
-                [
-                    'name' => $googleUser->getName(),
-                ]
+                ['name' => $googleUser->getName()]
             );
 
             Auth::guard('google')->login($user);

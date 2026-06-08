@@ -12,6 +12,11 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->string('name');
             $table->string('email')->unique();
+            $table->string('whatsapp', 30)->nullable();
+            $table->string('status_civitas')->nullable();
+            $table->string('jurusan')->nullable();
+            $table->string('prodi')->nullable();
+            $table->json('disabilitas')->nullable();
             $table->timestamps();
         });
     }

@@ -23,7 +23,7 @@ class UserSeeder extends Seeder
         );
 
         User::factory()
-            ->count(10)
+            ->count(4)
             ->create([
                 'role' => 'anggota',
                 'must_change_password' => true,

@@ -46,10 +46,14 @@ class HandleInertiaRequests extends Middleware
                     if ($reporter) {
                         // Reporter: hanya field yang relevan, tanpa data kripto Satgas
                         return [
-                            'id'    => $reporter->id,
-                            'name'  => $reporter->name,
-                            'email' => $reporter->email,
-                            'role'  => null,
+                            'id'             => $reporter->id,
+                            'name'           => $reporter->name,
+                            'email'          => $reporter->email,
+                            'whatsapp'       => $reporter->whatsapp,
+                            'status_civitas' => $reporter->status_civitas,
+                            'jurusan'        => $reporter->jurusan,
+                            'prodi'          => $reporter->prodi,
+                            'role'           => null,
                             'must_change_password' => false,
                             'public_key'           => null,
                             'emek_password'        => null,
