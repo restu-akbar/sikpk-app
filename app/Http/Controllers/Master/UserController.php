@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Master;
 
+use App\Helpers\Toast;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\UserService;
@@ -64,8 +65,15 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
-        $this->userService->deleteAnggota($user);
+        try {
+            $this->userService->deleteAnggota($user);
 
-        return back()->with('success', 'Anggota berhasil dihapus.');
+            return back()->with(
+                'toast',
+                Toast::success('Anggota berhasil dihapus.')
+            );
+        } catch (\Exception $e) {
+            return back()->with('toast', Toast::error($e->getMessage()));
+        }
     }
 }

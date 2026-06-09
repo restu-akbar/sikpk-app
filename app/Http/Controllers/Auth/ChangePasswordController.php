@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Helpers\Toast;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -59,8 +60,7 @@ class ChangePasswordController extends Controller
             return redirect('/dashboard')->with('success', true);
         }
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Password berhasil diubah')]);
-        return back();
+        return back()->with('toast', Toast::success('Password berhasil diubah'));
     }
 
     public function complete(Request $request)
@@ -71,6 +71,6 @@ class ChangePasswordController extends Controller
 
         return redirect()
             ->route('satgas.dashboard')
-            ->with('success', 'Setup user berhasil');
+            ->with('toast', Toast::success('Setup berhasil dijalankan'));
     }
 }

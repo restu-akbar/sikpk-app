@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Helpers\Toast;
 use App\Http\Controllers\Controller;
 use App\Models\Reporter;
 use Illuminate\Support\Facades\Auth;
@@ -32,10 +33,7 @@ class GoogleAuthController extends Controller
             if (!str_ends_with($email, '@polban.ac.id')) {
                 return redirect()
                     ->route('google.login')
-                    ->with('toast', [
-                        'type' => 'error',
-                        'message' => 'Login hanya diperbolehkan menggunakan akun email kampus (@polban.ac.id).'
-                    ]);
+                    ->with('toast',  Toast::error('Login hanya diperbolehkan menggunakan akun email kampus (@polban.ac.id).'));
             }
 
             $user = Reporter::firstOrCreate(
