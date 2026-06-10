@@ -28,8 +28,6 @@ createInertiaApp({
         | Layout Resolver
         |--------------------------------------------------------------------------
         */
-        console.log(name);
-
         switch (true) {
             case name === 'Welcome':
                 page.default.layout = null;

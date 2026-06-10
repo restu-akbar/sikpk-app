@@ -19,10 +19,20 @@ class ReportController extends Controller
         protected ReportService $reportService
     ) {}
 
+    public function data()
+    {
+        return $this->reportService->index(false);
+    }
+
+    public function showLogs($id)
+    {
+        return $this->reportService->index(false, ['reportLogs'])->findOrFail($id);
+    }
+
     public function index()
     {
         return Inertia::render('satgas/reports/Index', [
-            'rows' => $this->reportService->index()
+            'rows' => $this->reportService->index(with: ['evidences', 'reporter'])
         ]);
     }
 

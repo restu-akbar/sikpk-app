@@ -9,6 +9,8 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
 use App\Http\Responses\LoginResponse;
+use App\Models\Report;
+use App\Observers\ReportObserver;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Auth\Middleware\RedirectIfAuthenticated;
@@ -54,6 +56,7 @@ class AppServiceProvider extends ServiceProvider
                 ->line('Link reset password berlaku selama 15 menit.')
                 ->line('Jika Anda tidak meminta reset password, abaikan email ini.');
         });
+        Report::observe(ReportObserver::class);
     }
 
     /**

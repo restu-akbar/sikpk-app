@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\AudioRecording;
 use App\Models\Report;
 use App\Models\ReportEvidence;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -13,25 +14,36 @@ use Illuminate\Validation\Rule;
 
 class ReportService
 {
-    public function index()
+    protected function query(array $with = []): Builder
     {
-        $query = Report::with(['evidences', 'reporter']);
+        $query = Report::query();
+
+        if (! empty($with)) {
+            $query->with($with);
+        }
 
         if (auth('google')->check()) {
-            return $query
-                ->where('reporter_id', auth('google')->id())
-                ->latest()
-                ->paginate(10);
+            $query->where('reporter_id', auth('google')->id());
         }
 
         if (auth('web')->check()) {
             $user = auth('web')->user();
+
             if ($user->role === 'anggota') {
                 $query->where('reporter_id', $user->id);
             }
         }
 
-        return $query->latest()->paginate(10);
+        return $query;
+    }
+
+    public function index(bool $paginate = true, array $with = [])
+    {
+        $query = $this->query($with)->latest();
+
+        return $paginate
+            ? $query->paginate(10)
+            : $query->get();
     }
 
     public function store(array $data, Request $request): Report
@@ -140,7 +152,6 @@ class ReportService
         ]);
 
         $report->handlers()->sync($request->anggota);
-
         foreach ($request->edek_updates as $update) {
             $evidence = ReportEvidence::findOrFail(
                 $update['evidence_id']

@@ -25,9 +25,23 @@ Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback']);
 
 Route::middleware(['auth:google'])->group(function () {
     Route::inertia('/dashboard', 'dashboard/Dashboard')->name('dashboard');
+    Route::prefix('reports')->name('reports.')->group(function () {
+        Route::inertia('track', 'reporters/reports/ReportTracking')->name('track');
+    });
     Route::resource('reports', ReportController::class);
 
     Route::post('/logout', [GoogleAuthController::class, 'logout'])->name('reporter.logout');
+
+    Route::prefix('api')
+        ->name('api.')
+        ->group(function () {
+            Route::prefix('reports')
+                ->name('reports.')
+                ->group(function () {
+                    Route::get('', [ReportController::class, 'data']);
+                    Route::get('{report}/logs', [ReportController::class, 'showLogs']);
+                });
+        });
 });
 
 Route::middleware(['auth', 'password.changed'])->group(function () {

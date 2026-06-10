@@ -34,6 +34,10 @@ class Report extends Model
         ];
     }
 
+    protected $attributes = [
+        'progress' => 'Laporan Baru',
+    ];
+
     public function reporter(): BelongsTo
     {
         return $this->belongsTo(Reporter::class);
@@ -55,5 +59,17 @@ class Report extends Model
     public function audioRecordings(): HasMany
     {
         return $this->hasMany(AudioRecording::class)->orderBy('order');
+    }
+
+    public function reportLogs(): HasMany
+    {
+        return $this->hasMany(ReportLog::class)
+            ->orderBy('created_at');
+    }
+
+    public function latestLog()
+    {
+        return $this->hasOne(ReportLog::class)
+            ->latestOfMany();
     }
 }
