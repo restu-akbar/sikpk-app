@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Settings;
 
+use App\Helpers\Toast;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Settings\ProfileDeleteRequest;
 use App\Http\Requests\Settings\ProfileUpdateRequest;
@@ -58,8 +59,10 @@ class ProfileController extends Controller
             )
         );
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Verification link sent.')]);
-        return back();
+        return back()->with(
+            'toast',
+            Toast::success('Link verifikasi telah dikirim ke akun email anda.')
+        );
     }
     /**
      * Update the user's profile information.
@@ -74,9 +77,10 @@ class ProfileController extends Controller
 
         $request->user()->save();
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Profile updated.')]);
-
-        return to_route('settings.profile.edit');
+        return to_route('settings.profile.edit')->with(
+            'toast',
+            Toast::success('Profil berhasil diupdate.')
+        );;
     }
 
     /**

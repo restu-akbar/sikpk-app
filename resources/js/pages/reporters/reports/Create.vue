@@ -1,22 +1,10 @@
 <script setup lang="ts">
 import { useForm, router } from '@inertiajs/vue3';
 import { computed, provide, ref, watch } from 'vue';
-
-const props = defineProps<{
-    isFirstReport: boolean;
-    reporterData?: {
-        nama: string;
-        whatsapp: string;
-        statusCivitas: string;
-        jurusan: string;
-        prodi: string;
-        disabilitas: string[];
-    } | null;
-}>();
-
+import { useStep } from '@/composables/useStep';
+import StepIndicator from '@/components/StepIndicator.vue';
 import type { ReportForm } from '@/types';
 import { store } from '@/routes/reports';
-
 import Agreement from '@/components/Agreement.vue';
 import MethodSelector from '@/components/MethodSelector.vue';
 import FormCardSection from '@/components/form/FormCardSection.vue';
@@ -38,7 +26,11 @@ import {
 import { jenisKekerasanOptions } from '@/constants/jenisKekerasanOptions';
 import { phonePattern } from '@/constants/phonePattern';
 import { methods } from '@/constants/methods';
-import { jurusanList, prodiList, getProdiByJurusan } from '@/constants/jurusanProdi';
+import {
+    jurusanList,
+    prodiList,
+    getProdiByJurusan,
+} from '@/constants/jurusanProdi';
 
 import { getPublicKeys } from '@/lib/crypto/getPublicKeys';
 import { encryptFile } from '@/lib/mediaCrypto';
@@ -46,18 +38,21 @@ import { encryptFile } from '@/lib/mediaCrypto';
 provide('formTheme', 'blue');
 
 const selectedMethod = ref<'form' | 'audio'>('form');
-const currentStep = ref(1);
 const audioRecordings = ref<AudioRecording[]>([]);
 
-const nextButtonLabel = computed(() => {
-    const labels: Record<number, string> = {
-        1: 'Lanjut ke Detail Kejadian',
-        2: 'Lanjut ke Konfirmasi',
-    };
-    return labels[currentStep.value] ?? 'Lanjut';
-});
+const props = defineProps<{
+    isFirstReport: boolean;
+    reporterData?: {
+        nama: string;
+        whatsapp: string;
+        statusCivitas: string;
+        jurusan: string;
+        prodi: string;
+        disabilitas: string[];
+    } | null;
+}>();
 
-const steps = [
+const stepsData = [
     {
         title: 'Data Pelapor',
         desc: 'Identitas dan status civitas',
@@ -71,6 +66,17 @@ const steps = [
         desc: 'Tinjau ulang dan kirim laporan',
     },
 ];
+
+// Menggunakan composable baru untuk management state steps
+const { currentStep, steps, nextStep, prevStep } = useStep(stepsData, 3);
+
+const nextButtonLabel = computed(() => {
+    const labels: Record<number, string> = {
+        1: 'Lanjut ke Detail Kejadian',
+        2: 'Lanjut ke Konfirmasi',
+    };
+    return labels[currentStep.value] ?? 'Lanjut';
+});
 
 const stepErrors = ref<Record<string, string>>({});
 
@@ -100,7 +106,7 @@ const form = useForm<ReportForm>({
 });
 
 const filteredProdi = computed(() =>
-    form.jurusan ? getProdiByJurusan(form.jurusan) : prodiList
+    form.jurusan ? getProdiByJurusan(form.jurusan) : prodiList,
 );
 
 const scrollToField = (field: string) => {
@@ -146,9 +152,7 @@ const stepValidatorsForm = computed(() => ({
 
 const stepValidatorsAudio = computed(() => ({
     1: step1Fields.value,
-    2: [
-        ['jenisKekerasan', 'Jenis kekerasan wajib dipilih'],
-    ],
+    2: [['jenisKekerasan', 'Jenis kekerasan wajib dipilih']],
     3: [['agreed', 'Pernyataan persetujuan harus diceklis']],
 }));
 
@@ -156,11 +160,15 @@ const validateStep = (step: 1 | 2 | 3) => {
     const newErrors = { ...stepErrors.value };
     let isValid = true;
 
-    const validators = selectedMethod.value === 'audio' ? stepValidatorsAudio.value : stepValidatorsForm.value;
+    const validators =
+        selectedMethod.value === 'audio'
+            ? stepValidatorsAudio.value
+            : stepValidatorsForm.value;
 
     if (step === 2 && selectedMethod.value === 'audio') {
         if (audioRecordings.value.length === 0) {
-            newErrors['audioRecordings'] = 'Minimal satu rekaman suara wajib ditambahkan';
+            newErrors['audioRecordings'] =
+                'Minimal satu rekaman suara wajib ditambahkan';
             stepErrors.value = newErrors;
             scrollToField('audioRecordings');
             return false;
@@ -203,19 +211,19 @@ const validateStep = (step: 1 | 2 | 3) => {
     return isValid;
 };
 
-const nextStep = () => {
+// Fungsi diubah namanya agar tidak bentrok dengan fungsi dari useStep
+const handleNextStep = () => {
     if (currentStep.value === 1 && !validateStep(1)) return;
     if (currentStep.value === 2 && !validateStep(2)) return;
     if (currentStep.value === 3 && !validateStep(3)) return;
 
     stepErrors.value = {};
-    currentStep.value++;
+    nextStep();
 };
 
-const prevStep = () => {
-    if (currentStep.value > 1) {
-        currentStep.value--;
-    }
+// Fungsi diubah namanya agar tidak bentrok dengan fungsi dari useStep
+const handlePrevStep = () => {
+    prevStep();
 };
 
 const watchedFields = [
@@ -236,7 +244,9 @@ const watchedFields = [
 
 watch(
     () => form.jurusan,
-    () => { form.prodi = ''; },
+    () => {
+        form.prodi = '';
+    },
 );
 
 watchedFields.forEach((field) => {
@@ -300,33 +310,48 @@ const summaryItems = computed(() => {
     const base = [
         {
             label: 'Status Pelapor',
-            value: statusOptions.find((item) => item.value === form.statusPelapor)?.label ?? '-',
+            value:
+                statusOptions.find((item) => item.value === form.statusPelapor)
+                    ?.label ?? '-',
         },
         {
             label: 'Pelapor Sebagai',
-            value: statusCivitasOptions.find((item) => item.value === form.statusCivitas)?.label ?? '-',
+            value:
+                statusCivitasOptions.find(
+                    (item) => item.value === form.statusCivitas,
+                )?.label ?? '-',
         },
         {
             label: 'Jenis Dugaan',
-            value: jenisKekerasanOptions.find((item) => item.value === form.jenisKekerasan)?.label ?? '-',
+            value:
+                jenisKekerasanOptions.find(
+                    (item) => item.value === form.jenisKekerasan,
+                )?.label ?? '-',
         },
         {
             label: 'Terlapor',
-            value: display(form.namaTerlapor) === '-' ? 'Tidak Diketahui' : display(form.namaTerlapor),
+            value:
+                display(form.namaTerlapor) === '-'
+                    ? 'Tidak Diketahui'
+                    : display(form.namaTerlapor),
         },
     ];
 
     if (selectedMethod.value === 'audio') {
         base.push({
             label: 'Rekaman Suara',
-            value: audioRecordings.value.length > 0
-                ? `${audioRecordings.value.length} rekaman`
-                : '-',
+            value:
+                audioRecordings.value.length > 0
+                    ? `${audioRecordings.value.length} rekaman`
+                    : '-',
         });
     } else {
         base.push(
             { label: 'Tempat Kejadian', value: display(form.tempatKejadian) },
-            { label: 'Waktu Kejadian', value: formatDateTime(form.waktuKejadian) },
+            {
+                label: 'Waktu Kejadian',
+                value: formatDateTime(form.waktuKejadian),
+            },
         );
     }
 
@@ -358,9 +383,22 @@ const handleSubmit = async () => {
         formData.append('namaTerlapor', form.namaTerlapor || 'Tidak Diketahui');
         formData.append('statusTerlapor', form.statusTerlapor);
         formData.append('jenisKekerasan', form.jenisKekerasan);
-        formData.append('tempatKejadian', selectedMethod.value === 'audio' ? (form.tempatKejadian || '') : form.tempatKejadian);
-        formData.append('waktuKejadian', selectedMethod.value === 'audio' ? (form.waktuKejadian || '') : form.waktuKejadian);
-        formData.append('kronologi', selectedMethod.value === 'audio' ? '' : form.kronologi);
+        formData.append(
+            'tempatKejadian',
+            selectedMethod.value === 'audio'
+                ? form.tempatKejadian || ''
+                : form.tempatKejadian,
+        );
+        formData.append(
+            'waktuKejadian',
+            selectedMethod.value === 'audio'
+                ? form.waktuKejadian || ''
+                : form.waktuKejadian,
+        );
+        formData.append(
+            'kronologi',
+            selectedMethod.value === 'audio' ? '' : form.kronologi,
+        );
         formData.append('metode', selectedMethod.value);
         formData.append('agreed', form.agreed ? '1' : '0');
         form.disabilitas.forEach((d) => formData.append('disabilitas[]', d));
@@ -377,10 +415,18 @@ const handleSubmit = async () => {
         });
 
         audioRecordings.value.forEach((rec, index) => {
-            const file = new File([rec.blob], `rekaman-${index + 1}.webm`, { type: rec.blob.type || 'audio/webm' });
+            const file = new File([rec.blob], `rekaman-${index + 1}.webm`, {
+                type: rec.blob.type || 'audio/webm',
+            });
             formData.append(`audio_recordings[${index}][file]`, file);
-            formData.append(`audio_recordings[${index}][duration]`, rec.duration.toString());
-            formData.append(`audio_recordings[${index}][order]`, (index + 1).toString());
+            formData.append(
+                `audio_recordings[${index}][duration]`,
+                rec.duration.toString(),
+            );
+            formData.append(
+                `audio_recordings[${index}][order]`,
+                (index + 1).toString(),
+            );
         });
 
         router.post(store().url, formData, {
@@ -410,25 +456,38 @@ const handleSubmit = async () => {
             <div class="mb-6 text-center">
                 <h1 class="mb-2 text-3xl font-bold">Buat Laporan</h1>
                 <p class="mx-auto max-w-md text-sm leading-relaxed">
-                    <span class="font-bold text-gray-900">Pilih metode pelaporan yang paling nyaman.</span>
-                    <span class="text-gray-500"> Identitas Anda dilindungi dan hanya dapat diakses oleh Satgas PPK.</span>
+                    <span class="font-bold text-gray-900"
+                        >Pilih metode pelaporan yang paling nyaman.</span
+                    >
+                    <span class="text-gray-500">
+                        Identitas Anda dilindungi dan hanya dapat diakses oleh
+                        Satgas PPK.</span
+                    >
                 </p>
             </div>
 
             <!-- Divider full-width -->
-            <div class="mb-6 border-b border-gray-200" style="width: 100vw; margin-left: calc(50% - 50vw);"></div>
+            <div
+                class="mb-6 border-b border-gray-200"
+                style="width: 100vw; margin-left: calc(50% - 50vw)"
+            ></div>
 
             <!-- Method Selector — hanya tampil di step 1 dan 2 -->
             <div v-if="currentStep < 3" class="mb-6">
                 <MethodSelector v-model="selectedMethod" :options="methods" />
             </div>
 
-            <div class="my-6 overflow-hidden rounded-2xl border border-gray-200 bg-[#ECE8E2] shadow-sm">
+            <div
+                class="my-6 overflow-hidden rounded-2xl border border-gray-200 bg-[#ECE8E2] shadow-sm"
+            >
                 <!-- STEP INDICATOR -->
                 <div class="border-b border-gray-200 bg-white px-10 py-5">
                     <div class="flex items-start">
                         <template v-for="(step, index) in steps" :key="index">
-                            <div class="flex flex-col items-center gap-1.5" style="min-width: 110px">
+                            <div
+                                class="flex flex-col items-center gap-1.5"
+                                style="min-width: 110px"
+                            >
                                 <!-- Circle -->
                                 <div
                                     class="flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold transition-all"
@@ -466,7 +525,9 @@ const handleSubmit = async () => {
                                     {{ step.title }}
                                 </span>
 
-                                <span class="max-w-[110px] text-center text-[10px] leading-tight text-gray-400">
+                                <span
+                                    class="max-w-[110px] text-center text-[10px] leading-tight text-gray-400"
+                                >
                                     {{ step.desc }}
                                 </span>
                             </div>
@@ -490,14 +551,20 @@ const handleSubmit = async () => {
                     <div class="bg-white p-8">
                         <!-- STEP 1 -->
                         <div v-if="currentStep === 1">
-                            <h2 class="mb-1 text-xl font-bold text-gray-900">Data Pelapor</h2>
+                            <h2 class="mb-1 text-xl font-bold text-gray-900">
+                                Data Pelapor
+                            </h2>
                             <p class="mb-8 text-sm text-gray-500">
-                                Identitas Anda hanya diakses oleh Ketua Satgas. Nomor WhatsApp digunakan untuk komunikasi tindak lanjut.
+                                Identitas Anda hanya diakses oleh Ketua Satgas.
+                                Nomor WhatsApp digunakan untuk komunikasi tindak
+                                lanjut.
                             </p>
 
                             <FormCardSection>
                                 <FormSectionTitle title="Identitas Anda" />
-                                <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+                                <div
+                                    class="grid grid-cols-1 gap-5 md:grid-cols-2"
+                                >
                                     <FormField
                                         name="nama"
                                         v-model="form.nama"
@@ -522,7 +589,12 @@ const handleSubmit = async () => {
                                         v-model="form.jurusan"
                                         label="Jurusan"
                                         placeholder="Pilih jurusan..."
-                                        :options="jurusanList.map((j) => ({ label: j.name, value: j.name }))"
+                                        :options="
+                                            jurusanList.map((j) => ({
+                                                label: j.name,
+                                                value: j.name,
+                                            }))
+                                        "
                                         :error="stepErrors.jurusan"
                                         :required="isFirstReport"
                                         :disabled="!isFirstReport"
@@ -532,7 +604,12 @@ const handleSubmit = async () => {
                                         v-model="form.prodi"
                                         label="Program Studi"
                                         placeholder="Pilih program studi..."
-                                        :options="filteredProdi.map((p) => ({ label: `${p.name} (${p.degreeLevel})`, value: p.name }))"
+                                        :options="
+                                            filteredProdi.map((p) => ({
+                                                label: `${p.name} (${p.degreeLevel})`,
+                                                value: p.name,
+                                            }))
+                                        "
                                         :error="stepErrors.prodi"
                                         :required="isFirstReport"
                                         :disabled="!isFirstReport"
@@ -551,7 +628,9 @@ const handleSubmit = async () => {
                             </FormCardSection>
 
                             <FormCardSection>
-                                <FormSectionTitle title="Pelapor sebagai (Civitas Akademika)" />
+                                <FormSectionTitle
+                                    title="Pelapor sebagai (Civitas Akademika)"
+                                />
                                 <DropdownField
                                     name="statusCivitas"
                                     v-model="form.statusCivitas"
@@ -567,8 +646,11 @@ const handleSubmit = async () => {
                             <FormCardSection>
                                 <FormSectionTitle title="Kebutuhan Khusus" />
                                 <div>
-                                    <p class="mb-2 text-sm font-medium text-gray-700">
-                                        Apakah Anda memiliki kebutuhan disabilitas tertentu?
+                                    <p
+                                        class="mb-2 text-sm font-medium text-gray-700"
+                                    >
+                                        Apakah Anda memiliki kebutuhan
+                                        disabilitas tertentu?
                                     </p>
                                     <div class="flex flex-wrap gap-2.5">
                                         <button
@@ -578,7 +660,9 @@ const handleSubmit = async () => {
                                             @click="toggleDisability(opt.value)"
                                             :class="[
                                                 'rounded-lg border px-4 py-2 text-sm font-medium transition-all',
-                                                form.disabilitas.includes(opt.value)
+                                                form.disabilitas.includes(
+                                                    opt.value,
+                                                )
                                                     ? 'border-[#1A5BA6] bg-[#EDF3FB] text-[#1A5BA6]'
                                                     : 'border-gray-300 text-gray-600 hover:border-gray-400',
                                             ]"
@@ -586,25 +670,38 @@ const handleSubmit = async () => {
                                             {{ opt.label }}
                                         </button>
                                     </div>
-                                    <ErrorField :error="form.errors.disabilitas" />
+                                    <ErrorField
+                                        :error="form.errors.disabilitas"
+                                    />
                                     <p class="mt-3 text-[11px] text-gray-400">
-                                        Informasi ini membantu Satgas menyediakan akomodasi yang sesuai pada tahap klarifikasi.
+                                        Informasi ini membantu Satgas
+                                        menyediakan akomodasi yang sesuai pada
+                                        tahap klarifikasi.
                                     </p>
                                 </div>
                             </FormCardSection>
                         </div>
 
                         <!-- STEP 2 — Formulir Lengkap -->
-                        <div v-if="currentStep === 2 && selectedMethod === 'form'">
-                            <h2 class="mb-1 text-xl font-bold">Detail Kejadian</h2>
+                        <div
+                            v-if="
+                                currentStep === 2 && selectedMethod === 'form'
+                            "
+                        >
+                            <h2 class="mb-1 text-xl font-bold">
+                                Detail Kejadian
+                            </h2>
                             <p class="mb-8 text-sm text-gray-500">
                                 Sampaikan apa yang terjadi seakurat mungkin.
-                                Hindari mencantumkan data pribadi pihak lain jika belum diperlukan.
+                                Hindari mencantumkan data pribadi pihak lain
+                                jika belum diperlukan.
                             </p>
 
                             <FormCardSection>
                                 <FormSectionTitle title="Identitas Terlapor" />
-                                <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+                                <div
+                                    class="grid grid-cols-1 gap-5 md:grid-cols-2"
+                                >
                                     <FormField
                                         name="namaTerlapor"
                                         v-model="form.namaTerlapor"
@@ -625,8 +722,12 @@ const handleSubmit = async () => {
                             </FormCardSection>
 
                             <FormCardSection>
-                                <FormSectionTitle title="Jenis & Tempat Kejadian" />
-                                <div class="mb-5 grid grid-cols-1 gap-5 md:grid-cols-2">
+                                <FormSectionTitle
+                                    title="Jenis & Tempat Kejadian"
+                                />
+                                <div
+                                    class="mb-5 grid grid-cols-1 gap-5 md:grid-cols-2"
+                                >
                                     <DropdownField
                                         name="jenisKekerasan"
                                         v-model="form.jenisKekerasan"
@@ -680,11 +781,18 @@ const handleSubmit = async () => {
                         </div>
 
                         <!-- STEP 2 — Formulir + Rekaman Suara -->
-                        <div v-if="currentStep === 2 && selectedMethod === 'audio'">
-                            <h2 class="mb-1 text-xl font-bold">Rekam Kronologi Kejadian</h2>
+                        <div
+                            v-if="
+                                currentStep === 2 && selectedMethod === 'audio'
+                            "
+                        >
+                            <h2 class="mb-1 text-xl font-bold">
+                                Rekam Kronologi Kejadian
+                            </h2>
                             <p class="mb-8 text-sm text-gray-500">
-                                Sampaikan kejadian dengan suara Anda. Tidak perlu sempurna.
-                                Anda dapat merekam ulang kapan saja sebelum mengirim laporan.
+                                Sampaikan kejadian dengan suara Anda. Tidak
+                                perlu sempurna. Anda dapat merekam ulang kapan
+                                saja sebelum mengirim laporan.
                             </p>
 
                             <FormCardSection>
@@ -697,7 +805,9 @@ const handleSubmit = async () => {
                             </FormCardSection>
 
                             <FormCardSection>
-                                <FormSectionTitle title="Jenis Dugaan Kekerasan" />
+                                <FormSectionTitle
+                                    title="Jenis Dugaan Kekerasan"
+                                />
                                 <DropdownField
                                     name="jenisKekerasan"
                                     v-model="form.jenisKekerasan"
@@ -723,35 +833,51 @@ const handleSubmit = async () => {
                         <div v-if="currentStep === 3">
                             <div class="flex flex-col gap-2">
                                 <div>
-                                    <h1 class="text-2xl font-bold text-gray-900">
+                                    <h1
+                                        class="text-2xl font-bold text-gray-900"
+                                    >
                                         Konfirmasi & Kirim Laporan
                                     </h1>
                                     <p class="mt-1 text-sm text-gray-500">
-                                        Periksa kembali ringkasan laporan Anda sebelum dikirim ke Satgas PPK.
+                                        Periksa kembali ringkasan laporan Anda
+                                        sebelum dikirim ke Satgas PPK.
                                     </p>
                                 </div>
 
                                 <FormCardSection>
                                     <div class="flex flex-col gap-6">
-                                        <span class="text-xs font-semibold tracking-widest text-gray-400 uppercase">
+                                        <span
+                                            class="text-xs font-semibold tracking-widest text-gray-400 uppercase"
+                                        >
                                             Ringkasan Laporan
                                         </span>
-                                        <div class="grid grid-cols-1 sm:grid-cols-2">
+                                        <div
+                                            class="grid grid-cols-1 sm:grid-cols-2"
+                                        >
                                             <div
-                                                v-for="(item, index) in summaryItems"
+                                                v-for="(
+                                                    item, index
+                                                ) in summaryItems"
                                                 :key="item.label"
                                                 :class="[
                                                     'py-4',
-                                                    index < summaryItems.length - 2
+                                                    index <
+                                                    summaryItems.length - 2
                                                         ? 'border-b border-dashed border-gray-200'
                                                         : '',
-                                                    index % 2 === 1 ? 'sm:pl-6' : '',
+                                                    index % 2 === 1
+                                                        ? 'sm:pl-6'
+                                                        : '',
                                                 ]"
                                             >
-                                                <p class="mb-1 text-xs font-semibold tracking-widest text-gray-400 uppercase">
+                                                <p
+                                                    class="mb-1 text-xs font-semibold tracking-widest text-gray-400 uppercase"
+                                                >
                                                     {{ item.label }}
                                                 </p>
-                                                <p class="text-sm text-gray-800">
+                                                <p
+                                                    class="text-sm text-gray-800"
+                                                >
                                                     {{ item.value }}
                                                 </p>
                                             </div>
@@ -771,7 +897,9 @@ const handleSubmit = async () => {
                     <!-- /bg-white p-8 -->
 
                     <!-- Footer full-width -->
-                    <div class="flex items-center justify-between border-t border-[#ECE8E2] bg-[#FDFCFB] px-8 py-5">
+                    <div
+                        class="flex items-center justify-between border-t border-[#ECE8E2] bg-[#FDFCFB] px-8 py-5"
+                    >
                         <span class="text-xs text-gray-500">
                             Langkah {{ currentStep }} dari {{ steps.length }}
                         </span>
@@ -783,8 +911,18 @@ const handleSubmit = async () => {
                                 @click="prevStep"
                                 class="flex items-center gap-2 rounded-lg border border-gray-400 bg-white px-5 py-2.5 text-sm font-medium transition-all hover:bg-gray-50"
                             >
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                                <svg
+                                    class="h-4 w-4"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M15 19l-7-7 7-7"
+                                    />
                                 </svg>
                                 Kembali
                             </button>
@@ -792,12 +930,22 @@ const handleSubmit = async () => {
                             <button
                                 v-if="currentStep < 3"
                                 type="button"
-                                @click="nextStep"
+                                @click="handleNextStep"
                                 class="flex items-center gap-2 rounded-lg bg-[#F97316] px-6 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-orange-600"
                             >
                                 {{ nextButtonLabel }}
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                <svg
+                                    class="h-4 w-4"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M9 5l7 7-7 7"
+                                    />
                                 </svg>
                             </button>
 
@@ -807,8 +955,18 @@ const handleSubmit = async () => {
                                 class="flex items-center gap-2 rounded-lg bg-[#F97316] px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-orange-600"
                             >
                                 Kirim Laporan
-                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                <svg
+                                    class="h-4 w-4"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M9 5l7 7-7 7"
+                                    />
                                 </svg>
                             </button>
                         </div>

@@ -19,14 +19,20 @@ export function handleCreate(
 }
 
 export function handleEdit(
-    form: any,
+    form?: any | null,
     route: { url: string; method: string },
     options?: ActionOptions,
 ) {
-    form.put(route.url, {
+    const callbacks = {
         onSuccess: () => options?.onSuccess?.(),
         onError: () => options?.onError?.(),
-    });
+    };
+
+    if (form) {
+        form.put(route, callbacks);
+    } else {
+        router.put(route, {}, callbacks);
+    }
 }
 
 export function handleDelete(

@@ -10,7 +10,7 @@ import AuthCenterLayout from '@/layouts/auth/AuthCenterLayout.vue';
 import AuthLayout from '@/layouts/AuthLayout.vue';
 import PublicLayout from '@/layouts/PublicLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
-import RootLayout from './RootLayout.vue'
+import RootLayout from './RootLayout.vue';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -28,6 +28,7 @@ createInertiaApp({
         | Layout Resolver
         |--------------------------------------------------------------------------
         */
+        console.log(name);
 
         switch (true) {
             case name === 'Welcome':
@@ -38,7 +39,7 @@ createInertiaApp({
                 page.default.layout = PublicLayout;
                 break;
 
-            case name === 'module/reports/Create':
+            case name.startsWith('reporters/'):
                 page.default.layout = PublicLayout;
                 break;
 

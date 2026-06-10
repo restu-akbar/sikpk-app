@@ -2,13 +2,11 @@
 import { Head, useForm, usePage } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import { update } from '@/routes/satgas/getting-started';
-import {
-    setTemporaryError,
-    downloadRecoveryFile,
-    handleEdit,
-} from '@/lib/utils';
+import { setTemporaryError, downloadRecoveryFile } from '@/lib/utils';
 import { generateEncryption } from '@/lib/crypto';
 import ChangePasswordForm from '@/components/ChangePasswordForm.vue';
+import { handleEdit } from '@/lib/handleRequest';
+import { complete } from '@/routes/satgas/getting-started';
 
 const page = usePage();
 const user = page.props.auth.user;
@@ -85,15 +83,7 @@ const submit = async () => {
 
 const handleDownloadRecovery = () => {
     downloadRecoveryFile(pendingRecoveryCode.value, user.name);
-
-    handleEdit(
-        '/satgas/getting-started/complete',
-        {},
-        {
-            success: 'Setup user berhasil',
-            error: 'Setup user gagal',
-        },
-    );
+    handleEdit(null, complete());
 };
 </script>
 
@@ -102,15 +92,16 @@ const handleDownloadRecovery = () => {
 
     <!-- Right panel content: heading + form -->
     <div class="flex flex-col gap-6">
-
         <!-- Heading -->
         <div class="flex flex-col gap-4">
-            <h2 class="font-display text-4xl font-bold tracking-tight text-foreground">
+            <h2
+                class="font-display text-4xl font-bold tracking-tight text-foreground"
+            >
                 Ganti Password
             </h2>
             <p class="text-base leading-relaxed text-muted-foreground">
-                Untuk alasan keamanan, silakan ganti password sesuai
-                preferensi anda sebelum lanjut.
+                Untuk alasan keamanan, silakan ganti password sesuai preferensi
+                anda sebelum lanjut.
             </p>
         </div>
 
@@ -121,7 +112,6 @@ const handleDownloadRecovery = () => {
             submit-label="Ubah Password"
             processing-label="Mengubah..."
         />
-
     </div>
 
     <!-- Recovery key dialog: fixed overlay, outside layout flow -->
@@ -130,9 +120,7 @@ const handleDownloadRecovery = () => {
         class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm"
     >
         <div class="w-full max-w-md rounded-2xl bg-background p-8 shadow-2xl">
-
             <div class="flex flex-col gap-6">
-
                 <!-- Header -->
                 <div class="flex flex-col gap-2">
                     <h2 class="font-display text-xl font-bold text-foreground">
@@ -145,12 +133,17 @@ const handleDownloadRecovery = () => {
                 </div>
 
                 <!-- Warning list -->
-                <div class="rounded-xl border border-amber-500/30 bg-amber-500/10 px-5 py-4 text-sm text-amber-700">
+                <div
+                    class="rounded-xl border border-amber-500/30 bg-amber-500/10 px-5 py-4 text-sm text-amber-700"
+                >
                     <ul class="list-disc space-y-1 pl-4">
                         <li>File ini hanya dapat diunduh sekali.</li>
                         <li>Jangan bagikan recovery key kepada siapapun.</li>
                         <li>Simpan di tempat yang aman.</li>
-                        <li>Jika recovery key hilang dan password lupa, akun anda tidak dapat dipulihkan.</li>
+                        <li>
+                            Jika recovery key hilang dan password lupa, akun
+                            anda tidak dapat dipulihkan.
+                        </li>
                     </ul>
                 </div>
 
@@ -164,7 +157,6 @@ const handleDownloadRecovery = () => {
                         Download Recovery Key
                     </button>
                 </div>
-
             </div>
         </div>
     </div>

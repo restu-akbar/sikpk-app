@@ -10,6 +10,7 @@ import { home } from '@/routes';
 import { logout } from '@/routes/reporter';
 import { create } from '@/routes/reports';
 import { login as loginGoogle } from '@/routes/google';
+import { track } from '@/routes/reports';
 
 interface Props {
     currentPage?: string;
@@ -23,10 +24,10 @@ const page = usePage<{ auth: Auth }>();
 const user = computed(() => page.props.auth?.user ?? null);
 
 const navItems = [
-    { label: 'Beranda',       href: null },
-    { label: 'Informasi',     href: '#informasi' },
+    { label: 'Beranda', href: '#' },
+    { label: 'Informasi', href: '#informasi' },
     { label: 'Lokasi Satgas', href: '#lokasi-satgas' },
-    { label: 'Lacak Kasus',   href: null },
+    { label: 'Lacak Kasus', href:  '/reports/track'},
 ] as const;
 
 const dropdownOpen = ref(false);
@@ -63,18 +64,23 @@ function avatarColor(name: string): string {
 
 <template>
     <header class="sticky top-0 z-50">
-
         <!-- Emergency strip -->
         <div class="bg-brand-dark py-2.5">
-            <div class="mx-auto flex max-w-screen-xl items-center justify-center gap-6 px-8">
-                <span class="flex items-center gap-1.5 text-xs font-semibold text-white">
+            <div
+                class="mx-auto flex max-w-screen-xl items-center justify-center gap-6 px-8"
+            >
+                <span
+                    class="flex items-center gap-1.5 text-xs font-semibold text-white"
+                >
                     <Mail class="size-3.5 shrink-0" />
                     Butuh Bantuan Segera?
                 </span>
 
                 <span class="h-3 w-px bg-white/25" aria-hidden="true" />
 
-                <span class="flex items-center gap-1.5 text-xs font-medium text-white/90">
+                <span
+                    class="flex items-center gap-1.5 text-xs font-medium text-white/90"
+                >
                     <Phone class="size-3.5 shrink-0" />
                     Satpam Polban:
                     <strong class="ml-0.5 font-bold">(022) 2013789</strong>
@@ -82,7 +88,9 @@ function avatarColor(name: string): string {
 
                 <span class="h-3 w-px bg-white/25" aria-hidden="true" />
 
-                <span class="flex items-center gap-1.5 text-xs font-medium text-white/90">
+                <span
+                    class="flex items-center gap-1.5 text-xs font-medium text-white/90"
+                >
                     <Shield class="size-3.5 shrink-0" />
                     Polisi:
                     <strong class="ml-0.5 font-bold">110</strong>
@@ -92,25 +100,34 @@ function avatarColor(name: string): string {
 
         <!-- Main navbar -->
         <nav class="border-b border-border bg-white">
-            <div class="mx-auto flex max-w-screen-xl items-center justify-between px-8 py-3">
-
+            <div
+                class="mx-auto flex max-w-screen-xl items-center justify-between px-8 py-3"
+            >
                 <!-- Logo -->
                 <Link :href="home()" class="flex shrink-0 items-center gap-2">
-                    <div class="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg">
+                    <div
+                        class="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-lg"
+                    >
                         <AppLogoIcon class="size-8" />
                     </div>
                     <div class="flex flex-col leading-none">
-                        <span class="text-sm font-bold tracking-tight text-foreground">SIKPK</span>
-                        <span class="text-[10px] font-medium tracking-widest text-muted-foreground">POLBAN</span>
+                        <span
+                            class="text-sm font-bold tracking-tight text-foreground"
+                            >SIKPK</span
+                        >
+                        <span
+                            class="text-[10px] font-medium tracking-widest text-muted-foreground"
+                            >POLBAN</span
+                        >
                     </div>
                 </Link>
 
                 <!-- Nav items -->
                 <div class="flex items-center gap-1">
-                    <a
+                    <Link
                         v-for="item in navItems"
                         :key="item.label"
-                        :href="item.href ?? undefined"
+                        :href="item.href"
                         :class="[
                             'rounded px-4 py-1.5 text-sm font-semibold transition-colors',
                             item.href ? 'cursor-pointer' : 'cursor-default',
@@ -120,12 +137,11 @@ function avatarColor(name: string): string {
                         ]"
                     >
                         {{ item.label }}
-                    </a>
+                    </Link>
                 </div>
 
                 <!-- Right side actions -->
                 <div class="flex shrink-0 items-center gap-3">
-
                     <!-- Not logged in -->
                     <template v-if="!user">
                         <Button as-child variant="outline" size="default">
@@ -158,42 +174,60 @@ function avatarColor(name: string): string {
                             <!-- Dropdown wrapper + segitiga -->
                             <div
                                 v-if="dropdownOpen"
-                                class="absolute right-0 top-full z-50 mt-2 w-60"
+                                class="absolute top-full right-0 z-50 mt-2 w-60"
                                 @mouseenter="openDropdown"
                                 @mouseleave="scheduleClose"
                             >
                                 <!-- Segitiga menjorok ke avatar -->
-                                <div class="absolute right-3 -top-1 h-3 w-3 rotate-45 border-l border-t border-border bg-white" />
+                                <div
+                                    class="absolute -top-1 right-3 h-3 w-3 rotate-45 border-t border-l border-border bg-white"
+                                />
 
                                 <!-- Card -->
-                                <div class="rounded-xl border border-border bg-white shadow-lg overflow-hidden">
-                                <!-- User info -->
-                                <div class="px-4 py-3">
-                                    <p class="text-sm font-semibold text-foreground">{{ user.name }}</p>
-                                    <p class="mt-0.5 text-xs text-muted-foreground">{{ user.email }}</p>
-                                </div>
+                                <div
+                                    class="overflow-hidden rounded-xl border border-border bg-white shadow-lg"
+                                >
+                                    <!-- User info -->
+                                    <div class="px-4 py-3">
+                                        <p
+                                            class="text-sm font-semibold text-foreground"
+                                        >
+                                            {{ user.name }}
+                                        </p>
+                                        <p
+                                            class="mt-0.5 text-xs text-muted-foreground"
+                                        >
+                                            {{ user.email }}
+                                        </p>
+                                    </div>
 
-                                <div class="border-t border-border px-3 py-2.5 flex items-center justify-between gap-2">
-                                    <Button variant="ghost" size="sm" class="text-xs text-muted-foreground">
-                                        Lacak Kasus Saya
-                                    </Button>
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        class="text-xs"
-                                        @click="handleLogout"
+                                    <div
+                                        class="flex items-center justify-between gap-2 border-t border-border px-3 py-2.5"
                                     >
-                                        Keluar
-                                    </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            class="text-xs text-muted-foreground"
+                                        >
+                                            Lacak Kasus Saya
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            class="text-xs"
+                                            @click="handleLogout"
+                                        >
+                                            Keluar
+                                        </Button>
+                                    </div>
                                 </div>
-                                </div><!-- end card -->
-                            </div><!-- end wrapper -->
+                                <!-- end card -->
+                            </div>
+                            <!-- end wrapper -->
                         </div>
                     </template>
-
                 </div>
             </div>
         </nav>
-
     </header>
 </template>

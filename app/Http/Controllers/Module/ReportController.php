@@ -21,7 +21,7 @@ class ReportController extends Controller
 
     public function index()
     {
-        return Inertia::render('module/reports/Index', [
+        return Inertia::render('satgas/reports/Index', [
             'rows' => $this->reportService->index()
         ]);
     }
@@ -31,7 +31,7 @@ class ReportController extends Controller
         $reporter      = auth('google')->user();
         $isFirstReport = !$reporter || !$reporter->reports()->exists();
 
-        return Inertia::render('module/reports/Create', [
+        return Inertia::render('reporters/reports/Create', [
             'isFirstReport' => $isFirstReport,
             'reporterData'  => $isFirstReport ? null : [
                 'nama'          => $reporter->name,

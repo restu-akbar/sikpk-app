@@ -24,7 +24,7 @@ class UserController extends Controller
 
     public function index()
     {
-        return Inertia::render('master/users/Index', [
+        return Inertia::render('satgas/users/Index', [
             'users' => $this->userService->getAnggota(),
         ]);
     }
