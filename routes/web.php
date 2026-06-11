@@ -7,6 +7,7 @@ use App\Http\Controllers\EvidenceController;
 use App\Http\Controllers\KeyController;
 use App\Http\Controllers\Master\UserController;
 use App\Http\Controllers\Module\ReportController;
+use App\Http\Controllers\Module\ReportHandlingController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
@@ -77,6 +78,12 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
             Route::prefix('reports')->name('reports.')->group(function () {
                 Route::post('assign/{id}', [ReportController::class, 'assign'])->name('assign');
                 Route::put('reject/{id}', [ReportController::class, 'reject'])->name('reject');
+
+                Route::prefix('handling')->name('handling.')->group(function () {
+                    Route::get('', [ReportHandlingController::class, 'index'])->name('index');
+                    Route::get('{id}', [ReportHandlingController::class, 'show'])->name('show');
+                });
+                Route::post('evidences/{id}', [EvidenceController::class, 'store'])->name('evidence.store');
             });
 
             Route::resource('reports', ReportController::class);

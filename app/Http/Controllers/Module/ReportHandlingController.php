@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Module;
 use App\Helpers\Toast;
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Services\EvidenceUploadService;
 use App\Services\ReportService;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
@@ -13,12 +12,11 @@ use App\Services\UserService;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
-class ReportController extends Controller
+class ReportHandlingController extends Controller
 {
     public function __construct(
         protected UserService $userService,
-        protected ReportService $reportService,
-        protected EvidenceUploadService $evidenceUploadService
+        protected ReportService $reportService
     ) {}
 
     public function data()
@@ -26,15 +24,60 @@ class ReportController extends Controller
         return $this->reportService->index(false);
     }
 
-    public function showLogs($id)
+    public function show($id)
     {
-        return $this->reportService->index(false, ['reportLogs'])->findOrFail($id);
+        $report = $this->reportService->show(
+            $id,
+            ['reportLogs', 'reporter', 'handlers'],
+            true
+        );
+
+        $report->members = $report->handlers->map(function ($user) {
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'academic_role' => $user->academic_role,
+                'department' => $user->department,
+                'initials' => collect(explode(' ', $user->name))
+                    ->map(fn($n) => strtoupper(substr($n, 0, 1)))
+                    ->join(''),
+            ];
+        })->values();
+
+        unset($report->handlers);
+        return Inertia::render('satgas/reports/handling/ShowReport', [
+            'report' => $report,
+        ]);
     }
 
     public function index()
     {
-        return Inertia::render('satgas/reports/Index', [
-            'rows' => $this->reportService->index(with: ['evidences', 'reporter', 'handlers', 'audioRecordings'])
+        $reports = $this->reportService->index(false, ['handlers', 'reporter'], true);
+
+        $reports = $reports->map(function ($report) {
+
+            return [
+                'id' => $report->id,
+                'caseNumber' => $report->case_number ?? $report->id,
+                'title' => $report->jenis_kekerasan,
+                'status' => $report->status ?? $report->progress,
+                'reportDate' => $report->created_at,
+                'reporter' => $report->reporter?->name,
+                'progress' => $report->progress,
+                'teamNumber' => $report->team_number,
+
+                'members' => $report->handlers->map(function ($user) {
+                    return [
+                        'name' => $user->name,
+                        'initials' => collect(explode(' ', $user->name))
+                            ->map(fn($n) => strtoupper(substr($n, 0, 1)))
+                            ->join(''),
+                    ];
+                })->values(),
+            ];
+        });
+        return Inertia::render('satgas/reports/handling/Index', [
+            'reports' => $reports,
         ]);
     }
 
@@ -100,11 +143,7 @@ class ReportController extends Controller
                     $firstError ?? 'Silakan periksa kembali form Anda.'
                 ));
         }
-        $report = $this->reportService->store($validated, $request);
-        $this->evidenceUploadService->store(
-            $validated['bukti'] ?? [],
-            $report->evidences()
-        );
+        $this->reportService->store($validated, $request);
 
         return redirect()->route('landing')->with('toast', [
             'type' => 'success',

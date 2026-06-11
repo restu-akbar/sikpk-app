@@ -14,7 +14,7 @@ use Illuminate\Validation\Rule;
 
 class ReportService
 {
-    protected function query(array $with = []): Builder
+    protected function query(array $with = [], bool $handler = false): Builder
     {
         $query = Report::query();
 
@@ -29,23 +29,34 @@ class ReportService
         if (auth('web')->check()) {
             $user = auth('web')->user();
 
-            if ($user->role === 'anggota') {
-                $query->where('reporter_id', $user->id);
+            if ($handler) {
+                $query->whereHas('handlers', function ($q) use ($user) {
+                    $q->where('users.id', $user->id);
+                });
+
+                return $query;
             }
         }
 
         return $query;
     }
 
-    public function index(bool $paginate = true, array $with = [])
+    public function index(bool $paginate = true, array $with = [], bool $handler = false)
     {
-        $query = $this->query($with)->latest();
+        $query = $this->query($with, $handler)->latest();
 
         return $paginate
             ? $query->paginate(10)
             : $query->get();
     }
 
+    public function show(string $id, array $with = [], bool $handler = false): Report
+    {
+        return $this->query($with, $handler)
+            ->with($with)
+            ->where('id', $id)
+            ->firstOrFail();
+    }
     public function store(array $data, Request $request): Report
     {
         return DB::transaction(function () use ($data, $request) {
@@ -88,29 +99,6 @@ class ReportService
 
                 'kronologi' => $data['kronologi'] ?? null,
             ]);
-
-            foreach ($request->input('bukti', []) as $index => $item) {
-
-                $file = $request->file("bukti.$index.file");
-
-                $path = Storage::disk('private')->putFileAs(
-                    'reports',
-                    $file,
-                    Str::uuid() . '.enc'
-                );
-
-                $edeks = isset($item['edeks'])
-                    ? json_decode($item['edeks'], true)
-                    : null;
-
-                $report->evidences()->create([
-                    'path' => $path,
-                    'edeks' => $edeks,
-                    'original_filename' => $item['filename'] ?? null,
-                    'mime_type' => $item['mime_type'] ?? null,
-                    'size' => $item['size'] ?? null,
-                ]);
-            }
 
             foreach ($request->input('audio_recordings', []) as $index => $item) {
                 $file = $request->file("audio_recordings.$index.file");
