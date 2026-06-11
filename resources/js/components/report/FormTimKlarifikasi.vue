@@ -1,22 +1,24 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useForm } from '@inertiajs/vue3';
+import DialogFooter from '@/components/DialogFooter.vue';
+import DialogHeader from '@/components/DialogHeader.vue';
 import {
     X,
-    Check,
     ChevronRight,
     ChevronLeft,
-    UserIcon,
+    UserRound,
     Search,
     Minus,
     Plus,
+    Play,
+    Pause,
+    Mic,
 } from 'lucide-vue-next';
-import DataTable from '@/components/table/DataTable.vue';
 import { getLabel } from '@/lib/getLabel';
 import { jenisKekerasanOptions } from '@/constants/jenisKekerasanOptions';
-import axios from 'axios';
 import { formatDate } from '@/lib/formatDate';
-import { satgasApi } from '@/lib/axios';
+import { getInitials, getAvatarColor } from '@/composables/useInitials';
 import { handleCreate } from '@/lib/handleRequest';
 import { assign } from '@/routes/satgas/reports';
 import { useCryptoStore } from '@/lib/crypto/store';
@@ -42,80 +44,110 @@ const emit = defineEmits<{
     back: [];
 }>();
 
-const ringkasanFields = computed(() => [
-    {
-        label: 'Pelapor',
-        value: props.report?.reporter?.name,
-        bold: true,
-    },
-    {
-        label: 'Jenis',
-        value: getLabel(jenisKekerasanOptions, props.report?.jenis_kekerasan),
-        bold: true,
-    },
-    {
-        label: 'Tempat',
-        value: props.report?.tempat_kejadian,
-    },
-    {
-        label: 'Waktu Kejadian',
-        value: formatDate(props.report?.waktu_kejadian),
-    },
-    {
-        label: 'Jurusan',
-        value: props.report?.reporter?.jurusan,
-    },
-    {
-        label: 'Prodi',
-        value: props.report?.reporter?.prodi,
-    },
-]);
-
-const selected = ref<number[]>([]);
-const activeTab = ref('Semua');
-const searchQ = ref('');
-
-const members = computed(() => {
-    return Array.isArray(props.satgasMembers?.data)
-        ? props.satgasMembers.data
-        : [];
+const isVoiceReport = computed(() => {
+    return props.report?.audio_recordings?.length > 0;
 });
 
-const columns = [
-    { key: 'name', label: 'Nama' },
-    { key: 'unsur', label: 'Unsur' },
-    { key: 'jurusan', label: 'Jurusan' },
-    { key: 'angkatan', label: 'Angkatan' },
-    { key: 'status', label: 'Status' },
-    { key: 'aksi', label: 'Aksi' },
+const ringkasanFields = computed(() => {
+    const fields = [
+        {
+            label: 'Pelapor',
+            value: props.report?.reporter?.name,
+            semibold: true,
+        },
+        {
+            label: 'Jenis',
+            value: getLabel(jenisKekerasanOptions, props.report?.jenis_kekerasan),
+            semibold: true,
+        },
+    ];
+
+    if (!isVoiceReport.value) {
+        fields.push(
+            {
+                label: 'Tempat',
+                value: props.report?.tempat_kejadian,
+                semibold: false,
+            },
+            {
+                label: 'Waktu Kejadian',
+                value: formatDate(props.report?.waktu_kejadian),
+                semibold: false,
+            },
+        );
+    }
+
+    fields.push(
+        {
+            label: 'Jurusan',
+            value: props.report?.reporter?.jurusan,
+            semibold: false,
+        },
+        {
+            label: 'Prodi',
+            value: props.report?.reporter?.prodi,
+            semibold: false,
+        },
+    );
+
+    return fields;
+});
+
+const playingAudioId = ref<string | null>(null);
+
+function toggleAudio(audioId: string) {
+    const el = document.getElementById(`audio-tim-${audioId}`) as HTMLAudioElement;
+    if (!el) return;
+
+    if (playingAudioId.value === audioId) {
+        el.pause();
+        playingAudioId.value = null;
+    } else {
+        if (playingAudioId.value) {
+            const prev = document.getElementById(`audio-tim-${playingAudioId.value}`) as HTMLAudioElement;
+            prev?.pause();
+        }
+        el.play();
+        playingAudioId.value = audioId;
+    }
+}
+
+function onAudioEnded() {
+    playingAudioId.value = null;
+}
+
+function formatDuration(seconds: number) {
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+const selected = ref<string[]>([]);
+const activeTab = ref('');
+const searchQ = ref('');
+
+const tabOptions = [
+    { label: 'Semua', value: '' },
+    { label: 'Dosen', value: 'dosen' },
+    { label: 'Mahasiswa', value: 'mahasiswa' },
 ];
 
 const filteredSatgas = computed(() => {
-    const data = props.satgasMembers.data || [];
+    const data = props.satgasMembers?.data || [];
 
-    return data.filter((m) => {
+    return data.filter((m: any) => {
         const tabOk =
-            activeTab.value === 'Semua' || m.unsur === activeTab.value;
+            activeTab.value === '' || m.academic_role === activeTab.value;
 
         const q = searchQ.value.toLowerCase();
-
         const searchOk =
             !q ||
-            m.name.toLowerCase().includes(q) ||
-            m.jurusan?.toLowerCase().includes(q);
+            m.name?.toLowerCase().includes(q) ||
+            m.department?.toLowerCase().includes(q);
 
         return tabOk && searchOk;
     });
 });
-
-const satgasTable = computed(() => ({
-    data: filteredSatgas.value,
-    current_page: props.satgasMembers.current_page,
-    last_page: props.satgasMembers.last_page,
-    next_page_url: props.satgasMembers.next_page_url,
-    prev_page_url: props.satgasMembers.prev_page_url,
-    total: props.satgasMembers.total,
-}));
 
 function toggleMember(id: string) {
     const idx = selected.value.indexOf(id);
@@ -127,7 +159,7 @@ function toggleMember(id: string) {
 }
 
 function getMember(id: string) {
-    return props.satgasMembers.data?.find((m) => m.id === id);
+    return props.satgasMembers.data?.find((m: any) => m.id === id);
 }
 
 const form = useForm({
@@ -191,286 +223,454 @@ function handleBack() {
                 <div
                     class="flex h-[90vh] w-[75vw] flex-col overflow-hidden rounded-xl border border-border bg-background"
                 >
-                    <!-- Header -->
-                    <div
-                        class="relative shrink-0 border-b border-border px-6 py-5"
-                    >
-                        <div class="mb-2 flex items-center gap-2">
-                            <span
-                                class="font-mono text-xs text-muted-foreground"
-                            >
-                                {{ report.id }}
-                            </span>
-                            <span
-                                class="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700"
-                            >
-                                <span
-                                    class="h-1.5 w-1.5 rounded-full bg-blue-600"
-                                />
-                                Laporan Baru
-                            </span>
-                        </div>
-                        <h2 class="text-base font-medium">
-                            Bentuk Tim Klarifikasi
-                        </h2>
-                        <p class="mt-0.5 text-xs text-muted-foreground">
-                            Pilih hingga 3 anggota satgas yang akan menangani
-                            laporan ini.
-                        </p>
-                        <button
-                            class="absolute top-5 right-5 flex h-7 w-7 items-center justify-center rounded-lg hover:bg-muted"
-                            @click="handleClose"
-                        >
-                            <X class="h-4 w-4 text-muted-foreground" />
-                        </button>
-                    </div>
+                    <DialogHeader
+                        :report="report"
+                        @close="handleClose"
+                    />
 
                     <!-- Body -->
                     <div class="flex-1 overflow-y-auto px-6">
                         <!-- Ringkasan Kasus -->
-                        <div class="border-b border-border py-4">
-                            <p
-                                class="mb-3 text-[10px] font-medium tracking-wider text-muted-foreground uppercase"
-                            >
-                                Ringkasan Kasus
+                        <div class="pt-5 pb-3">
+                            <p class="mb-3 text-sm font-bold text-[#3B3A37]">
+                                RINGKASAN KASUS
                             </p>
 
                             <div
-                                class="mb-3 grid grid-cols-2 gap-x-6 gap-y-2.5"
+                                class="mb-4 grid grid-cols-2 gap-x-8 gap-y-3"
                             >
                                 <div
                                     v-for="(item, i) in ringkasanFields"
                                     :key="i"
                                 >
                                     <p
-                                        class="text-[10px] tracking-wider text-muted-foreground uppercase"
+                                        class="text-xs font-bold text-[#6B6862] uppercase"
                                     >
                                         {{ item.label }}
                                     </p>
-
                                     <p
-                                        class="text-sm"
-                                        :class="item.bold ? 'font-medium' : ''"
+                                        class="text-sm text-[#1B1A18]"
+                                        :class="
+                                            item.semibold
+                                                ? 'font-semibold'
+                                                : ''
+                                        "
                                     >
-                                        {{ item.value }}
+                                        {{ item.value || '—' }}
                                     </p>
                                 </div>
                             </div>
 
+                            <!-- Voice report: Rekaman Suara -->
+                            <template v-if="isVoiceReport">
+                                <p class="mb-3 text-sm font-bold text-[#3B3A37]">
+                                    REKAMAN SUARA
+                                </p>
+                                <div class="flex flex-col gap-2">
+                                    <div
+                                        v-for="(audio, index) in report.audio_recordings"
+                                        :key="audio.id"
+                                        class="flex items-center gap-3 rounded-lg bg-[#F6F2EE] p-3"
+                                    >
+                                        <button
+                                            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#F5821F] text-white transition-colors hover:bg-[#e0741a]"
+                                            @click="toggleAudio(audio.id)"
+                                        >
+                                            <Pause
+                                                v-if="playingAudioId === audio.id"
+                                                class="h-4 w-4"
+                                            />
+                                            <Play
+                                                v-else
+                                                class="h-4 w-4"
+                                            />
+                                        </button>
+                                        <div class="min-w-0 flex-1">
+                                            <p class="text-sm font-medium text-[#3B3A37]">
+                                                Rekaman {{ index + 1 }}
+                                            </p>
+                                            <p class="text-xs text-[#6B6862]">
+                                                {{ audio.duration ? formatDuration(audio.duration) : '—' }}
+                                            </p>
+                                        </div>
+                                        <Mic class="h-4 w-4 shrink-0 text-[#908C84]" />
+                                        <audio
+                                            :id="`audio-tim-${audio.id}`"
+                                            :src="`/satgas/audio-recordings/${audio.id}`"
+                                            preload="none"
+                                            @ended="onAudioEnded"
+                                        />
+                                    </div>
+                                </div>
+                            </template>
+
+                            <!-- Form report: Kronologi -->
                             <div
-                                class="rounded-lg bg-muted/50 p-3 text-xs leading-relaxed text-muted-foreground"
+                                v-else-if="report?.kronologi"
+                                class="rounded-lg bg-[#F6F2EE] p-4 text-sm leading-relaxed text-[#3B3A37]"
                             >
                                 {{ report.kronologi }}
                             </div>
                         </div>
 
-                        <!-- Slot Tim Terpilih -->
-                        <div class="border-b border-border py-4">
-                            <p
-                                class="mb-3 text-[10px] font-medium tracking-wider text-muted-foreground uppercase"
-                            >
-                                Tim Terpilih ({{ selected.length }}/3)
+                        <!-- Tim Terpilih -->
+                        <div class="py-3">
+                            <p class="mb-3 text-sm font-bold text-[#3B3A37]">
+                                TIM TERPILIH ({{ selected.length }}/3)
                             </p>
-                            <div class="grid grid-cols-3 gap-2">
-                                <template v-for="i in 3" :key="i">
-                                    <div
-                                        v-if="selected[i - 1]"
-                                        class="flex items-center gap-2 rounded-lg border border-border bg-muted/40 px-3 py-2.5"
-                                    >
+                            <div
+                                class="rounded-xl border border-[#E5E1D9] bg-surface p-3"
+                            >
+                                <div class="grid grid-cols-3 gap-3">
+                                    <template v-for="i in 3" :key="i">
+                                        <!-- Filled slot -->
                                         <div
-                                            class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-100 text-xs font-bold text-blue-700"
+                                            v-if="selected[i - 1]"
+                                            class="flex items-center gap-2.5 rounded-lg border border-nav-stroke bg-white px-3 py-3"
                                         >
-                                            {{
-                                                getMember(selected[i - 1])
-                                                    ?.initials
-                                            }}
-                                        </div>
-                                        <div class="min-w-0 flex-1">
-                                            <p
-                                                class="truncate text-xs font-medium"
+                                            <div
+                                                class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold"
+                                                :class="
+                                                    getAvatarColor(
+                                                        getMember(
+                                                            selected[i - 1],
+                                                        )?.name,
+                                                    )
+                                                "
                                             >
                                                 {{
-                                                    getMember(selected[i - 1])
-                                                        ?.name
+                                                    getInitials(
+                                                        getMember(
+                                                            selected[i - 1],
+                                                        )?.name,
+                                                    )
                                                 }}
-                                            </p>
-                                            <p
-                                                class="truncate text-[10px] text-muted-foreground"
+                                            </div>
+                                            <div class="min-w-0 flex-1">
+                                                <p
+                                                    class="truncate text-xs font-medium text-[#1B1A18]"
+                                                >
+                                                    {{
+                                                        getMember(
+                                                            selected[i - 1],
+                                                        )?.name
+                                                    }}
+                                                </p>
+                                                <p
+                                                    class="truncate text-[10px] text-[#6B6862]"
+                                                >
+                                                    {{
+                                                        getMember(
+                                                            selected[i - 1],
+                                                        )?.academic_role ===
+                                                        'dosen'
+                                                            ? 'Dosen'
+                                                            : 'Mahasiswa'
+                                                    }}
+                                                </p>
+                                            </div>
+                                            <button
+                                                class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full hover:bg-red-100 hover:text-red-600"
+                                                @click="
+                                                    toggleMember(
+                                                        selected[i - 1],
+                                                    )
+                                                "
                                             >
-                                                {{
-                                                    getMember(selected[i - 1])
-                                                        ?.unsur
-                                                }}
-                                            </p>
+                                                <X class="h-3 w-3" />
+                                            </button>
                                         </div>
-                                        <button
-                                            class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full hover:bg-red-100 hover:text-red-600"
-                                            @click="
-                                                toggleMember(selected[i - 1])
-                                            "
+
+                                        <!-- Empty slot -->
+                                        <div
+                                            v-else
+                                            class="flex flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed border-[#BAB6AE] bg-white py-5"
                                         >
-                                            <X class="h-3 w-3" />
-                                        </button>
-                                    </div>
-                                    <div
-                                        v-else
-                                        class="flex flex-col items-center justify-center gap-1.5 rounded-lg border border-dashed border-border py-4 text-muted-foreground"
-                                    >
-                                        <UserIcon class="h-5 w-5 opacity-40" />
-                                        <span class="text-xs"
-                                            >Slot {{ i }} kosong</span
-                                        >
-                                    </div>
-                                </template>
+                                            <UserRound
+                                                class="h-6 w-6 text-[#BAB6AE]"
+                                            />
+                                            <span
+                                                class="text-xs text-[#BAB6AE]"
+                                                >Slot {{ i }} kosong</span
+                                            >
+                                        </div>
+                                    </template>
+                                </div>
                             </div>
                         </div>
 
                         <!-- Daftar Anggota Satgas -->
-                        <DataTable
-                            title="Daftar Anggota Satgas"
-                            :columns="columns"
-                            :rows="satgasTable"
-                            :searchable="true"
-                            search-placeholder="Cari nama/jurusan..."
-                            :pagination="true"
-                            :actions="false"
-                        >
-                            <!-- FILTER TAB -->
-                            <template #filter>
-                                <div class="flex items-center gap-2">
+                        <div class="pt-3 pb-5">
+                            <!-- Title + Filter + Search -->
+                            <div
+                                class="mb-3 flex items-center justify-between"
+                            >
+                                <p
+                                    class="text-sm font-bold text-[#3B3A37]"
+                                >
+                                    DAFTAR ANGGOTA SATGAS
+                                </p>
+                                <div class="flex items-center gap-3">
+                                    <!-- Tab filter -->
                                     <div
-                                        class="flex rounded-lg border border-border"
+                                        class="inline-flex h-9 items-center gap-0.5 rounded-lg border border-border bg-surface p-1"
                                     >
                                         <button
-                                            v-for="tab in [
-                                                'Semua',
-                                                'Dosen',
-                                                'Mahasiswa',
-                                            ]"
-                                            :key="tab"
-                                            class="px-3 py-1.5 text-xs transition-colors first:rounded-l-lg last:rounded-r-lg"
+                                            v-for="tab in tabOptions"
+                                            :key="tab.value"
+                                            class="relative h-full rounded-md px-4 text-sm transition-all"
                                             :class="
-                                                activeTab === tab
-                                                    ? 'bg-foreground font-medium text-background'
-                                                    : 'text-muted-foreground hover:text-foreground'
+                                                activeTab === tab.value
+                                                    ? 'bg-background text-foreground shadow-sm'
+                                                    : 'text-nav-muted hover:text-foreground'
                                             "
-                                            @click="activeTab = tab"
+                                            @click="activeTab = tab.value"
                                         >
-                                            {{ tab }}
+                                            <span
+                                                class="invisible font-bold"
+                                                >{{ tab.label }}</span
+                                            >
+                                            <span
+                                                class="absolute inset-0 flex items-center justify-center"
+                                                :class="
+                                                    activeTab === tab.value
+                                                        ? 'font-bold'
+                                                        : 'font-normal'
+                                                "
+                                                >{{ tab.label }}</span
+                                            >
                                         </button>
                                     </div>
-                                </div>
-                            </template>
 
-                            <!-- NAMA -->
-                            <template #name="{ row }">
-                                <div class="flex items-center gap-2">
-                                    <div
-                                        class="flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold"
-                                        :class="row.avatarClass"
-                                    >
-                                        {{ row.initials }}
-                                    </div>
-
-                                    <div>
-                                        <p class="font-medium">
-                                            {{ row.name }}
-                                        </p>
-                                        <p
-                                            class="text-xs text-muted-foreground"
-                                        >
-                                            {{ row.role }}
-                                        </p>
+                                    <!-- Search -->
+                                    <div class="relative w-56">
+                                        <Search
+                                            class="absolute top-1/2 left-3 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground"
+                                        />
+                                        <input
+                                            v-model="searchQ"
+                                            type="text"
+                                            placeholder="Cari nama/jurusan..."
+                                            class="h-9 w-full rounded-lg border border-border bg-background pr-3 pl-8 text-sm outline-none transition focus:ring-2 focus:ring-primary"
+                                        />
                                     </div>
                                 </div>
-                            </template>
+                            </div>
 
-                            <!-- UNSUR -->
-                            <template #unsur="{ row }">
-                                <span
-                                    class="rounded-full bg-orange-50 px-2 py-0.5 text-[11px] font-medium text-orange-700"
-                                >
-                                    {{ row.unsur }}
-                                </span>
-                            </template>
-
-                            <!-- STATUS -->
-                            <template #status="{ row }">
-                                <span
-                                    class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium"
-                                    :class="
-                                        row.status === 'available'
-                                            ? 'bg-green-50 text-green-700'
-                                            : 'bg-yellow-50 text-yellow-700'
-                                    "
-                                >
-                                    <span
-                                        class="h-1.5 w-1.5 rounded-full bg-current"
-                                    />
-                                    {{
-                                        row.status === 'available'
-                                            ? 'Tersedia'
-                                            : 'Sedang menangani'
-                                    }}
-                                </span>
-                            </template>
-
-                            <!-- AKSI (SELECT MEMBER) -->
-                            <template #aksi="{ row }">
-                                <button
-                                    class="flex h-7 w-7 items-center justify-center rounded-lg border border-border transition-colors"
-                                    :class="
-                                        selected.includes(row.id)
-                                            ? 'border-blue-200 bg-blue-50 text-blue-600'
-                                            : 'hover:bg-muted'
-                                    "
-                                    :disabled="
-                                        selected.length >= 3 &&
-                                        !selected.includes(row.id)
-                                    "
-                                    @click.stop="toggleMember(row.id)"
-                                >
-                                    <Minus
-                                        v-if="selected.includes(row.id)"
-                                        class="h-3.5 w-3.5"
-                                    />
-                                    <Plus
-                                        v-else
-                                        class="h-3.5 w-3.5 text-muted-foreground"
-                                    />
-                                </button>
-                            </template>
-                        </DataTable>
-                    </div>
-
-                    <!-- Footer -->
-                    <div
-                        class="flex shrink-0 items-center justify-between border-t border-border px-6 py-4"
-                    >
-                        <button
-                            class="inline-flex h-9 items-center gap-2 rounded-lg border border-border px-4 text-sm hover:bg-muted"
-                            @click="handleBack"
-                        >
-                            <ChevronLeft class="h-4 w-4" />
-                            <span>Kembali</span>
-                        </button>
-                        <div class="flex items-center gap-3">
-                            <span class="text-xs text-muted-foreground">
-                                {{
-                                    selected.length > 0
-                                        ? `${selected.length} anggota terpilih`
-                                        : 'Belum ada anggota terpilih'
-                                }}
-                            </span>
-                            <button
-                                class="inline-flex h-9 items-center gap-1.5 rounded-lg bg-orange-500 px-4 text-sm font-medium text-white transition-opacity hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-40"
-                                :disabled="selected.length < 3"
-                                @click="submit"
+                            <!-- Table -->
+                            <div
+                                class="overflow-hidden rounded-lg border border-nav-stroke"
                             >
-                                Bentuk Tim <ChevronRight class="h-4 w-4" />
-                            </button>
+                                <table class="w-full text-sm">
+                                    <thead class="bg-surface">
+                                        <tr>
+                                            <th
+                                                class="px-4 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase"
+                                            >
+                                                Nama
+                                            </th>
+                                            <th
+                                                class="px-4 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase"
+                                            >
+                                                Unsur
+                                            </th>
+                                            <th
+                                                class="px-4 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase"
+                                            >
+                                                Jurusan
+                                            </th>
+                                            <th
+                                                class="px-4 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase"
+                                            >
+                                                Angkatan
+                                            </th>
+                                            <th
+                                                class="px-4 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase"
+                                            >
+                                                Menangani
+                                            </th>
+                                            <th
+                                                class="px-4 py-2.5 text-center text-xs font-semibold text-muted-foreground uppercase"
+                                            >
+                                                Aksi
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr
+                                            v-for="member in filteredSatgas"
+                                            :key="member.id"
+                                            class="border-t border-nav-stroke transition-colors hover:bg-muted/30"
+                                        >
+                                            <!-- Nama -->
+                                            <td class="px-4 py-3">
+                                                <div
+                                                    class="flex items-center gap-2.5"
+                                                >
+                                                    <div
+                                                        class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold"
+                                                        :class="
+                                                            getAvatarColor(
+                                                                member.name,
+                                                            )
+                                                        "
+                                                    >
+                                                        {{
+                                                            getInitials(
+                                                                member.name,
+                                                            )
+                                                        }}
+                                                    </div>
+                                                    <div>
+                                                        <p
+                                                            class="font-medium text-[#1B1A18]"
+                                                        >
+                                                            {{ member.name }}
+                                                        </p>
+                                                        <p
+                                                            class="text-xs text-[#6B6862]"
+                                                        >
+                                                            {{
+                                                                member.role ===
+                                                                'ketua'
+                                                                    ? 'Ketua'
+                                                                    : member.role ===
+                                                                        'wakil_ketua'
+                                                                      ? 'Wakil Ketua'
+                                                                      : member.role ===
+                                                                          'sekretaris'
+                                                                        ? 'Sekretaris'
+                                                                        : 'Anggota'
+                                                            }}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </td>
+
+                                            <!-- Unsur -->
+                                            <td class="px-4 py-3">
+                                                <span
+                                                    class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium"
+                                                    :class="
+                                                        member.academic_role ===
+                                                        'dosen'
+                                                            ? 'bg-blue-500/10 text-blue-600'
+                                                            : 'bg-orange-500/10 text-orange-600'
+                                                    "
+                                                >
+                                                    {{
+                                                        member.academic_role ===
+                                                        'dosen'
+                                                            ? 'Dosen'
+                                                            : 'Mahasiswa'
+                                                    }}
+                                                </span>
+                                            </td>
+
+                                            <!-- Jurusan -->
+                                            <td
+                                                class="px-4 py-3 text-[#1B1A18]"
+                                            >
+                                                {{
+                                                    member.department || '—'
+                                                }}
+                                            </td>
+
+                                            <!-- Angkatan -->
+                                            <td
+                                                class="px-4 py-3 text-[#1B1A18]"
+                                            >
+                                                {{
+                                                    member.entry_year || '—'
+                                                }}
+                                            </td>
+
+                                            <!-- Menangani -->
+                                            <td class="px-4 py-3">
+                                                <span
+                                                    class="inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium"
+                                                    :class="
+                                                        (member.handled_reports_count ??
+                                                            0) > 0
+                                                            ? 'border-orange-200 bg-orange-50 text-orange-700'
+                                                            : 'border-green-200 bg-green-50 text-green-700'
+                                                    "
+                                                >
+                                                    {{
+                                                        member.handled_reports_count ??
+                                                        0
+                                                    }}
+                                                    Kasus
+                                                </span>
+                                            </td>
+
+                                            <!-- Aksi -->
+                                            <td class="px-4 py-3 text-center">
+                                                <button
+                                                    class="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-nav-stroke transition-colors"
+                                                    :class="
+                                                        selected.includes(
+                                                            member.id,
+                                                        )
+                                                            ? 'border-blue-200 bg-blue-50 text-blue-600'
+                                                            : 'hover:bg-muted'
+                                                    "
+                                                    :disabled="
+                                                        selected.length >= 3 &&
+                                                        !selected.includes(
+                                                            member.id,
+                                                        )
+                                                    "
+                                                    @click.stop="
+                                                        toggleMember(member.id)
+                                                    "
+                                                >
+                                                    <Minus
+                                                        v-if="
+                                                            selected.includes(
+                                                                member.id,
+                                                            )
+                                                        "
+                                                        class="h-3.5 w-3.5"
+                                                    />
+                                                    <Plus
+                                                        v-else
+                                                        class="h-3.5 w-3.5 text-muted-foreground"
+                                                    />
+                                                </button>
+                                            </td>
+                                        </tr>
+
+                                        <tr
+                                            v-if="filteredSatgas.length === 0"
+                                        >
+                                            <td
+                                                colspan="6"
+                                                class="px-4 py-8 text-center text-sm text-muted-foreground"
+                                            >
+                                                Tidak ada anggota ditemukan
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
+
+                    <DialogFooter
+                        back-label="Batal"
+                        :back-icon="ChevronLeft"
+                        action-label="Bentuk Tim"
+                        :action-icon="ChevronRight"
+                        :action-disabled="selected.length < 3"
+                        :info-text="
+                            selected.length > 0
+                                ? `${selected.length} anggota terpilih`
+                                : 'Belum ada anggota terpilih'
+                        "
+                        @back="handleBack"
+                        @action="submit"
+                    />
                 </div>
             </div>
         </Transition>

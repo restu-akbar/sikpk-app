@@ -570,7 +570,7 @@ const handleSubmit = async () => {
                                         v-model="form.nama"
                                         label="Nama lengkap pelapor"
                                         :required="isFirstReport"
-                                        :readonly="!isFirstReport"
+                                        :disabled="!isFirstReport"
                                         :error="stepErrors.nama"
                                         placeholder="Mis. Annisa Putri"
                                     />
@@ -606,8 +606,8 @@ const handleSubmit = async () => {
                                         placeholder="Pilih program studi..."
                                         :options="
                                             filteredProdi.map((p) => ({
-                                                label: `${p.name} (${p.degreeLevel})`,
-                                                value: p.name,
+                                                label: `${p.degreeLevel} ${p.name}`,
+                                                value: `${p.degreeLevel} ${p.name}`,
                                             }))
                                         "
                                         :error="stepErrors.prodi"
@@ -660,9 +660,7 @@ const handleSubmit = async () => {
                                             @click="toggleDisability(opt.value)"
                                             :class="[
                                                 'rounded-lg border px-4 py-2 text-sm font-medium transition-all',
-                                                form.disabilitas.includes(
-                                                    opt.value,
-                                                )
+                                                form.disabilitas.includes(opt.value)
                                                     ? 'border-[#1A5BA6] bg-[#EDF3FB] text-[#1A5BA6]'
                                                     : 'border-gray-300 text-gray-600 hover:border-gray-400',
                                             ]"

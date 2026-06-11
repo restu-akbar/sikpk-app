@@ -16,6 +16,7 @@ const props = defineProps<{
     modelValue?: string | number;
     options: Option[];
     placeholder?: string;
+    disabled?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -35,6 +36,7 @@ const selectClass = useFieldErrorClass(toRef(props, 'error'), 'select');
             <select
                 v-bind="$attrs"
                 :value="modelValue ?? ''"
+                :disabled="disabled"
                 @change="
                     emit(
                         'update:modelValue',
@@ -42,7 +44,10 @@ const selectClass = useFieldErrorClass(toRef(props, 'error'), 'select');
                     )
                 "
                 :required="required"
-                :class="selectClass"
+                :class="[
+                    selectClass,
+                    disabled && 'cursor-not-allowed !border-[#E8E3DA] !bg-[#F6F2EE] text-[#6B6862]',
+                ]"
             >
                 <option value="" disabled>
                     {{ placeholder ?? 'Pilih opsi...' }}

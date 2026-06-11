@@ -117,9 +117,24 @@
     --color-surface: var(--surface);
     --color-surface-muted: var(--surface-muted);
 
+    /* Dialog colors */
+    --color-dialog-reject: var(--dialog-reject);
+
     /* Auth colors */
     --color-auth-bg: var(--auth-bg);
     --color-auth-card-bg: var(--auth-card-bg);
+
+    /* Progress status colors */
+    --color-progress-baru: var(--progress-baru);
+    --color-progress-baru-bg: var(--progress-baru-bg);
+    --color-progress-klarifikasi: var(--progress-klarifikasi);
+    --color-progress-klarifikasi-bg: var(--progress-klarifikasi-bg);
+    --color-progress-pemeriksaan: var(--progress-pemeriksaan);
+    --color-progress-pemeriksaan-bg: var(--progress-pemeriksaan-bg);
+    --color-progress-kesimpulan: var(--progress-kesimpulan);
+    --color-progress-kesimpulan-bg: var(--progress-kesimpulan-bg);
+    --color-progress-pasca: var(--progress-pasca);
+    --color-progress-pasca-bg: var(--progress-pasca-bg);
 }
 
 /* ============================================================
@@ -249,9 +264,24 @@
     --surface: #FBF9F5;
     --surface-muted: #F5F1EB;
 
+    /* ---- Dialog reject button ---- */
+    --dialog-reject: #C8442B;
+
     /* ---- Auth pages background ---- */
     --auth-bg: #F6F7F9;
     --auth-card-bg: #ffffff;
+
+    /* ---- Progress status palette ---- */
+    --progress-baru: #134881;
+    --progress-baru-bg: #E7EEF7;
+    --progress-klarifikasi: #C9651A;
+    --progress-klarifikasi-bg: #F7EFD9;
+    --progress-pemeriksaan: #6F3DA0;
+    --progress-pemeriksaan-bg: #EFE7F4;
+    --progress-kesimpulan: #1F7A7A;
+    --progress-kesimpulan-bg: #E6F2EB;
+    --progress-pasca: #0078A8;
+    --progress-pasca-bg: rgb(26 91 166 / 0.2);
 }
 
 /* ============================================================

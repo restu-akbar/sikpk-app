@@ -22,6 +22,7 @@ class UserService extends BaseService
     public function getAnggota(int $perPage = 10)
     {
         return $this->query()
+            ->withCount('handledReports')
             ->latest()
             ->paginate($perPage);
     }

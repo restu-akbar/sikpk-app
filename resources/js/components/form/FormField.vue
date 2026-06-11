@@ -14,6 +14,7 @@ const props = defineProps<{
     modelValue?: string;
     hint?: string;
 
+    disabled?: boolean;
     minLength?: number;
     maxLength?: number;
     pattern?: RegExp | string;
@@ -65,6 +66,7 @@ const inputClass = useFieldErrorClass(toRef(props, 'error'), 'input');
         <input
             v-bind="$attrs"
             :value="modelValue"
+            :disabled="disabled"
             @input="
                 emit(
                     'update:modelValue',
@@ -72,7 +74,10 @@ const inputClass = useFieldErrorClass(toRef(props, 'error'), 'input');
                 )
             "
             @blur="touched = true"
-            :class="inputClass"
+            :class="[
+                inputClass,
+                disabled && 'cursor-not-allowed !border-[#E8E3DA] !bg-[#F6F2EE] text-[#6B6862]',
+            ]"
         />
 
         <ErrorField :error="finalError" />

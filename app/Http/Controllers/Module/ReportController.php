@@ -32,7 +32,7 @@ class ReportController extends Controller
     public function index()
     {
         return Inertia::render('satgas/reports/Index', [
-            'rows' => $this->reportService->index(with: ['evidences', 'reporter'])
+            'rows' => $this->reportService->index(with: ['evidences', 'reporter', 'handlers', 'audioRecordings'])
         ]);
     }
 
