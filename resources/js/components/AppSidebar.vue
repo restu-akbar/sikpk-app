@@ -24,7 +24,8 @@ import {
 import { useCurrentUrl } from '@/composables/useCurrentUrl';
 import { logout } from '@/routes';
 import { dashboard } from '@/routes/satgas';
-import { dashboard as reporterDashboard} from '@/routes';
+import { dashboard as reporterDashboard } from '@/routes';
+import { index } from '@/routes/satgas/reports/handling/';
 import type { NavItem } from '@/types';
 import { getInitials, getAvatarColor } from '@/composables/useInitials';
 import { generateEncryption } from '@/lib/crypto';
@@ -43,22 +44,34 @@ interface NavItem {
 
 const dashboardUrl = dashboard.url();
 
+const penangananKasusNavItem: NavItem = {
+    href: index(),
+    title: 'Penanganan Kasus',
+    icon: Briefcase,
+};
+
 const ketuaNavItems: NavItem[] = [
     { title: 'Dashboard', href: dashboardUrl, icon: LayoutGrid },
     { title: 'Manajemen Kasus', href: '/satgas/reports', icon: FileText },
-    { title: 'Penanganan Kasus', href: '/satgas/handling', icon: Briefcase },
+    penangananKasusNavItem,
     { title: 'Arsip Kasus', href: '/satgas/archive', icon: Archive },
     { title: 'Manajemen Anggota', href: '/satgas/master/users', icon: Users },
-    { title: 'Grafik Demografi', href: '/satgas/demographics', icon: BarChart3 },
+    {
+        title: 'Grafik Demografi',
+        href: '/satgas/demographics',
+        icon: BarChart3,
+    },
 ];
 
 const anggotaNavItems: NavItem[] = [
     { title: 'Dashboard', href: dashboardUrl, icon: LayoutGrid },
+    penangananKasusNavItem,
 ];
 
 const navItems = user.role === 'ketua' ? ketuaNavItems : anggotaNavItems;
 
-const panelLabel = user.role === 'ketua' ? 'PANEL KETUA SATGAS' : 'PANEL ANGGOTA SATGAS';
+const panelLabel =
+    user.role === 'ketua' ? 'PANEL KETUA SATGAS' : 'PANEL ANGGOTA SATGAS';
 
 const handleLogout = () => {
     const url = user.role ? logout().url : '/logout';
@@ -70,7 +83,9 @@ const handleLogout = () => {
 // Dropdown menu
 const showMenu = ref(false);
 
-const closeMenu = () => { showMenu.value = false; };
+const closeMenu = () => {
+    showMenu.value = false;
+};
 onMounted(() => document.addEventListener('click', closeMenu));
 onUnmounted(() => document.removeEventListener('click', closeMenu));
 
@@ -90,19 +105,34 @@ const submitChangePassword = async () => {
         passwordForm.clearErrors();
 
         if (!passwordForm.current_password) {
-            setTemporaryError(passwordForm, 'current_password', 'Kata sandi lama wajib diisi.');
+            setTemporaryError(
+                passwordForm,
+                'current_password',
+                'Kata sandi lama wajib diisi.',
+            );
             return;
         }
         if (!passwordForm.password) {
-            setTemporaryError(passwordForm, 'password', 'Kata sandi baru wajib diisi.');
+            setTemporaryError(
+                passwordForm,
+                'password',
+                'Kata sandi baru wajib diisi.',
+            );
             return;
         }
         if (!passwordForm.password_confirmation) {
-            setTemporaryError(passwordForm, 'password_confirmation', 'Konfirmasi kata sandi wajib diisi.');
+            setTemporaryError(
+                passwordForm,
+                'password_confirmation',
+                'Konfirmasi kata sandi wajib diisi.',
+            );
             return;
         }
         if (passwordForm.password !== passwordForm.password_confirmation) {
-            passwordForm.setError('password_confirmation', 'Konfirmasi kata sandi harus sama dengan kata sandi baru.');
+            passwordForm.setError(
+                'password_confirmation',
+                'Konfirmasi kata sandi harus sama dengan kata sandi baru.',
+            );
             return;
         }
 
@@ -124,7 +154,11 @@ const submitChangePassword = async () => {
                 showPasswordModal.value = false;
             },
             onError: () => {
-                passwordForm.reset('current_password', 'password', 'password_confirmation');
+                passwordForm.reset(
+                    'current_password',
+                    'password',
+                    'password_confirmation',
+                );
             },
         });
     } catch (error) {
@@ -134,11 +168,7 @@ const submitChangePassword = async () => {
 </script>
 
 <template>
-    <Sidebar
-        collapsible="icon"
-        variant="sidebar"
-        class="border-r-0 bg-nav-bg"
-    >
+    <Sidebar collapsible="icon" variant="sidebar" class="border-r-0 bg-nav-bg">
         <!-- ── HEADER ── sejajar dengan AppSidebarHeader (h-16, border-b) -->
         <SidebarHeader
             class="flex h-16 items-center border-b border-sidebar-border/70 px-4"
@@ -147,14 +177,22 @@ const submitChangePassword = async () => {
                 :href="dashboardUrl"
                 class="flex w-full items-center gap-3 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:pt-3"
             >
-                <span class="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-sm">
+                <span
+                    class="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-sm"
+                >
                     <AppLogoIcon class="h-full w-full object-contain" />
                 </span>
-                <div class="flex flex-col leading-tight group-data-[collapsible=icon]:hidden">
-                    <span class="text-base font-bold text-nav-name tracking-wide">
+                <div
+                    class="flex flex-col leading-tight group-data-[collapsible=icon]:hidden"
+                >
+                    <span
+                        class="text-base font-bold tracking-wide text-nav-name"
+                    >
                         SIKPK
                     </span>
-                    <span class="text-[11px] font-medium text-nav-muted uppercase tracking-wider">
+                    <span
+                        class="text-[11px] font-medium tracking-wider text-nav-muted uppercase"
+                    >
                         SATGAS PPK POLBAN
                     </span>
                 </div>
@@ -164,7 +202,9 @@ const submitChangePassword = async () => {
         <!-- ── CONTENT ── -->
         <SidebarContent class="px-4 pt-4 group-data-[collapsible=icon]:px-2">
             <!-- Section label -->
-            <p class="mb-3 px-1 text-[11px] font-semibold uppercase tracking-widest text-nav-muted group-data-[collapsible=icon]:hidden">
+            <p
+                class="mb-3 px-1 text-[11px] font-semibold tracking-widest text-nav-muted uppercase group-data-[collapsible=icon]:hidden"
+            >
                 {{ panelLabel }}
             </p>
 
@@ -179,33 +219,38 @@ const submitChangePassword = async () => {
                         :title="item.title"
                     >
                         <!-- orange indicator bar -->
-                        <span class="absolute left-0 top-0 h-full w-[3px] rounded-r bg-nav-indicator group-data-[collapsible=icon]:hidden" />
+                        <span
+                            class="absolute top-0 left-0 h-full w-[3px] rounded-r bg-nav-indicator group-data-[collapsible=icon]:hidden"
+                        />
                         <component :is="item.icon" class="h-4 w-4 shrink-0" />
-                        <span class="group-data-[collapsible=icon]:hidden">{{ item.title }}</span>
+                        <span class="group-data-[collapsible=icon]:hidden">{{
+                            item.title
+                        }}</span>
                     </Link>
 
                     <!-- INACTIVE item -->
                     <Link
                         v-else
                         :href="item.href"
-                        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-nav-text transition-colors hover:bg-black/5 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-2 group-data-[collapsible=icon]:py-2.5"
+                        class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-nav-text transition-colors group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-2 group-data-[collapsible=icon]:py-2.5 hover:bg-black/5"
                         :title="item.title"
                     >
                         <component :is="item.icon" class="h-4 w-4 shrink-0" />
-                        <span class="group-data-[collapsible=icon]:hidden">{{ item.title }}</span>
+                        <span class="group-data-[collapsible=icon]:hidden">{{
+                            item.title
+                        }}</span>
                     </Link>
                 </template>
             </nav>
         </SidebarContent>
 
         <!-- ── FOOTER ── -->
-        <SidebarFooter class="px-4 pb-4 group-data-[collapsible=icon]:px-2 group-data-[collapsible=icon]:pb-3">
+        <SidebarFooter
+            class="px-4 pb-4 group-data-[collapsible=icon]:px-2 group-data-[collapsible=icon]:pb-3"
+        >
             <!-- Expanded: full card with name/role/logout -->
             <div
-                class="mt-2 flex items-center gap-3 rounded-xl bg-nav-footer-bg px-3 py-3
-                       group-data-[collapsible=icon]:mt-0 group-data-[collapsible=icon]:rounded-none
-                       group-data-[collapsible=icon]:bg-transparent group-data-[collapsible=icon]:p-0
-                       group-data-[collapsible=icon]:justify-center"
+                class="mt-2 flex items-center gap-3 rounded-xl bg-nav-footer-bg px-3 py-3 group-data-[collapsible=icon]:mt-0 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:rounded-none group-data-[collapsible=icon]:bg-transparent group-data-[collapsible=icon]:p-0"
             >
                 <!-- Avatar -->
                 <div
@@ -216,17 +261,27 @@ const submitChangePassword = async () => {
                 </div>
 
                 <!-- Name + role (hidden when collapsed) -->
-                <div class="flex min-w-0 flex-1 flex-col leading-tight group-data-[collapsible=icon]:hidden">
+                <div
+                    class="flex min-w-0 flex-1 flex-col leading-tight group-data-[collapsible=icon]:hidden"
+                >
                     <span class="truncate text-sm font-semibold text-nav-name">
                         {{ user.name }}
                     </span>
-                    <span class="truncate text-[11px] text-nav-muted capitalize">
-                        {{ user.role === 'ketua' ? 'Ketua Satgas' : 'Anggota Satgas' }}
+                    <span
+                        class="truncate text-[11px] text-nav-muted capitalize"
+                    >
+                        {{
+                            user.role === 'ketua'
+                                ? 'Ketua Satgas'
+                                : 'Anggota Satgas'
+                        }}
                     </span>
                 </div>
 
                 <!-- Menu trigger (hidden when collapsed) -->
-                <div class="relative shrink-0 group-data-[collapsible=icon]:hidden">
+                <div
+                    class="relative shrink-0 group-data-[collapsible=icon]:hidden"
+                >
                     <button
                         class="flex h-7 w-7 items-center justify-center rounded-md text-nav-muted transition-colors hover:bg-black/10 hover:text-nav-text"
                         @click.stop="showMenu = !showMenu"
@@ -237,12 +292,15 @@ const submitChangePassword = async () => {
                     <!-- Dropdown -->
                     <div
                         v-if="showMenu"
-                        class="absolute bottom-full right-0 mb-2 w-48 rounded-xl border border-border bg-background shadow-lg"
+                        class="absolute right-0 bottom-full mb-2 w-48 rounded-xl border border-border bg-background shadow-lg"
                         @click.stop
                     >
                         <button
                             class="flex w-full items-center gap-2.5 rounded-t-xl px-4 py-2.5 text-sm text-foreground transition hover:bg-muted"
-                            @click="showMenu = false; showPasswordModal = true"
+                            @click="
+                                showMenu = false;
+                                showPasswordModal = true;
+                            "
                         >
                             <KeyRound class="h-4 w-4 text-muted-foreground" />
                             Ubah Kata Sandi
@@ -250,7 +308,10 @@ const submitChangePassword = async () => {
                         <div class="border-t border-border" />
                         <button
                             class="flex w-full items-center gap-2.5 rounded-b-xl px-4 py-2.5 text-sm text-red-500 transition hover:bg-red-50 dark:hover:bg-red-950/30"
-                            @click="showMenu = false; handleLogout()"
+                            @click="
+                                showMenu = false;
+                                handleLogout();
+                            "
                         >
                             <LogOut class="h-4 w-4" />
                             Keluar
@@ -267,10 +328,16 @@ const submitChangePassword = async () => {
         class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
         @click.self="showPasswordModal = false"
     >
-        <div class="w-full max-w-md rounded-2xl border border-border bg-background shadow-2xl">
+        <div
+            class="w-full max-w-md rounded-2xl border border-border bg-background shadow-2xl"
+        >
             <!-- Header -->
-            <div class="flex items-center justify-between border-b border-border px-6 py-4">
-                <h2 class="text-lg font-semibold text-foreground">Ganti Kata Sandi</h2>
+            <div
+                class="flex items-center justify-between border-b border-border px-6 py-4"
+            >
+                <h2 class="text-lg font-semibold text-foreground">
+                    Ganti Kata Sandi
+                </h2>
                 <button
                     class="rounded-lg p-2 text-muted-foreground transition hover:bg-muted hover:text-foreground"
                     @click="showPasswordModal = false"

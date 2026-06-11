@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { Trash2, X } from 'lucide-vue-next';
+import { computed } from 'vue';
 
 export interface PreviewFile {
     file?: File;
@@ -25,9 +26,9 @@ const emit = defineEmits<{
 
 const openPreview = ref(false);
 
-const isImage = props.file.type.startsWith('image/');
-const isVideo = props.file.type.startsWith('video/');
-const isAudio = props.file.type.startsWith('audio/');
+const isImage = computed(() => props.file?.type?.startsWith('image/') ?? false);
+const isVideo = computed(() => props.file?.type?.startsWith('video/') ?? false);
+const isAudio = computed(() => props.file?.type?.startsWith('audio/') ?? false);
 </script>
 
 <template>
