@@ -10,3 +10,9 @@ export const formatDate = (date: string, withTime: boolean = true) => {
         }),
     });
 };
+
+export const today = new Intl.DateTimeFormat('id-ID', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+}).format(new Date());

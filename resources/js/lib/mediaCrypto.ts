@@ -4,7 +4,7 @@ import { rsaEncrypt, rsaDecrypt } from '@/lib/crypto/rsa-oaep';
 
 export async function encryptFile(
     file: File,
-    publicKeys: Record<string, CryptoKey>,
+    publicKeys: Record<string, CryptoKey> | CryptoKey[] | CryptoKey,
 ) {
     const fileBuffer = await file.arrayBuffer();
 
@@ -24,8 +24,26 @@ export async function encryptFile(
         encoding: 'binary',
     });
 
+    let normalizedKeys: Record<string, CryptoKey> = {};
+
+    if (
+        !Array.isArray(publicKeys) &&
+        typeof publicKeys === 'object' &&
+        publicKeys !== null
+    ) {
+        normalizedKeys = publicKeys as Record<string, CryptoKey>;
+    } else if (Array.isArray(publicKeys)) {
+        normalizedKeys = Object.fromEntries(
+            publicKeys.map((key, index) => [`key_${index}`, key]),
+        );
+    } else {
+        normalizedKeys = {
+            primary: publicKeys as CryptoKey,
+        };
+    }
+
     const edeksEntries = await Promise.all(
-        Object.entries(publicKeys).map(async ([userId, publicKey]) => {
+        Object.entries(normalizedKeys).map(async ([userId, publicKey]) => {
             const encryptedDek = await rsaEncrypt(publicKey, dekRaw);
 
             return [userId, bufferToBase64(encryptedDek)] as const;
@@ -45,6 +63,11 @@ export async function encryptFile(
         type: 'application/octet-stream',
     });
 
+    /**
+     * =========================
+     * RETURN PAYLOAD
+     * =========================
+     */
     return {
         filename: file.name,
         mimeType: file.type,
