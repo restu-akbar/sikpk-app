@@ -59,12 +59,16 @@ jobs:
       # FORCE RESTART REVISION
       # (FIX APP_KEY / SESSION / CACHE ISSUE)
       # -----------------------------
-      - name: Restart Container App
+      - name: Restart latest revision
         run: |
+          REVISION=$(az containerapp revision list \
+            --name sikpk-app \
+            --resource-group kota301 \
+            --query "[0].name" -o tsv)
           az containerapp revision restart \
             --name sikpk-app \
-            --resource-group kota301
-
+            --resource-group kota301 \
+            --revision $REVISION
       # -----------------------------
       # VERIFY REVISION
       # -----------------------------
