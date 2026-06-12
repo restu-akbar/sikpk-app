@@ -17,7 +17,7 @@ class EvidenceUploadService
                 continue;
             }
 
-            $path = Storage::disk('private')->putFileAs(
+            $path = Storage::putFileAs(
                 'reports',
                 $file,
                 Str::uuid() . '.enc'
