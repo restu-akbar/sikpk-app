@@ -20,7 +20,7 @@ defineEmits<{
             <ProgressBadge :status="report.progress" />
         </div>
         <h2 class="text-lg font-semibold">
-            {{ report.id }}
+            {{ report.case_number }}
         </h2>
         <p class="mt-0.5 text-xs text-muted-foreground">
             {{ getLabel(jenisKekerasanOptions, report.jenis_kekerasan) }}

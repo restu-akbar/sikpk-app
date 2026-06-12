@@ -376,7 +376,7 @@ const timelineItems = computed(() => {
                                             <span
                                                 class="font-mono text-sm font-semibold text-[#1A5BA6]"
                                             >
-                                                #{{ report.id }}
+                                                {{ report.case_number }}
                                             </span>
 
                                             <span

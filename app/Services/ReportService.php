@@ -84,8 +84,13 @@ class ReportService
                 }
             }
 
+            $year = now()->year;
+            $sequence = Report::whereYear('created_at', $year)->count() + 1;
+            $caseNumber = '#' . str_pad($sequence, 3, '0', STR_PAD_LEFT) . '/PPK/' . $year;
+
             $report = Report::create([
                 'reporter_id'   => $reporterId,
+                'case_number'   => $caseNumber,
 
                 'status_pelapor' => $data['statusPelapor'],
 
@@ -135,8 +140,15 @@ class ReportService
 
         $report = Report::findOrFail($id);
 
+        $year = now()->year;
+        $teamSequence = Report::whereYear('created_at', $year)
+            ->whereNotNull('team_number')
+            ->count() + 1;
+        $teamNumber = 'TIM-' . $year . '-' . str_pad($teamSequence, 3, '0', STR_PAD_LEFT);
+
         $report->update([
             'progress' => 'Klarifikasi',
+            'team_number' => $teamNumber,
         ]);
 
         $report->handlers()->sync($request->anggota);

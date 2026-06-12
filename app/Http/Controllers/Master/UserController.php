@@ -18,7 +18,7 @@ class UserController extends Controller
 
     public function data()
     {
-        return $this->userService->getAnggota();
+        return $this->userService->getAssignableAnggota();
     }
 
 

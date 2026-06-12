@@ -150,7 +150,7 @@ defineProps<{
                 </div>
 
                 <Link
-                    :href="show(report.caseNumber)"
+                    :href="show.url(report.id)"
                     class="group flex items-center rounded-md text-xs font-semibold text-[#2563eb] transition-all hover:text-blue-800 focus:ring-2 focus:ring-blue-300 focus:outline-none sm:text-sm"
                 >
                     <span class="group-hover:underline"> Buka penanganan </span>

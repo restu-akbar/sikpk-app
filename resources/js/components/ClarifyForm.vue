@@ -165,7 +165,7 @@ watch(
                             <div class="mb-4 grid grid-cols-3 gap-4">
                                 <FieldReadonly
                                     label="No. Laporan"
-                                    :value="props.report.id"
+                                    :value="props.report.case_number"
                                 />
 
                                 <FieldReadonly

@@ -79,7 +79,7 @@ const reportSections = computed(() => [
     {
         title: 'Ringkasan Laporan',
         items: [
-            { label: 'No. Laporan', value: props.report.id },
+            { label: 'No. Laporan', value: props.report.case_number },
             {
                 label: 'Jenis Kekerasan',
                 value: getLabel(

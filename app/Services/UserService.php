@@ -27,6 +27,15 @@ class UserService extends BaseService
             ->paginate($perPage);
     }
 
+    public function getAssignableAnggota(int $perPage = 10)
+    {
+        return $this->query()
+            ->where('must_change_password', false)
+            ->withCount('handledReports')
+            ->latest()
+            ->paginate($perPage);
+    }
+
     public function createAnggota(array $data): void
     {
         $plainPassword = Str::password();

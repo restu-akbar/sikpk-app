@@ -25,6 +25,8 @@ class Report extends Model
         'waktu_kejadian',
         'kronologi',
         'progress',
+        'case_number',
+        'team_number',
     ];
 
     protected function casts(): array

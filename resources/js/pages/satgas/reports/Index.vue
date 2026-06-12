@@ -30,7 +30,7 @@ const props = defineProps<{
     rows: any;
 }>();
 const columns = [
-    { key: 'id', label: 'No. Kasus', sortable: true },
+    { key: 'case_number', label: 'No. Kasus', sortable: true },
     { key: 'created_at', label: 'Tanggal Laporan', sortable: true },
     { key: 'pelapor', label: 'Pelapor' },
     { key: 'jenis_kekerasan', label: 'Jenis Kekerasan' },
@@ -273,9 +273,9 @@ Ketua, Anda hanya dapat melihat progress, bukan isi dokumen penanganan."
                 />
             </template>
 
-            <template #id="{ index }">
+            <template #case_number="{ row }">
                 <span class="font-mono text-xs text-muted-foreground">
-                    {{ index + 1 }}
+                    {{ row.case_number }}
                 </span>
             </template>
 
@@ -333,7 +333,7 @@ Ketua, Anda hanya dapat melihat progress, bukan isi dokumen penanganan."
             :open="isRejectOpen"
             icon="warning"
             title="Tolak laporan"
-            :row-name="selectedReport?.nomor_laporan"
+            :row-name="selectedReport?.case_number"
             description="Pelapor akan diberitahu alasan penolakan. Tindakan ini tidak dapat dibatalkan."
             action-label="Tolak Laporan"
             :show-select="true"
