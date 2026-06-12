@@ -16,9 +16,6 @@ WORKDIR /var/www/html
 
 COPY . .
 
-# 1. SET ENV DULU (INI PENTING BUAT VITE)
-RUN cp .env.azure .env
-
 # 2. PHP dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
