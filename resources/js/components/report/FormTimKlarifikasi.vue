@@ -178,7 +178,7 @@ async function submit() {
     const publicKeys = await getPublicKeys(selected.value);
 
     const edekUpdates = await reEncryptEdeks({
-        evidences: props.report.evidences,
+        evidences: props.report.report_evidences,
         currentUserId: cryptoStore.userId,
         privateKey: cryptoStore.privateKey,
         targetPublicKeys: publicKeys,

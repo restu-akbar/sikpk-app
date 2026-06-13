@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Module;
 use App\Helpers\Toast;
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Services\EvidenceUploadService;
+use App\Services\FileService;
 use App\Services\ReportService;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
@@ -18,7 +18,7 @@ class ReportController extends Controller
     public function __construct(
         protected UserService $userService,
         protected ReportService $reportService,
-        protected EvidenceUploadService $evidenceUploadService
+        protected FileService $fileService
     ) {}
 
     public function data()
@@ -26,7 +26,7 @@ class ReportController extends Controller
         return $this->reportService->index(false);
     }
 
-    public function showLogs($id)
+    public function showLogs(String $id)
     {
         return $this->reportService->index(false, ['reportLogs'])->findOrFail($id);
     }
@@ -34,7 +34,7 @@ class ReportController extends Controller
     public function index()
     {
         return Inertia::render('satgas/reports/Index', [
-            'rows' => $this->reportService->index(with: ['evidences', 'reporter', 'handlers', 'audioRecordings'])
+            'rows' => $this->reportService->index(with: ['reportEvidences', 'reporter', 'handlers', 'audioRecordings'])
         ]);
     }
 
@@ -101,9 +101,10 @@ class ReportController extends Controller
                 ));
         }
         $report = $this->reportService->store($validated, $request);
-        $this->evidenceUploadService->store(
+        $this->fileService->store(
             $validated['bukti'] ?? [],
-            $report->evidences()
+            $report->reportEvidences(),
+            "evidences"
         );
 
         return redirect()->route('landing')->with('toast', [

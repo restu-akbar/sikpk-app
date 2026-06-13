@@ -40,6 +40,7 @@ return new class extends Migration
                 'Laporan Dihentikan',
                 'Laporan Ditolak',
             ])->default('Laporan Baru');
+            $table->boolean('completeness_document')->default(false);
 
             $table->enum('rejected_reason', [
                 'ranah_satgas',
@@ -74,6 +75,32 @@ return new class extends Migration
             $table->string('original_filename')->nullable();
             $table->string('mime_type')->nullable();
             $table->unsignedBigInteger('size')->nullable();
+            $table->timestamps();
+        });
+
+        Schema::create('report_documents', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+
+            $table->foreignUuid('report_id')
+                ->constrained()
+                ->cascadeOnDelete();
+
+            $table->string('path');
+            $table->json('edeks');
+            $table->string('original_filename')->nullable();
+            $table->string('mime_type')->nullable();
+            $table->enum('type', [
+                'clarification',
+                'inspection',
+                'conclusion',
+                'post',
+            ])->default('clarification');
+
+            $table->enum('subtype', [
+                'generated_pdf',
+                'documentation',
+                'uploaded_pdf',
+            ])->default('generated_pdf');
             $table->timestamps();
         });
     }

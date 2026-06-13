@@ -27,6 +27,7 @@ class Report extends Model
         'progress',
         'case_number',
         'team_number',
+        'completeness_document'
     ];
 
     protected function casts(): array
@@ -53,9 +54,14 @@ class Report extends Model
         );
     }
 
-    public function evidences(): HasMany
+    public function reportEvidences(): HasMany
     {
         return $this->hasMany(ReportEvidence::class);
+    }
+
+    public function reportDocuments(): HasMany
+    {
+        return $this->hasMany(ReportDocument::class);
     }
 
     public function audioRecordings(): HasMany

@@ -8,34 +8,36 @@ use App\Models\Report;
 use App\Services\FileService;
 use Illuminate\Http\Request;
 
-class EvidenceController extends Controller
+class ReportDocumentController extends Controller
 {
     public function __construct(
         protected FileService $fileService
     ) {}
 
-    public function show(String $evidence)
+    public function show($document)
     {
-        return $this->fileService->show('evidence', $evidence);
+        return $this->fileService->show('document', $document);
     }
 
-    public function store(Request $request, String $id)
+    public function store(Request $request, $id)
     {
         try {
             $validated = $request->validate([
-                'bukti' => ['nullable', 'array'],
-                'bukti.*.file' => ['required'],
-                'bukti.*.edeks' => ['required', 'string'],
-                'bukti.*.filename' => ['required', 'string'],
-                'bukti.*.mime_type' => ['required', 'string'],
-                'bukti.*.size' => ['required', 'integer'],
+                'document' => ['nullable', 'array'],
+                'document.*.file' => ['required'],
+                'document.*.edeks' => ['required', 'string'],
+                'document.*.filename' => ['required', 'string'],
+                'document.*.mime_type' => ['required', 'string'],
+                'document.*.size' => ['required', 'integer'],
+                'document.*.type' => ['required', 'string'],
+                'document.*.subtype' => ['required', 'string'],
             ]);
 
             $report = Report::findOrFail($id);
             $this->fileService->store(
-                $validated['bukti'] ?? [],
-                $report->reportEvidences(),
-                'evidences'
+                $validated['document'] ?? [],
+                $report->reportDocuments(),
+                'documents',
             );
 
             return back()

@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { useForm, router } from '@inertiajs/vue3';
 import { computed, provide, ref, watch } from 'vue';
+import { ReportForm } from '@/types/reports';
 import { useStep } from '@/composables/useStep';
-import StepIndicator from '@/components/StepIndicator.vue';
-import type { ReportForm } from '@/types';
 import { store } from '@/routes/reports';
 import Agreement from '@/components/Agreement.vue';
 import MethodSelector from '@/components/MethodSelector.vue';
@@ -34,6 +33,7 @@ import {
 
 import { getPublicKeys } from '@/lib/crypto/getPublicKeys';
 import { encryptFile } from '@/lib/mediaCrypto';
+import ErrorField from '@/components/form/ErrorField.vue';
 
 provide('formTheme', 'blue');
 

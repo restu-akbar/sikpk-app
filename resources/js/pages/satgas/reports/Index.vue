@@ -13,7 +13,6 @@ import { useCryptoUnlock } from '@/composables/useCryptoUnlock';
 import { ChevronRight, EllipsisVertical } from 'lucide-vue-next';
 import FormTimKlarifikasi from '@/components/report/FormTimKlarifikasi.vue';
 import { reject } from '@/routes/satgas/reports';
-import axios from 'axios';
 import { satgasApi } from '@/lib/axios';
 import { REJECTED_REASON_MAPPING } from '@/types/reports';
 import { handleEdit } from '@/lib/handleRequest';
@@ -51,7 +50,10 @@ const moreOptions = [
 
 const activeOption = computed(() => {
     if (progressFilter.value === '') return defaultOption;
-    return moreOptions.find((o) => o.value === progressFilter.value) ?? defaultOption;
+    return (
+        moreOptions.find((o) => o.value === progressFilter.value) ??
+        defaultOption
+    );
 });
 
 function selectFilter(value: string) {
@@ -69,17 +71,6 @@ function closeMore() {
 
 const jenisKekerasanLabel = (value: string) =>
     jenisKekerasanOptions.find((o) => o.value === value)?.label ?? value;
-
-const initialsColor = (inisial: string) => {
-    const palette: Record<string, string> = {
-        AR: 'bg-blue-100 text-blue-700',
-        BH: 'bg-orange-100 text-orange-700',
-        CM: 'bg-green-100 text-green-700',
-        DS: 'bg-indigo-100 text-indigo-700',
-        EP: 'bg-pink-100 text-pink-700',
-    };
-    return palette[inisial] ?? 'bg-gray-100 text-gray-600';
-};
 
 const isDetailOpen = ref(false);
 const selectedReport = ref<any>(null);
@@ -103,10 +94,6 @@ const form = useForm({
     note: '',
 });
 
-function openRejectDialog(report: any) {
-    selectedReport.value = report;
-    isRejectOpen.value = true;
-}
 async function submitReject() {
     if (!selectedReport.value) return;
 
@@ -132,7 +119,7 @@ const satgasMembers = ref({
     total: 0,
 });
 
-async function handleAccept(id: number) {
+async function handleAccept() {
     isDetailOpen.value = false;
 
     if (!satgasMembers.value.data.length) {
@@ -205,8 +192,13 @@ Ketua, Anda hanya dapat melihat progress, bukan isi dokumen penanganan."
                         <span class="invisible font-bold">Semua</span>
                         <span
                             class="absolute inset-0 flex items-center justify-center"
-                            :class="progressFilter === '' ? 'font-bold' : 'font-normal'"
-                        >Semua</span>
+                            :class="
+                                progressFilter === ''
+                                    ? 'font-bold'
+                                    : 'font-normal'
+                            "
+                            >Semua</span
+                        >
                     </button>
 
                     <!-- Active filter option -->
@@ -219,11 +211,18 @@ Ketua, Anda hanya dapat melihat progress, bukan isi dokumen penanganan."
                         "
                         @click="selectFilter(activeOption.value)"
                     >
-                        <span class="invisible font-bold">{{ activeOption.label }}</span>
+                        <span class="invisible font-bold">{{
+                            activeOption.label
+                        }}</span>
                         <span
                             class="absolute inset-0 flex items-center justify-center"
-                            :class="progressFilter !== '' ? 'font-bold' : 'font-normal'"
-                        >{{ activeOption.label }}</span>
+                            :class="
+                                progressFilter !== ''
+                                    ? 'font-bold'
+                                    : 'font-normal'
+                            "
+                            >{{ activeOption.label }}</span
+                        >
                     </button>
 
                     <!-- More menu -->

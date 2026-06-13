@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { watch, ref, nextTick } from 'vue';
+import { watch, ref } from 'vue';
 import { today, formatDate } from '@/lib/formatDate';
 import FormSectionTitle from '@/components/form/FormSectionTitle.vue';
 import FieldReadonly from '@/components/form/FieldReadonly.vue';
@@ -8,14 +8,13 @@ import FormField from '@/components/form/FormField.vue';
 import FieldLabel from '@/components/form/FieldLabel.vue';
 import TextareaField from '@/components/form/TextareaField.vue';
 import { jenisKekerasanOptions } from '@/constants/jenisKekerasanOptions';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useCryptoStore } from '@/lib/crypto/store';
 import { getPublicKeys } from '@/lib/crypto/getPublicKeys';
-import { reEncryptEdeks } from '@/lib/crypto/re-encrypt-edeks';
 import { encryptFile } from '@/lib/mediaCrypto';
 import { generateClarifyReport } from '@/lib/pdf/generateClarifyReport';
 import { handleCreate } from '@/lib/handleRequest';
-import { store } from '@/routes/satgas/reports/evidence';
+import { store } from '@/routes/satgas/reports/document';
 import { useForm } from '@inertiajs/vue3';
 
 const props = defineProps<{
@@ -25,6 +24,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
     close: [];
+    success: [];
 }>();
 
 const form = useForm({
@@ -37,13 +37,17 @@ const form = useForm({
     prodi: props.report.reporter.prodi,
     catatanKlarifikasi: '',
 
-    bukti: {
-        file: null,
-        filename: '',
-        mimeType: '',
-        size: 0,
-        edeks: {},
-    },
+    document: [
+        {
+            file: null as File | null,
+            filename: '',
+            mimeType: '',
+            size: 0,
+            edeks: {},
+            type: '',
+            subtype: '',
+        },
+    ],
 });
 const stepErrors = ref<Record<string, string>>({});
 const handleSubmit = async () => {
@@ -74,13 +78,15 @@ const handleSubmit = async () => {
 
         const encryptedPDF = await encryptFile(pdfFile, publicKeys);
 
-        form.bukti = [
+        form.document = [
             {
                 file: encryptedPDF.encryptedData,
                 filename: encryptedPDF.filename,
                 mime_type: encryptedPDF.mimeType,
                 size: encryptedPDF.size,
                 edeks: JSON.stringify(encryptedPDF.edeks),
+                type: 'clarification',
+                subtype: 'generated_pdf',
             },
         ];
 
@@ -97,10 +103,6 @@ const handleSubmit = async () => {
         stepErrors.value.general = 'Terjadi kesalahan tidak terduga.';
     }
 };
-
-function handleClose() {
-    emit('close');
-}
 
 watch(
     () => props.open,

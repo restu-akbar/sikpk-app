@@ -108,7 +108,7 @@ class ReportService
             foreach ($request->input('audio_recordings', []) as $index => $item) {
                 $file = $request->file("audio_recordings.$index.file");
 
-                $path = Storage::disk('private')->putFileAs(
+                $path = Storage::putFileAs(
                     'audio-recordings',
                     $file,
                     Str::uuid() . '.' . ($file->guessExtension() ?? 'webm')

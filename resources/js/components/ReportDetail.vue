@@ -10,7 +10,6 @@ import {
     statusOptions,
 } from '@/constants/statusCivitasOptions';
 import { disabilityOptions } from '@/constants/disability';
-import { jenisKekerasanOptions } from '@/constants/jenisKekerasanOptions';
 import { getInitials, getAvatarColor } from '@/composables/useInitials';
 import axios from 'axios';
 import { useCryptoStore } from '@/lib/crypto/store';
@@ -137,8 +136,11 @@ function formatDisabilitas(value: any): string {
 }
 
 function formatFileSize(bytes: number) {
-    if (bytes >= 1048576) return (bytes / 1048576).toFixed(1) + ' MB';
-    return (bytes / 1024).toFixed(0) + ' KB';
+  if (bytes < 1024) return bytes + ' B';
+
+  if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+
+  return (bytes / 1048576).toFixed(1) + ' MB';
 }
 
 function fileIconType(name: string) {
@@ -429,12 +431,12 @@ function fileIconType(name: string) {
                                             class="mb-3 text-sm font-bold text-[#3B3A37]"
                                         >
                                             BUKTI PENDUKUNG ({{
-                                                report.evidences?.length ?? 0
+                                                report.report_evidences?.length ?? 0
                                             }})
                                         </p>
                                         <div class="flex flex-col gap-2">
                                             <div
-                                                v-for="file in report.evidences"
+                                                v-for="file in report.report_evidences"
                                                 :key="file.id"
                                                 class="flex items-center gap-3 rounded-lg border border-nav-stroke p-3"
                                             >

@@ -10,23 +10,20 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
+        $password = Hash::make(env('DEFAULT_KETUA_PASSWORD', 'password'));
         User::updateOrCreate(
             ['email' => env('DEFAULT_KETUA_EMAIL', 'ketua@example.com')],
             [
                 'name' => 'Ketua',
-                'password' => Hash::make(
-                    env('DEFAULT_KETUA_PASSWORD', 'password')
-                ),
+                'password' => $password,
                 'role' => 'ketua',
                 'must_change_password' => true,
             ]
         );
 
-        User::factory()
-            ->count(4)
-            ->create([
-                'role' => 'anggota',
-                'must_change_password' => true,
-            ]);
+
+        User::factory()->count(3)->create([
+            'password' => $password,
+        ]);
     }
 }

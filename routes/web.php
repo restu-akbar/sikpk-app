@@ -8,6 +8,7 @@ use App\Http\Controllers\KeyController;
 use App\Http\Controllers\Master\UserController;
 use App\Http\Controllers\Module\ReportController;
 use App\Http\Controllers\Module\ReportHandlingController;
+use App\Http\Controllers\ReportDocumentController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
@@ -83,7 +84,7 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
                     Route::get('', [ReportHandlingController::class, 'index'])->name('index');
                     Route::get('{id}', [ReportHandlingController::class, 'show'])->name('show');
                 });
-                Route::post('evidences/{id}', [EvidenceController::class, 'store'])->name('evidence.store');
+                Route::post('document/{id}', [ReportDocumentController::class, 'store'])->name('document.store');
             });
 
             Route::resource('reports', ReportController::class);
