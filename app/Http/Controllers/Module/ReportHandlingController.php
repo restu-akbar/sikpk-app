@@ -28,7 +28,7 @@ class ReportHandlingController extends Controller
     {
         $report = $this->reportService->show(
             $id,
-            ['reportLogs', 'reporter', 'handlers'],
+            ['reportLogs', 'reporter', 'handlers', 'reportDocuments'],
             true
         );
 
@@ -38,9 +38,6 @@ class ReportHandlingController extends Controller
                 'name' => $user->name,
                 'academic_role' => $user->academic_role,
                 'department' => $user->department,
-                'initials' => collect(explode(' ', $user->name))
-                    ->map(fn($n) => strtoupper(substr($n, 0, 1)))
-                    ->join(''),
             ];
         })->values();
 

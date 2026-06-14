@@ -5,11 +5,19 @@ import Button from '@/components/Button.vue';
 import { jenisKekerasanOptions } from '@/constants/jenisKekerasanOptions';
 import { formatDate } from '@/lib/formatDate';
 import { getLabel } from '@/lib/getLabel';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import ClarifyForm from '@/components/ClarifyForm.vue';
 import DataTable from '@/components/table/DataTable.vue';
 import CryptoUnlockDialog from '@/components/CryptoUnlockDialog.vue';
 import { useCryptoUnlock } from '@/composables/useCryptoUnlock';
+import { User } from '@/types';
+import { getReportLabel } from '@/lib/mapping/reportTypeLabelMap';
+import { ChevronRight, Download } from 'lucide-vue-next';
+import { getAvatarColor, getInitials } from '@/composables/useInitials';
+import { satgasApi } from '@/lib/axios';
+import axios from 'axios';
+import { getFileName } from '@/lib/getFilename';
+import { useCryptoStore } from '@/lib/crypto/store';
+import { decryptFile } from '@/lib/mediaCrypto';
 
 const {
     showUnlockDialog,
@@ -30,7 +38,18 @@ interface ReportLog {
 interface Report {
     id: string;
     progress: string;
+    case_number: string;
+    jenis_kekerasan: string;
+    created_at: string;
+    tempat_kejadian: string;
+    waktu_kejadian: string;
+    kronologi: string;
+    team_number: string;
+    completeness_status: boolean;
+    members: User[];
+    reporter: any;
     report_logs: ReportLog[];
+    report_documents: any[];
 }
 
 const props = defineProps<{
@@ -119,6 +138,47 @@ function openDocumentForm() {
 function onSuccessHandler() {
     isDocumentFormOpen.value = false;
 }
+const columns = [
+    { key: 'no', label: 'No.' },
+    { key: 'jenis_dokumen', label: 'Jenis Dokumen' },
+    { key: 'created_at', label: 'Tanggal Dibuat', sortable: true },
+    { key: 'status', label: 'Status' },
+    { key: 'pdf', label: 'PDF' },
+    { key: 'arrow', label: '' },
+];
+
+const cryptoStore = useCryptoStore();
+const downloadPdf = async (row: any) => {
+    try {
+        const { data } = await satgasApi.get(`files/${row.id}`, {
+            responseType: 'blob',
+        });
+        const edek = row.edeks[cryptoStore.userId];
+        const decryptedFile = await decryptFile({
+            encryptedFile: data,
+            edek,
+            privateKey: cryptoStore.privateKey!,
+            filename: row.original_filename,
+            mimeType: row.mime_type,
+        });
+
+        const url = URL.createObjectURL(decryptedFile);
+
+        const link = document.createElement('a');
+        link.href = url;
+        link.download =
+            `${getFileName(row.original_filename)}-${props.report.case_number}` ||
+            'file.pdf';
+
+        document.body.appendChild(link);
+        link.click();
+
+        link.remove();
+        URL.revokeObjectURL(url);
+    } catch (error) {
+        console.error('Download error:', error);
+    }
+};
 </script>
 
 <template>
@@ -153,7 +213,7 @@ function onSuccessHandler() {
             >
                 <div class="border-b border-[#EBE5DA] bg-[#FBF9F5] px-6 py-6">
                     <h2 class="mb-1.5 text-xl font-bold">Progress Kasus</h2>
-                    <p class="text-sm leading-relaxed text-[#595959]">
+                    <p class="text-sm leading-tight text-[#595959]">
                         Tekan tahap untuk melihat dokumen pada tahap tersebut.
                         Tahap yang sudah selesai dapat diakses untuk meninjau
                         dokumen sebelumnya.
@@ -234,7 +294,7 @@ function onSuccessHandler() {
                         <h2 class="mb-1.5 text-xl font-bold">
                             Informasi Kasus
                         </h2>
-                        <p class="text-sm leading-relaxed">
+                        <p class="text-sm leading-tight">
                             Ringkasan laporan dan tim penanganan yang bertugas.
                         </p>
                     </div>
@@ -312,7 +372,7 @@ function onSuccessHandler() {
                             <p
                                 class="mb-4 text-sm font-bold tracking-wider text-muted-foreground uppercase"
                             >
-                                Tim Penanganan - {{ props.report.no_tim }}
+                                Tim Penanganan - {{ props.report.team_number }}
                             </p>
 
                             <div class="space-y-3">
@@ -321,11 +381,12 @@ function onSuccessHandler() {
                                     :key="anggota.id"
                                     class="flex items-center gap-3 p-3"
                                 >
-                                    <Avatar class="h-10 w-10">
-                                        <AvatarFallback>
-                                            {{ anggota.initials }}
-                                        </AvatarFallback>
-                                    </Avatar>
+                                    <div
+                                        class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold group-data-[collapsible=icon]:h-7 group-data-[collapsible=icon]:w-7"
+                                        :class="getAvatarColor(anggota.name)"
+                                    >
+                                        {{ getInitials(anggota.name) }}
+                                    </div>
 
                                     <div class="min-w-0">
                                         <p class="font-medium text-foreground">
@@ -345,6 +406,89 @@ function onSuccessHandler() {
                     </div>
                 </div>
             </div>
+            <DataTable
+                :columns="columns"
+                :rows="props.report.report_documents"
+                :searchable="false"
+                :pagination="false"
+                resource-route="/documents"
+            >
+                <!-- Filter slot: badge tahap -->
+                <template #filter>
+                    <div class="flex flex-col gap-1">
+                        <!-- header + tahap satu baris -->
+                        <div class="flex items-center justify-between gap-2">
+                            <h1 class="text-xl font-semibold text-gray-900">
+                                Dokumen Penanganan
+                            </h1>
+
+                            <span
+                                class="shrink-0 rounded-full bg-orange-100 px-3 py-1 text-xs font-medium text-orange-600"
+                            >
+                                Tahap {{ report.progress }}
+                            </span>
+                        </div>
+
+                        <!-- keterangan -->
+                        <p class="text-sm leading-tight text-gray-500">
+                            {{ props.report.report_documents.length }} dokumen
+                            tercatat
+                        </p>
+                    </div>
+                </template>
+
+                <!-- No. urut -->
+                <template #no="{ index }">
+                    <span class="text-sm text-muted-foreground">
+                        {{ String(index + 1) }}
+                    </span>
+                </template>
+
+                <!-- Jenis Dokumen bold -->
+                <template #jenis_dokumen="{ row }">
+                    <span class="font-semibold text-foreground">{{
+                        getReportLabel(row.type, row.subtype)
+                    }}</span>
+                </template>
+
+                <!-- Tanggal -->
+                <template #created_at="{ row }">
+                    {{ formatDate(row.created_at, false) }}
+                </template>
+
+                <!-- Status badge -->
+                <template #status="{}">
+                    <span
+                        :class="[
+                            'inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium',
+                            props.report.completeness_status
+                                ? 'bg-green-50 text-green-600'
+                                : 'bg-orange-50 text-orange-600',
+                        ]"
+                    >
+                        <span class="h-1.5 w-1.5 rounded-full bg-current" />
+                        {{
+                            props.report.completeness_status
+                                ? 'Selesai'
+                                : 'Menunggu'
+                        }}
+                    </span>
+                </template>
+
+                <template #pdf="{ row }">
+                    <button
+                        type="button"
+                        @click.stop="downloadPdf(row)"
+                        class="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                        title="Unduh PDF"
+                    >
+                        <Download class="h-4 w-4" />
+                    </button>
+                </template>
+                <template #arrow>
+                    <ChevronRight class="h-4 w-4 text-muted-foreground" />
+                </template>
+            </DataTable>
         </div>
         <ClarifyForm
             :open="isDocumentFormOpen"

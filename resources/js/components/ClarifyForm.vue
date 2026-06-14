@@ -8,14 +8,14 @@ import FormField from '@/components/form/FormField.vue';
 import FieldLabel from '@/components/form/FieldLabel.vue';
 import TextareaField from '@/components/form/TextareaField.vue';
 import { jenisKekerasanOptions } from '@/constants/jenisKekerasanOptions';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useCryptoStore } from '@/lib/crypto/store';
 import { getPublicKeys } from '@/lib/crypto/getPublicKeys';
 import { encryptFile } from '@/lib/mediaCrypto';
 import { generateClarifyReport } from '@/lib/pdf/generateClarifyReport';
 import { handleCreate } from '@/lib/handleRequest';
-import { store } from '@/routes/satgas/reports/document';
+import { store } from '@/routes/satgas/reports/handling/document';
 import { useForm } from '@inertiajs/vue3';
+import { getAvatarColor, getInitials } from '@/composables/useInitials';
 
 const props = defineProps<{
     open: boolean;
@@ -311,15 +311,14 @@ watch(
                                         :key="i"
                                         class="flex items-center gap-2 rounded-full bg-white px-3 py-2"
                                     >
-                                        <Avatar class="h-8 w-8">
-                                            <AvatarFallback>
-                                                {{ anggota.initials }}
-                                            </AvatarFallback>
-                                        </Avatar>
-
-                                        <span class="text-sm font-medium">
-                                            {{ anggota.name }}
-                                        </span>
+                                        <div
+                                            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold group-data-[collapsible=icon]:h-7 group-data-[collapsible=icon]:w-7"
+                                            :class="
+                                                getAvatarColor(anggota.name)
+                                            "
+                                        >
+                                            {{ getInitials(anggota.name) }}
+                                        </div>
                                     </div>
                                 </div>
                             </div>

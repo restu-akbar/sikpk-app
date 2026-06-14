@@ -123,7 +123,7 @@ async function handleAccept() {
     isDetailOpen.value = false;
 
     if (!satgasMembers.value.data.length) {
-        const { data } = await satgasApi.get('/users');
+        const { data } = await satgasApi.get('users');
         satgasMembers.value = {
             ...satgasMembers.value,
             ...data,

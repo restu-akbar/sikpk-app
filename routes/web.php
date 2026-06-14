@@ -3,7 +3,6 @@
 use App\Http\Controllers\Auth\ChangePasswordController;
 use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\AudioRecordingController;
-use App\Http\Controllers\EvidenceController;
 use App\Http\Controllers\KeyController;
 use App\Http\Controllers\Master\UserController;
 use App\Http\Controllers\Module\ReportController;
@@ -83,13 +82,15 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
                 Route::prefix('handling')->name('handling.')->group(function () {
                     Route::get('', [ReportHandlingController::class, 'index'])->name('index');
                     Route::get('{id}', [ReportHandlingController::class, 'show'])->name('show');
+
+                    Route::prefix('document')->name('document.')->group(function () {
+                        Route::post('{report}', [ReportDocumentController::class, 'store'])->name('store');
+                    });
                 });
-                Route::post('document/{id}', [ReportDocumentController::class, 'store'])->name('document.store');
             });
 
             Route::resource('reports', ReportController::class);
             Route::get('crypto', [KeyController::class, 'show'])->name('crypto');
-            Route::get('evidences/{evidence}', [EvidenceController::class, 'show']);
             Route::get('audio-recordings/{audioRecording}', [AudioRecordingController::class, 'show'])->name('audio-recordings.show');
 
             Route::prefix('api')
@@ -97,6 +98,12 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
                 ->group(function () {
                     Route::get('/users', [UserController::class, 'data'])
                         ->name('users');
+                    Route::prefix('files')
+                        ->name('files.')
+                        ->group(function () {
+                            Route::get('{file}', [ReportDocumentController::class, 'show']);
+                        });
+
                 });
         });
 });

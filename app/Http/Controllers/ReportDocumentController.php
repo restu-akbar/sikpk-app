@@ -19,7 +19,7 @@ class ReportDocumentController extends Controller
         return $this->fileService->show('document', $document);
     }
 
-    public function store(Request $request, $id)
+    public function store(Request $request, String $report)
     {
         try {
             $validated = $request->validate([
@@ -33,7 +33,7 @@ class ReportDocumentController extends Controller
                 'document.*.subtype' => ['required', 'string'],
             ]);
 
-            $report = Report::findOrFail($id);
+            $report = Report::findOrFail($report);
             $this->fileService->store(
                 $validated['document'] ?? [],
                 $report->reportDocuments(),
@@ -55,4 +55,9 @@ class ReportDocumentController extends Controller
                 ));
         }
     }
+    public function download(String $document)
+    {
+        $this->fileService->download('document', $document);
+    }
+
 }

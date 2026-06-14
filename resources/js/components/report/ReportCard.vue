@@ -4,6 +4,7 @@ import { jenisKekerasanOptions } from '@/constants/jenisKekerasanOptions';
 import { formatDate } from '@/lib/formatDate';
 import { Link } from '@inertiajs/vue3';
 import { show } from '@/routes/satgas/reports/handling/';
+import { getAvatarColor, getInitials } from '@/composables/useInitials';
 
 type Member = {
     name: string;
@@ -136,9 +137,10 @@ defineProps<{
                         <div
                             v-for="(m, i) in report.members"
                             :key="i"
-                            class="flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-[#ebf0f9] text-[10px] font-bold text-[#1e3a8a] sm:h-8 sm:w-8 sm:text-xs"
+                            class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold group-data-[collapsible=icon]:h-7 group-data-[collapsible=icon]:w-7"
+                            :class="getAvatarColor(m.name)"
                         >
-                            {{ m.initials }}
+                            {{ getInitials(m.name) }}
                         </div>
                     </div>
 

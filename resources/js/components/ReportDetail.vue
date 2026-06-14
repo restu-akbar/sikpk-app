@@ -1,6 +1,16 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import { X, Check, Clock, MapPin, Eye, ShieldCheck, Play, Pause, Mic } from 'lucide-vue-next';
+import {
+    X,
+    Check,
+    Clock,
+    MapPin,
+    Eye,
+    ShieldCheck,
+    Play,
+    Pause,
+    Mic,
+} from 'lucide-vue-next';
 import DialogFooter from '@/components/DialogFooter.vue';
 import DialogHeader from '@/components/DialogHeader.vue';
 import { formatDate } from '@/lib/formatDate';
@@ -11,15 +21,15 @@ import {
 } from '@/constants/statusCivitasOptions';
 import { disabilityOptions } from '@/constants/disability';
 import { getInitials, getAvatarColor } from '@/composables/useInitials';
-import axios from 'axios';
 import { useCryptoStore } from '@/lib/crypto/store';
 import { decryptFile } from '@/lib/mediaCrypto';
+import { satgasApi } from '@/lib/axios';
 
 const cryptoStore = useCryptoStore();
 
 async function openEvidence(file: any) {
     try {
-        const { data } = await axios.get(`/satgas/evidences/${file.id}`, {
+        const { data } = await satgasApi.get(`files/${file.id}`, {
             responseType: 'blob',
         });
         const edek = file.edeks[cryptoStore.userId];
@@ -87,7 +97,9 @@ function toggleAudio(audioId: string) {
         playingAudioId.value = null;
     } else {
         if (playingAudioId.value) {
-            const prev = document.getElementById(`audio-${playingAudioId.value}`) as HTMLAudioElement;
+            const prev = document.getElementById(
+                `audio-${playingAudioId.value}`,
+            ) as HTMLAudioElement;
             prev?.pause();
         }
         el.play();
@@ -108,11 +120,23 @@ function formatDuration(seconds: number) {
 function identitasFields(report: any) {
     const fields = [
         { label: 'Nama', value: report.reporter?.name },
-        { label: 'Peran', value: getLabel(statusCivitasOptions, report.reporter?.status_civitas) },
-        { label: 'Status Pelapor', value: getLabel(statusOptions, report.status_pelapor) },
+        {
+            label: 'Peran',
+            value: getLabel(
+                statusCivitasOptions,
+                report.reporter?.status_civitas,
+            ),
+        },
+        {
+            label: 'Status Pelapor',
+            value: getLabel(statusOptions, report.status_pelapor),
+        },
         { label: 'Jurusan', value: report.reporter?.jurusan },
         { label: 'Program Studi', value: report.reporter?.prodi },
-        { label: 'Disabilitas', value: formatDisabilitas(report.reporter?.disabilitas) },
+        {
+            label: 'Disabilitas',
+            value: formatDisabilitas(report.reporter?.disabilitas),
+        },
         { label: 'Email', value: report.reporter?.email },
         { label: 'Telepon', value: report.reporter?.whatsapp },
     ];
@@ -128,19 +152,23 @@ function identitasFields(report: any) {
 }
 
 function formatDisabilitas(value: any): string {
-    if (!value || (Array.isArray(value) && value.length === 0)) return 'Tidak ada';
+    if (!value || (Array.isArray(value) && value.length === 0))
+        return 'Tidak ada';
     const items = Array.isArray(value) ? value : [value];
     return items
-        .map((v: string) => disabilityOptions.find((o) => o.value === v)?.label ?? v)
+        .map(
+            (v: string) =>
+                disabilityOptions.find((o) => o.value === v)?.label ?? v,
+        )
         .join(', ');
 }
 
 function formatFileSize(bytes: number) {
-  if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1024) return bytes + ' B';
 
-  if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
 
-  return (bytes / 1048576).toFixed(1) + ' MB';
+    return (bytes / 1048576).toFixed(1) + ' MB';
 }
 
 function fileIconType(name: string) {
@@ -162,10 +190,7 @@ function fileIconType(name: string) {
                 <div
                     class="flex h-[90vh] w-[75vw] flex-col overflow-hidden rounded-xl border border-border bg-background"
                 >
-                    <DialogHeader
-                        :report="report"
-                        @close="$emit('close')"
-                    />
+                    <DialogHeader :report="report" @close="$emit('close')" />
 
                     <!-- Scrollable body (progress + content as one unit) -->
                     <div class="flex-1 overflow-y-auto">
@@ -254,16 +279,23 @@ function fileIconType(name: string) {
                                         </p>
                                         <div class="flex flex-col gap-2">
                                             <div
-                                                v-for="(audio, index) in report.audio_recordings"
+                                                v-for="(
+                                                    audio, index
+                                                ) in report.audio_recordings"
                                                 :key="audio.id"
                                                 class="flex items-center gap-3 rounded-lg bg-[#F6F2EE] p-3"
                                             >
                                                 <button
                                                     class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#F5821F] text-white transition-colors hover:bg-[#e0741a]"
-                                                    @click="toggleAudio(audio.id)"
+                                                    @click="
+                                                        toggleAudio(audio.id)
+                                                    "
                                                 >
                                                     <Pause
-                                                        v-if="playingAudioId === audio.id"
+                                                        v-if="
+                                                            playingAudioId ===
+                                                            audio.id
+                                                        "
                                                         class="h-4 w-4"
                                                     />
                                                     <Play
@@ -272,14 +304,26 @@ function fileIconType(name: string) {
                                                     />
                                                 </button>
                                                 <div class="min-w-0 flex-1">
-                                                    <p class="text-sm font-medium text-[#3B3A37]">
+                                                    <p
+                                                        class="text-sm font-medium text-[#3B3A37]"
+                                                    >
                                                         Rekaman {{ index + 1 }}
                                                     </p>
-                                                    <p class="text-xs text-[#6B6862]">
-                                                        {{ audio.duration ? formatDuration(audio.duration) : '—' }}
+                                                    <p
+                                                        class="text-xs text-[#6B6862]"
+                                                    >
+                                                        {{
+                                                            audio.duration
+                                                                ? formatDuration(
+                                                                      audio.duration,
+                                                                  )
+                                                                : '—'
+                                                        }}
                                                     </p>
                                                 </div>
-                                                <Mic class="h-4 w-4 shrink-0 text-[#908C84]" />
+                                                <Mic
+                                                    class="h-4 w-4 shrink-0 text-[#908C84]"
+                                                />
                                                 <audio
                                                     :id="`audio-${audio.id}`"
                                                     :src="`/satgas/audio-recordings/${audio.id}`"
@@ -293,7 +337,9 @@ function fileIconType(name: string) {
 
                                 <!-- Form report: Tempat/Waktu + Kronologi -->
                                 <template v-else>
-                                    <div class="border-b border-nav-stroke py-5">
+                                    <div
+                                        class="border-b border-nav-stroke py-5"
+                                    >
                                         <p
                                             class="mb-3 text-sm font-bold text-[#3B3A37]"
                                         >
@@ -308,7 +354,9 @@ function fileIconType(name: string) {
                                                 <MapPin class="h-3.5 w-3.5" />
                                                 Tempat
                                             </span>
-                                            <span class="text-sm text-[#1B1A18]">
+                                            <span
+                                                class="text-sm text-[#1B1A18]"
+                                            >
                                                 {{ report.tempat_kejadian }}
                                             </span>
                                         </div>
@@ -319,7 +367,9 @@ function fileIconType(name: string) {
                                                 <Clock class="h-3.5 w-3.5" />
                                                 Waktu
                                             </span>
-                                            <span class="text-sm text-[#1B1A18]">
+                                            <span
+                                                class="text-sm text-[#1B1A18]"
+                                            >
                                                 {{
                                                     formatDate(
                                                         report.waktu_kejadian,
@@ -393,9 +443,7 @@ function fileIconType(name: string) {
                                                                 : 'Mahasiswa'
                                                         }}
                                                         ·
-                                                        {{
-                                                            handler.department
-                                                        }}
+                                                        {{ handler.department }}
                                                     </p>
                                                 </div>
                                             </div>
@@ -431,7 +479,8 @@ function fileIconType(name: string) {
                                             class="mb-3 text-sm font-bold text-[#3B3A37]"
                                         >
                                             BUKTI PENDUKUNG ({{
-                                                report.report_evidences?.length ?? 0
+                                                report.report_evidences
+                                                    ?.length ?? 0
                                             }})
                                         </p>
                                         <div class="flex flex-col gap-2">
@@ -486,9 +535,7 @@ function fileIconType(name: string) {
                                                         <path
                                                             d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"
                                                         />
-                                                        <path
-                                                            d="M14 2v6h6"
-                                                        />
+                                                        <path d="M14 2v6h6" />
                                                     </svg>
                                                     <svg
                                                         v-else
@@ -501,9 +548,7 @@ function fileIconType(name: string) {
                                                         <path
                                                             d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"
                                                         />
-                                                        <path
-                                                            d="M14 2v6h6"
-                                                        />
+                                                        <path d="M14 2v6h6" />
                                                     </svg>
                                                 </div>
                                                 <div class="min-w-0 flex-1">

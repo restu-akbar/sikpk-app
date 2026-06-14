@@ -22,14 +22,16 @@ const props = defineProps<{
     description?: string;
 
     columns: Column[];
-    rows: {
-        data: any[];
-        current_page: number;
-        last_page: number;
-        next_page_url: string | null;
-        prev_page_url: string | null;
-        total: number;
-    };
+    rows:
+        | any[]
+        | {
+              data: any[];
+              current_page: number;
+              last_page: number;
+              next_page_url: string | null;
+              prev_page_url: string | null;
+              total: number;
+          };
 
     searchable?: boolean;
     searchPlaceholder?: string;
@@ -57,10 +59,36 @@ const search = ref('');
 const sortKey = ref<string | null>(null);
 const sortDirection = ref<'asc' | 'desc'>('asc');
 
-const filteredRows = computed(() => {
-    let data = [...props.rows.data];
+const normalizedRows = computed(() => {
+    if (!props.rows) {
+        return {
+            data: [],
+            current_page: 1,
+            last_page: 1,
+            next_page_url: null,
+            prev_page_url: null,
+            total: 0,
+        };
+    }
 
-    // FILTER by key/value (e.g. unsur filter)
+    if (Array.isArray(props.rows)) {
+        return {
+            data: props.rows,
+            current_page: 1,
+            last_page: 1,
+            next_page_url: null,
+            prev_page_url: null,
+            total: props.rows.length,
+        };
+    }
+
+    return props.rows;
+});
+
+const filteredRows = computed(() => {
+    let data = [...(normalizedRows.value?.data ?? [])]; // tambah optional chaining + fallback
+
+    // FILTER by key/value
     if (props.filterKey && props.filterValue) {
         data = data.filter(
             (row) => String(row[props.filterKey!] ?? '') === props.filterValue,
@@ -356,31 +384,32 @@ function submitEdit(data: any) {
                 class="flex flex-col gap-3 border-t border-border px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6"
             >
                 <p class="text-sm text-muted-foreground">
-                    Total {{ rows.total }} anggota
+                    Total {{ normalizedRows.total }} data
                 </p>
 
                 <div v-if="pagination" class="flex items-center gap-2">
                     <button
                         class="rounded-lg border border-border px-3 py-2 text-sm transition disabled:cursor-not-allowed disabled:opacity-50"
-                        :disabled="!rows.prev_page_url"
+                        :disabled="normalizedRows.prev_page_url"
                         @click="
-                            rows.prev_page_url &&
-                            router.visit(rows.prev_page_url)
+                            normalizedRows.prev_page_url &&
+                            router.visit(normalizedRows.prev_page_url)
                         "
                     >
                         Sebelumnya
                     </button>
 
                     <div class="text-sm text-muted-foreground">
-                        {{ rows.current_page }} / {{ rows.last_page }}
+                        {{ normalizedRows.current_page }} /
+                        {{ normalizedRows.last_page }}
                     </div>
 
                     <button
                         class="rounded-lg border border-border px-3 py-2 text-sm transition disabled:cursor-not-allowed disabled:opacity-50"
-                        :disabled="!rows.next_page_url"
+                        :disabled="normalizedRows.next_page_url"
                         @click="
-                            rows.next_page_url &&
-                            router.visit(rows.next_page_url)
+                            normalizedRows.next_page_url &&
+                            router.visit(normalizedRows.next_page_url)
                         "
                     >
                         Selanjutnya
