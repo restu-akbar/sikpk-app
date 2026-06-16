@@ -6,18 +6,17 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class ReportEvidence extends Model
+class ReportDocumentAttachment extends Model
 {
     use HasUuids;
 
-    protected $table = 'report_evidences';
-
     protected $fillable = [
-        'report_id',
+        'report_document_id',
         'path',
         'edeks',
         'original_filename',
         'mime_type',
+        'attachment_type',
         'size',
     ];
 
@@ -25,12 +24,14 @@ class ReportEvidence extends Model
         'edeks' => 'array',
     ];
 
-    public function report(): BelongsTo
+    public function reportDocument(): BelongsTo
     {
-        return $this->belongsTo(Report::class);
+        return $this->belongsTo(
+            ReportDocument::class
+        );
     }
 
-    public function toCreatePayload(
+    public static function toCreatePayload(
         array $item,
         string $path
     ): array {
@@ -41,6 +42,7 @@ class ReportEvidence extends Model
                 : null,
             'original_filename' => $item['filename'] ?? null,
             'mime_type' => $item['mime_type'] ?? null,
+            'attachment_type' => $item['attachment_type'] ?? null,
             'size' => $item['size'] ?? null,
         ];
     }

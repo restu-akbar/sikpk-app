@@ -7,7 +7,7 @@ import { jenisKekerasanOptions } from '@/constants/jenisKekerasanOptions';
 import { useCryptoStore } from '@/lib/crypto/store';
 import { getPublicKeys } from '@/lib/crypto/getPublicKeys';
 import { encryptFile } from '@/lib/mediaCrypto';
-import { generateClarifyReport } from '@/lib/pdf/generateClarifyReport';
+import { generateWitnessReport } from '@/lib/pdf/generateWitnessInspection';
 import { handleCreate } from '@/lib/handleRequest';
 import { store } from '@/routes/satgas/reports/handling/document';
 import { useForm } from '@inertiajs/vue3';
@@ -15,8 +15,10 @@ import { Check } from 'lucide-vue-next';
 import DialogFooter from './DialogFooter.vue';
 import ModalHeaderSection from './ModalHeaderSection.vue';
 import ReportInformationSection from './handling/ReportInformationSection.vue';
-import ReporterIdentitySection from './handling/ReporterIdentitySection.vue';
 import HandlingTeamSection from './handling/HandlingTeamSection.vue';
+import FormField from './form/FormField.vue';
+import ErrorField from './form/ErrorField.vue';
+import FieldLabel from './form/FieldLabel.vue';
 
 const props = defineProps<{
     open: boolean;
@@ -32,10 +34,8 @@ const form = useForm({
     jenisKekerasan: '',
     nama: '',
     statusPelapor: '',
-    statusCivitas: '',
     whatsapp: '',
-    jurusan: '',
-    prodi: '',
+    relasi: '',
     catatanKlarifikasi: '',
 
     document: [
@@ -64,23 +64,16 @@ const handleSubmit = async () => {
         }
 
         if (!form.statusPelapor.trim()) {
-            stepErrors.value.statusPelapor = 'Status pelapor wajib dipilih.';
+            stepErrors.value.statusPelapor = 'Relasi saksi wajib diisi.';
         }
 
-        if (!form.statusCivitas.trim()) {
-            stepErrors.value.statusCivitas = 'Status civitas wajib dipilih.';
+        if (!form.relasi.trim()) {
+            stepErrors.value.relasi =
+                'Relasi akademik / profesional wajib diisi.';
         }
 
         if (!form.whatsapp.trim()) {
             stepErrors.value.whatsapp = 'Nomor WhatsApp wajib diisi.';
-        }
-
-        if (!form.jurusan.trim()) {
-            stepErrors.value.jurusan = 'Jurusan wajib diisi.';
-        }
-
-        if (!form.prodi.trim()) {
-            stepErrors.value.prodi = 'Program studi wajib diisi.';
         }
 
         if (!form.catatanKlarifikasi.trim()) {
@@ -98,10 +91,10 @@ const handleSubmit = async () => {
         const memberIds = props.report.members.map((m: any) => m.id);
         const publicKeys = await getPublicKeys(memberIds);
 
-        const pdf = generateClarifyReport(props.report, form);
+        const pdf = generateWitnessReport(props.report, form);
         const pdfBlob = pdf.output('blob');
 
-        const pdfFile = new File([pdfBlob], 'laporan-klarifikasi.pdf', {
+        const pdfFile = new File([pdfBlob], 'pemeriksaan-saksi.pdf', {
             type: 'application/pdf',
         });
 
@@ -115,7 +108,7 @@ const handleSubmit = async () => {
                 size: encryptedPDF.size,
                 edeks: JSON.stringify(encryptedPDF.edeks),
                 type: props.report.progress,
-                subtype: 'notulensi',
+                subtype: 'periksa_saksi',
                 attachment_type: 'document',
             },
         ];
@@ -149,11 +142,8 @@ watch(
         if (newValue.nama.trim()) delete stepErrors.value.nama;
         if (newValue.statusPelapor.trim())
             delete stepErrors.value.statusPelapor;
-        if (newValue.statusCivitas.trim())
-            delete stepErrors.value.statusCivitas;
+        if (newValue.relasi.trim()) delete stepErrors.value.statusCivitas;
         if (newValue.whatsapp.trim()) delete stepErrors.value.whatsapp;
-        if (newValue.jurusan.trim()) delete stepErrors.value.jurusan;
-        if (newValue.prodi.trim()) delete stepErrors.value.prodi;
         if (newValue.catatanKlarifikasi.trim())
             delete stepErrors.value.catatanKlarifikasi;
     },
@@ -193,29 +183,83 @@ watch(
                             :error="stepErrors.jenisKekerasan"
                         />
                         <!-- Seksi 2: Identitas Pelapor -->
-                        <ReporterIdentitySection
-                            v-model:form="form"
-                            :step-errors="stepErrors"
-                        />
+                        <Section>
+                            <FormSectionTitle title="2. Identitas Saksi" />
+                            <div class="mb-4 grid grid-cols-2 gap-4">
+                                <FormField
+                                    name="nama"
+                                    v-model="form.nama"
+                                    label="Nama lengkap saksi"
+                                    :error="stepErrors.nama"
+                                    required
+                                />
+                                <FormField
+                                    name="whatsapp"
+                                    v-model="form.whatsapp"
+                                    label="No. whatsapp aktif"
+                                    :error="stepErrors.whatsapp"
+                                    required
+                                />
+                            </div>
+                            <div class="mb-4 grid grid-cols-2 gap-4">
+                                <div>
+                                    <FieldLabel required>
+                                        Relasi saksi
+                                    </FieldLabel>
+
+                                    <div
+                                        class="mt-2 flex h-10 items-center gap-6 rounded-md"
+                                    >
+                                        <label
+                                            class="flex cursor-pointer items-center gap-2"
+                                        >
+                                            <input
+                                                v-model="form.statusPelapor"
+                                                type="radio"
+                                                value="korban"
+                                                class="h-4 w-4"
+                                            />
+                                            <span class="text-sm">Korban</span>
+                                        </label>
+
+                                        <label
+                                            class="flex cursor-pointer items-center gap-2"
+                                        >
+                                            <input
+                                                v-model="form.statusPelapor"
+                                                type="radio"
+                                                value="saksi"
+                                                class="h-4 w-4"
+                                            />
+                                            <span class="text-sm">Saksi</span>
+                                        </label>
+                                    </div>
+
+                                    <ErrorField
+                                        :error="stepErrors.statusPelapor"
+                                    />
+                                </div>
+                                <FormField
+                                    name="relasi"
+                                    v-model="form.relasi"
+                                    label="Relasi Akademik / Profesional"
+                                    :error="stepErrors.relasi"
+                                    required
+                                />
+                            </div>
+                        </Section>
                         <!-- Seksi 3: Notulensi -->
                         <section>
-                            <FormSectionTitle
-                                title="3. NOTULENSI KLARIFIKASI"
-                            />
+                            <FormSectionTitle title="3. Kesaksian Saksi" />
                             <TextareaField
                                 name="catatanKlarifikasi"
                                 v-model="form.catatanKlarifikasi"
-                                label="Catatan hasil sesi klarifikasi "
-                                placeholder="Tuliskan ringkasan klarifikasi: poin yang disampaikan pelapor, klarifikasi terkait kronologi, hal yang perlu ditindaklanjuti…"
+                                label="Catatan hasil kesaksian saksi"
+                                placeholder="Tuliskan keterangan yang diberikan saksi terkait peristiwa…"
                                 rows="5"
                                 :error="stepErrors.catatanKlarifikasi"
                                 required
                             />
-                            <p class="mt-1.5 text-xs text-gray-400">
-                                Notulensi akan dijadikan dasar bagi tim untuk
-                                menentukan apakah laporan dapat dilanjutkan ke
-                                tahap pemeriksaan.
-                            </p>
                         </section>
 
                         <!-- Tim Penanganan -->

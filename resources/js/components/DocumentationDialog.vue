@@ -20,6 +20,7 @@ const props = defineProps<{
     open: boolean;
     report: Report;
     attachmentFields: AttachmentField[];
+    subtype: string;
 }>();
 
 const emit = defineEmits<{
@@ -73,7 +74,8 @@ const handleSubmit = async () => {
                     edeks: JSON.stringify(encryptedFile.edeks),
 
                     type: props.report.progress,
-                    subtype: 'documentation',
+                    subtype: props.subtype,
+                    attachment_type: 'documentation',
                 });
             }
         }

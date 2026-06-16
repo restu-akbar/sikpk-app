@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\ReportDocument;
+use App\Models\ReportDocumentAttachment;
 use App\Models\ReportEvidence;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -22,8 +23,23 @@ class FileService
                 Str::uuid() . '.enc'
             );
 
+            $model = $relation->getRelated();
+
+            if (method_exists($model, 'storeUploadedFile')) {
+                $model->storeUploadedFile(
+                    $relation,
+                    $item,
+                    $storedPath
+                );
+
+                continue;
+            }
+
             $relation->create(
-                $relation->getRelated()->toCreatePayload($item, $storedPath)
+                $model->toCreatePayload(
+                    $item,
+                    $storedPath
+                )
             );
         }
     }
@@ -32,7 +48,7 @@ class FileService
     {
         $model = match ($table) {
             'evidence' => ReportEvidence::class,
-            'document' => ReportDocument::class,
+            'document' => ReportDocumentAttachment::class,
             default => abort(404),
         };
 

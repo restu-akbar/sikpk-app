@@ -10,7 +10,6 @@ import { progressColor } from '@/constants/progressColor';
 const props = defineProps<{
     report: any;
 }>();
-console.log(props.report);
 </script>
 
 <template>

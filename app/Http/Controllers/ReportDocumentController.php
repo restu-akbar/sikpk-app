@@ -45,6 +45,7 @@ class ReportDocumentController extends Controller
                     'document.*.size' => ['required', 'integer'],
                     'document.*.type' => ['required', 'string'],
                     'document.*.subtype' => ['required', 'string'],
+                    'document.*.attachment_type' => ['required', 'string'],
                 ]
             )->validate();
 

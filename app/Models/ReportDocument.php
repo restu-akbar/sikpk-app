@@ -2,9 +2,10 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ReportDocument extends Model
 {
@@ -12,10 +13,6 @@ class ReportDocument extends Model
 
     protected $fillable = [
         'report_id',
-        'path',
-        'edeks',
-        'original_filename',
-        'mime_type',
         'type',
         'subtype',
     ];
@@ -25,24 +22,28 @@ class ReportDocument extends Model
         return $this->belongsTo(Report::class);
     }
 
-    protected function casts(): array
+    public function attachments(): HasMany
     {
-        return [
-            'edeks' => 'array',
-        ];
+        return $this->hasMany(
+            ReportDocumentAttachment::class
+        );
     }
 
-    public function toCreatePayload(array $item, string $path): array
-    {
-        return [
-            'path' => $path,
-            'edeks' => isset($item['edeks'])
-                ? json_decode($item['edeks'], true)
-                : null,
-            'original_filename' => $item['filename'] ?? null,
-            'mime_type' => $item['mime_type'] ?? null,
-            'type' => $item['type'] ?? 'clarification',
-            'subtype' => $item['subtype'] ?? 'generated_pdf',
-        ];
+    public function storeUploadedFile(
+        $relation,
+        array $item,
+        string $storedPath
+    ): void {
+        $document = $relation->firstOrCreate([
+            'type' => $item['type'],
+            'subtype' => $item['subtype'],
+        ]);
+
+        $document->attachments()->create(
+            ReportDocumentAttachment::toCreatePayload(
+                $item,
+                $storedPath
+            )
+        );
     }
 }

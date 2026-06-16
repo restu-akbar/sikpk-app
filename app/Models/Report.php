@@ -16,6 +16,8 @@ class Report extends Model
 
     protected $fillable = [
         'reporter_id',
+        'case_number',
+        'team_number',
         'status_pelapor',
         'nama_terlapor',
         'status_terlapor',

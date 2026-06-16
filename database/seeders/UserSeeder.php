@@ -11,6 +11,7 @@ class UserSeeder extends Seeder
     public function run(): void
     {
         $password = Hash::make(env('DEFAULT_KETUA_PASSWORD', 'password'));
+
         User::updateOrCreate(
             ['email' => env('DEFAULT_KETUA_EMAIL', 'ketua@example.com')],
             [
@@ -21,9 +22,24 @@ class UserSeeder extends Seeder
             ]
         );
 
+        User::updateOrCreate(
+            ['email' => 'anggota1@example.com'],
+            [
+                'name' => 'Anggota 1',
+                'password' => $password,
+                'role' => 'anggota',
+                'must_change_password' => true,
+            ]
+        );
 
-        User::factory()->count(3)->create([
-            'password' => $password,
-        ]);
+        User::updateOrCreate(
+            ['email' => 'anggota2@example.com'],
+            [
+                'name' => 'Anggota 2',
+                'password' => $password,
+                'role' => 'anggota',
+                'must_change_password' => true,
+            ]
+        );
     }
 }

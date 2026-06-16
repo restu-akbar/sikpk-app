@@ -29,7 +29,7 @@ class ReportHandlingController extends Controller
     {
         $report = $this->reportService->show(
             $id,
-            ['reportLogs', 'reporter', 'handlers', 'reportDocuments'],
+            ['reportLogs', 'reporter', 'handlers', 'reportDocuments.attachments'],
             true
         );
 

@@ -83,21 +83,15 @@ return new class () extends Migration {
                 ->constrained()
                 ->cascadeOnDelete();
 
-            $table->string('path');
-            $table->json('edeks');
-            $table->string('original_filename')->nullable();
-            $table->string('mime_type')->nullable();
-
             $table->enum('type', [
                 'Klarifikasi',
                 'Pemeriksaan',
                 'Kesimpulan',
                 'Pasca',
-            ])->default('Klarifikasi');
+            ]);
 
             $table->enum('subtype', [
                 'notulensi',
-                'documentation',
 
                 'periksa_saksi',
                 'periksa_pelapor',
@@ -110,6 +104,29 @@ return new class () extends Migration {
                 'pemulihan_korban',
                 'pemulihan_nama_baik',
             ]);
+
+            $table->timestamps();
+        });
+
+        Schema::create('report_document_attachments', function (Blueprint $table) {
+            $table->uuid('id')->primary();
+
+            $table->foreignUuid('report_document_id')
+                ->constrained()
+                ->cascadeOnDelete();
+
+            $table->string('path');
+            $table->json('edeks');
+
+            $table->string('original_filename')->nullable();
+            $table->string('mime_type')->nullable();
+            $table->unsignedBigInteger('size')->nullable();
+
+            $table->enum('attachment_type', [
+                'document',
+                'documentation',
+            ]);
+
             $table->timestamps();
         });
     }
@@ -121,5 +138,7 @@ return new class () extends Migration {
     {
         Schema::dropIfExists('reports');
         Schema::dropIfExists('report_evidences');
+        Schema::dropIfExists('report_documents');
+        Schema::dropIfExists('report_document_attachments');
     }
 };

@@ -1,28 +1,58 @@
-const reportTypeLabelMap: Record<string, Record<string, string>> = {
+const reportTypeLabelMap: Record<
+    string,
+    Record<string, Record<string, string>>
+> = {
     Klarifikasi: {
-        notulensi: 'Notulensi Klarifikasi Pelapor',
-        documentation: 'Dokumentasi Klarifikasi Pelapor',
+        notulensi: {
+            document: 'Notulensi Klarifikasi Pelapor',
+            documentation: 'Dokumentasi Klarifikasi Pelapor',
+        },
     },
 
     Pemeriksaan: {
-        periksa_saksi: 'Formulir Pemeriksaan Saksi',
-        periksa_pelapor: 'Formulir Pemeriksaan Pelapor',
-        periksa_terlapor: 'Formulir Pemeriksaan Terlapor',
-        documentation: 'Dokumentasi Pemeriksaan',
+        periksa_saksi: {
+            document: 'Formulir Pemeriksaan Saksi',
+            documentation: 'Dokumentasi Pemeriksaan Saksi',
+        },
+        periksa_pelapor: {
+            document: 'Formulir Pemeriksaan Pelapor',
+            documentation: 'Dokumentasi Pemeriksaan Pelapor',
+        },
+        periksa_terlapor: {
+            document: 'Formulir Pemeriksaan Terlapor',
+            documentation: 'Dokumentasi Pemeriksaan Terlapor',
+        },
     },
 
     Kesimpulan: {
-        kesimpulan_rekomendasi: 'Formulir Kesimpulan dan Rekomendasi',
-        penyampaian_hasil: 'Surat BAP Penyampaian Hasil',
-        pernyataan_pelaku: 'Surat Pernyataan Pelaku',
+        kesimpulan_rekomendasi: {
+            document: 'Formulir Kesimpulan dan Rekomendasi',
+        },
+        penyampaian_hasil: {
+            document: 'Surat BAP Penyampaian Hasil',
+        },
+        pernyataan_pelaku: {
+            document: 'Surat Pernyataan Pelaku',
+        },
     },
 
     Pasca: {
-        pemulihan_korban: 'Formulir Pemulihan Korban',
-        pemulihan_nama_baik: 'Formulir Pemulihan Nama Baik',
+        pemulihan_korban: {
+            document: 'Formulir Pemulihan Korban',
+        },
+        pemulihan_nama_baik: {
+            document: 'Formulir Pemulihan Nama Baik',
+        },
     },
 };
 
-export function getReportLabel(type: string, subtype: string): string {
-    return reportTypeLabelMap?.[type]?.[subtype] ?? 'Tidak diketahui';
+export function getReportLabel(
+    type: string,
+    subtype: string,
+    attachmentType: string = 'document',
+): string {
+    return (
+        reportTypeLabelMap?.[type]?.[subtype]?.[attachmentType] ??
+        'Tidak diketahui'
+    );
 }
