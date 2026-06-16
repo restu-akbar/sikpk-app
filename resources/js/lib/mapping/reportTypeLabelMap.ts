@@ -1,26 +1,25 @@
 const reportTypeLabelMap: Record<string, Record<string, string>> = {
-    clarification: {
-        generated_pdf: 'Notulensi Klarifikasi Pelapor',
+    Klarifikasi: {
+        notulensi: 'Notulensi Klarifikasi Pelapor',
         documentation: 'Dokumentasi Klarifikasi Pelapor',
-        uploaded_pdf: 'Lampiran Klarifikasi Pelapor',
     },
 
-    inspection: {
-        generated_pdf: 'Notulensi Pemeriksaan',
+    Pemeriksaan: {
+        periksa_saksi: 'Formulir Pemeriksaan Saksi',
+        periksa_pelapor: 'Formulir Pemeriksaan Pelapor',
+        periksa_terlapor: 'Formulir Pemeriksaan Terlapor',
         documentation: 'Dokumentasi Pemeriksaan',
-        uploaded_pdf: 'Lampiran Pemeriksaan',
     },
 
-    conclusion: {
-        generated_pdf: 'Notulensi Kesimpulan',
-        documentation: 'Dokumentasi Kesimpulan',
-        uploaded_pdf: 'Lampiran Kesimpulan',
+    Kesimpulan: {
+        kesimpulan_rekomendasi: 'Formulir Kesimpulan dan Rekomendasi',
+        penyampaian_hasil: 'Surat BAP Penyampaian Hasil',
+        pernyataan_pelaku: 'Surat Pernyataan Pelaku',
     },
 
-    post: {
-        generated_pdf: 'Notulensi Pasca Kegiatan',
-        documentation: 'Dokumentasi Pasca Kegiatan',
-        uploaded_pdf: 'Lampiran Pasca Kegiatan',
+    Pasca: {
+        pemulihan_korban: 'Formulir Pemulihan Korban',
+        pemulihan_nama_baik: 'Formulir Pemulihan Nama Baik',
     },
 };
 

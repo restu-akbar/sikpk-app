@@ -31,6 +31,9 @@ async function openEvidence(file: any) {
     try {
         const { data } = await satgasApi.get(`files/${file.id}`, {
             responseType: 'blob',
+            params: {
+                type: 'evidence',
+            },
         });
         const edek = file.edeks[cryptoStore.userId];
         const decryptedFile = await decryptFile({

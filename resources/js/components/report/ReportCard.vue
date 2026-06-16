@@ -5,36 +5,18 @@ import { formatDate } from '@/lib/formatDate';
 import { Link } from '@inertiajs/vue3';
 import { show } from '@/routes/satgas/reports/handling/';
 import { getAvatarColor, getInitials } from '@/composables/useInitials';
+import { progressColor } from '@/constants/progressColor';
 
-type Member = {
-    name: string;
-    initials: string;
-};
-
-type Report = {
-    id: string;
-    caseNumber: string;
-    title: string;
-    status: string;
-    statusColor?: string;
-
-    reportDate: string;
-    reporter: string;
-    progress: string;
-    teamNumber: string;
-
-    members: Member[];
-};
-
-defineProps<{
-    report: Report;
+const props = defineProps<{
+    report: any;
 }>();
+console.log(props.report);
 </script>
 
 <template>
     <div
         class="w-full rounded-2xl border border-gray-200 font-sans shadow-sm sm:max-w-2xl"
-        :class="`border-l-4 border-l-${report.statusColor ?? 'orange-500'}`"
+        :class="progressColor(report.progress).border"
     >
         <div class="p-4 sm:p-6">
             <!-- HEADER -->
@@ -43,7 +25,7 @@ defineProps<{
             >
                 <div>
                     <p class="font-mono text-xs text-gray-500 sm:text-sm">
-                        {{ report.caseNumber }}
+                        {{ report.case_number }}
                     </p>
 
                     <h2
@@ -55,21 +37,14 @@ defineProps<{
 
                 <div
                     class="flex w-fit items-center rounded-full px-3 py-1 text-xs font-semibold sm:text-sm"
-                    :class="
-                        report.statusColor
-                            ? `bg-${report.statusColor}-100 text-${report.statusColor}-700`
-                            : 'bg-purple-100 text-purple-700'
-                    "
+                    :class="progressColor(report.progress).badge"
                 >
                     <span
                         class="mr-2 h-2 w-2 rounded-full"
-                        :class="
-                            report.statusColor
-                                ? `bg-${report.statusColor}-600`
-                                : 'bg-purple-600'
-                        "
+                        :class="progressColor(report.progress).dot"
                     ></span>
-                    {{ report.status }}
+
+                    {{ report.progress }}
                 </div>
             </div>
 

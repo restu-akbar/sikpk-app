@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
-import { Trash2, Upload } from 'lucide-vue-next';
 import FieldLabel from './FieldLabel.vue';
 import ErrorField from './ErrorField.vue';
 import FilePreview from './FilePreview.vue';
+import { Upload } from 'lucide-vue-next';
 
 type PreviewFile = {
     file: File;
@@ -21,12 +21,14 @@ const props = withDefaults(
         multiple?: boolean;
         accept?: string;
         removable?: boolean;
+        required?: boolean;
     }>(),
     {
         modelValue: () => [],
         multiple: true,
         accept: 'image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt',
         removable: true,
+        required: false,
     },
 );
 
@@ -35,6 +37,7 @@ const emit = defineEmits<{
 }>();
 
 const previewFiles = ref<PreviewFile[]>([]);
+const touched = ref(false);
 
 const buildPreview = (files: File[]) => {
     previewFiles.value.forEach((f) => URL.revokeObjectURL(f.url));
@@ -47,6 +50,18 @@ const buildPreview = (files: File[]) => {
     }));
 };
 
+const internalError = computed(() => {
+    if (!touched.value) return undefined;
+
+    if (props.required && props.modelValue.length === 0) {
+        return 'Berkas wajib diunggah';
+    }
+
+    return undefined;
+});
+
+const finalError = computed(() => props.error || internalError.value);
+
 watch(
     () => props.modelValue,
     (files) => {
@@ -54,17 +69,46 @@ watch(
     },
     { immediate: true },
 );
+const isFileAccepted = (file: File, accept: string) => {
+    const rules = accept.split(',').map((r) => r.trim());
 
+    return rules.some((rule) => {
+        if (rule.endsWith('/*')) {
+            const category = rule.replace('/*', '');
+            return file.type.startsWith(`${category}/`);
+        }
+
+        if (rule.startsWith('.')) {
+            return file.name.toLowerCase().endsWith(rule.toLowerCase());
+        }
+
+        return file.type === rule;
+    });
+};
+const uploadError = ref('');
 const handleFiles = (event: Event) => {
+    touched.value = true;
+
     const target = event.target as HTMLInputElement;
 
     if (!target.files) return;
 
     const selectedFiles = Array.from(target.files);
 
+    const validFiles = selectedFiles.filter((file) =>
+        isFileAccepted(file, props.accept),
+    );
+
+    if (validFiles.length !== selectedFiles.length) {
+        uploadError.value = `Format file tidak sesuai`;
+        return;
+    }
+
+    uploadError.value = '';
+
     const files = props.multiple
-        ? [...props.modelValue, ...selectedFiles]
-        : [selectedFiles[0]];
+        ? [...props.modelValue, ...validFiles]
+        : validFiles.slice(0, 1);
 
     emit('update:modelValue', files);
 
@@ -114,7 +158,7 @@ onBeforeUnmount(() => {
             />
         </label>
 
-        <ErrorField :error="error" />
+        <ErrorField :error="uploadError || finalError" />
 
         <p
             v-if="hint"

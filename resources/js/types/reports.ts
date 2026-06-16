@@ -1,3 +1,5 @@
+import { User } from './auth';
+
 export type Disabilitas =
     | 'tidak_ada'
     | 'penglihatan'
@@ -23,16 +25,22 @@ export type Report = {
     statusPelapor: string;
 
     namaTerlapor: string;
+    case_number: string;
+    team_number: string;
     statusTerlapor: string;
+    progress: string;
 
-    jenisKekerasan: string;
-    tempatKejadian: string | null;
-    waktuKejadian: string | null;
+    jenis_kekerasan: string;
+    tempat_kejadian: string;
+    waktu_kejadian: string;
 
-    kronologi: string | null;
+    kronologi: string;
 
+    reporter: any;
+    report_logs: ReportLog[];
+    report_documents: any;
     disabilitas: Disabilitas[];
-
+    members: User[];
     bukti: string[];
     audio_recordings?: AudioRecording[];
 
@@ -66,6 +74,21 @@ export type ReportForm = {
     agreed: boolean;
 };
 
+export const DEFAULT_REJECTED_REASONS = [
+    {
+        value: 'ranah_satgas',
+        label: 'Bukan Ranah Satgas',
+    },
+    {
+        value: 'unit_lain',
+        label: 'Dialihkan ke Unit Lain',
+    },
+    {
+        value: 'tidak_berkenan',
+        label: 'Pelapor tidak berkenan melanjutkan',
+    },
+] as const;
+
 export const REJECTED_REASON_MAPPING = {
     'Laporan Baru': [
         {
@@ -77,19 +100,20 @@ export const REJECTED_REASON_MAPPING = {
             label: 'Dialihkan ke Unit Lain',
         },
     ],
-
-    'Pemeriksaan': [
-        {
-            value: 'ranah_satgas',
-            label: 'Bukan Ranah Satgas',
-        },
-        {
-            value: 'unit_lain',
-            label: 'Dialihkan ke Unit Lain',
-        },
-        {
-            value: 'bukti_tidak_cukup',
-            label: 'Bukti Tidak Cukup',
-        },
-    ],
 } as const;
+
+export interface Attachment {
+    file: File | null;
+    filename: string;
+    mimeType: string;
+    size: number;
+    edeks: Record<string, any>;
+    type: string;
+    subtype: string;
+}
+
+interface ReportLog {
+    id: string;
+    progress: string;
+    created_at: string;
+}

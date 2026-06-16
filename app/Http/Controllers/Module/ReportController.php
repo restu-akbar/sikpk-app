@@ -4,13 +4,13 @@ namespace App\Http\Controllers\Module;
 
 use App\Helpers\Toast;
 use App\Http\Controllers\Controller;
+use App\Models\Report;
 use App\Models\User;
 use App\Services\FileService;
 use App\Services\ReportService;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
 use App\Services\UserService;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
 class ReportController extends Controller
@@ -19,7 +19,8 @@ class ReportController extends Controller
         protected UserService $userService,
         protected ReportService $reportService,
         protected FileService $fileService
-    ) {}
+    ) {
+    }
 
     public function data()
     {
@@ -115,27 +116,11 @@ class ReportController extends Controller
 
     public function update(
         Request $request,
-        User $user
+        Report $report,
     ) {
-        $validated = $request->validate([
-            'name' => ['required'],
-            'email' => [
-                'required',
-                'email',
-                Rule::unique('users')
-                    ->ignore($user->id),
-            ]
-        ]);
+        $this->reportService->update($report, $request->all());
 
-        $this->userService->updateAnggota(
-            $user,
-            $validated
-        );
-
-        return back()->with(
-            'success',
-            'User berhasil diupdate',
-        );
+        return back()->with('toast', Toast::success('Berhasil update laporan'));
     }
 
     public function destroy(User $user)

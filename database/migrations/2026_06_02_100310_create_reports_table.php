@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class () extends Migration {
     /**
      * Run the migrations.
      */
@@ -40,7 +39,6 @@ return new class extends Migration
                 'Laporan Dihentikan',
                 'Laporan Ditolak',
             ])->default('Laporan Baru');
-            $table->boolean('completeness_document')->default(false);
 
             $table->enum('rejected_reason', [
                 'ranah_satgas',
@@ -89,18 +87,29 @@ return new class extends Migration
             $table->json('edeks');
             $table->string('original_filename')->nullable();
             $table->string('mime_type')->nullable();
+
             $table->enum('type', [
-                'clarification',
-                'inspection',
-                'conclusion',
-                'post',
-            ])->default('clarification');
+                'Klarifikasi',
+                'Pemeriksaan',
+                'Kesimpulan',
+                'Pasca',
+            ])->default('Klarifikasi');
 
             $table->enum('subtype', [
-                'generated_pdf',
+                'notulensi',
                 'documentation',
-                'uploaded_pdf',
-            ])->default('generated_pdf');
+
+                'periksa_saksi',
+                'periksa_pelapor',
+                'periksa_terlapor',
+
+                'kesimpulan_rekomendasi',
+                'penyampaian_hasil',
+                'pernyataan_pelaku',
+
+                'pemulihan_korban',
+                'pemulihan_nama_baik',
+            ]);
             $table->timestamps();
         });
     }

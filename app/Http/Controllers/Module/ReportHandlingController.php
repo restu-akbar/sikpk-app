@@ -17,7 +17,8 @@ class ReportHandlingController extends Controller
     public function __construct(
         protected UserService $userService,
         protected ReportService $reportService
-    ) {}
+    ) {
+    }
 
     public function data()
     {
@@ -67,7 +68,7 @@ class ReportHandlingController extends Controller
                     return [
                         'name' => $user->name,
                         'initials' => collect(explode(' ', $user->name))
-                            ->map(fn($n) => strtoupper(substr($n, 0, 1)))
+                            ->map(fn ($n) => strtoupper(substr($n, 0, 1)))
                             ->join(''),
                     ];
                 })->values(),

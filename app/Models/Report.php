@@ -16,7 +16,6 @@ class Report extends Model
 
     protected $fillable = [
         'reporter_id',
-        'handled_by',
         'status_pelapor',
         'nama_terlapor',
         'status_terlapor',
@@ -25,9 +24,8 @@ class Report extends Model
         'waktu_kejadian',
         'kronologi',
         'progress',
-        'case_number',
-        'team_number',
-        'completeness_document'
+        'rejected_reason',
+        'note_reason',
     ];
 
     protected function casts(): array
@@ -63,6 +61,7 @@ class Report extends Model
     {
         return $this->hasMany(ReportDocument::class);
     }
+
 
     public function audioRecordings(): HasMany
     {

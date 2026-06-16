@@ -8,6 +8,7 @@ use App\Http\Controllers\Master\UserController;
 use App\Http\Controllers\Module\ReportController;
 use App\Http\Controllers\Module\ReportHandlingController;
 use App\Http\Controllers\ReportDocumentController;
+use App\Http\Controllers\FileController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
@@ -101,7 +102,7 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
                     Route::prefix('files')
                         ->name('files.')
                         ->group(function () {
-                            Route::get('{file}', [ReportDocumentController::class, 'show']);
+                            Route::get('{file}', [FileController::class, 'show']);
                         });
 
                 });

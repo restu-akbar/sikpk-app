@@ -1,15 +1,20 @@
 <script setup lang="ts">
-import type { Component } from 'vue';
+import { computed, type Component } from 'vue';
 
-defineProps<{
+const props = defineProps<{
     backLabel?: string;
     backIcon?: Component;
+
     rejectLabel?: string;
     rejectIcon?: Component;
     rejectDisabled?: boolean;
+    rejectVariant?: 'danger' | 'default';
+
     actionLabel?: string;
     actionIcon?: Component;
     actionDisabled?: boolean;
+    actionVariant?: 'primary' | 'success' | 'danger';
+
     infoText?: string;
 }>();
 
@@ -18,65 +23,75 @@ defineEmits<{
     reject: [];
     action: [];
 }>();
+
+const rejectClass = computed(() => {
+    switch (props.rejectVariant) {
+        case 'danger':
+            return 'border-red-600 text-red-600 bg-white hover:bg-red-50';
+
+        default:
+            return 'border-gray-300 text-gray-600 bg-white hover:bg-gray-50';
+    }
+});
+
+const actionClass = computed(() => {
+    switch (props.actionVariant) {
+        case 'success':
+            return 'border-green-600 bg-green-600 text-white hover:bg-green-700';
+
+        case 'danger':
+            return 'border-red-600 bg-red-600 text-white hover:bg-red-700';
+
+        default:
+            return 'border-brand-accent bg-brand-accent text-white hover:opacity-90';
+    }
+});
 </script>
 
 <template>
-    <div
-        class="flex shrink-0 items-center justify-between border-t border-nav-stroke bg-surface px-6 py-4"
-    >
-        <!-- Left: back/close button -->
+    <div class="flex items-center justify-between border-t bg-white px-6 py-4">
+        <!-- BACK -->
         <button
             v-if="backLabel"
-            class="inline-flex h-9 items-center gap-2 rounded-lg border border-nav-stroke bg-white px-4 text-sm text-nav-text transition-colors hover:bg-gray-50"
+            class="inline-flex h-9 items-center gap-2 rounded-lg border px-4 text-sm hover:bg-gray-50"
             @click="$emit('back')"
         >
             <component :is="backIcon" v-if="backIcon" class="h-4 w-4" />
             {{ backLabel }}
         </button>
+
         <div v-else />
 
-        <!-- Right: info + reject + action -->
+        <!-- ACTIONS -->
         <div class="flex items-center gap-3">
-            <span v-if="infoText" class="text-xs text-muted-foreground">
-                {{ infoText }}
-            </span>
-
+            <!-- REJECT -->
             <button
                 v-if="rejectLabel"
-                class="inline-flex h-9 items-center gap-1.5 rounded-lg border px-4 text-sm font-medium transition-colors"
-                :class="
-                    rejectDisabled
-                        ? 'cursor-not-allowed border-gray-200 bg-gray-50 text-gray-400'
-                        : 'border-dialog-reject bg-white text-dialog-reject hover:bg-red-50'
-                "
+                class="inline-flex h-9 items-center gap-1.5 rounded-lg border px-4 text-sm font-medium transition"
+                :class="[
+                    rejectClass,
+                    rejectDisabled && 'cursor-not-allowed opacity-50',
+                ]"
                 :disabled="rejectDisabled"
                 @click="$emit('reject')"
             >
-                <component
-                    :is="rejectIcon"
-                    v-if="rejectIcon"
-                    class="h-3.5 w-3.5"
-                />
+                <component :is="rejectIcon" v-if="rejectIcon" class="h-4 w-4" />
                 {{ rejectLabel }}
             </button>
 
+            <!-- ACTION -->
             <button
                 v-if="actionLabel"
-                class="inline-flex h-9 items-center gap-1.5 rounded-lg border border-brand-accent px-4 text-sm font-medium text-white transition-colors"
-                :class="
-                    actionDisabled
-                        ? 'cursor-not-allowed bg-brand-accent/55'
-                        : 'bg-brand-accent hover:brightness-95'
-                "
+                class="inline-flex h-9 items-center gap-1.5 rounded-lg border px-4 text-sm font-medium transition"
+                :class="[
+                    actionClass,
+                    actionDisabled && 'cursor-not-allowed opacity-50',
+                ]"
                 :disabled="actionDisabled"
                 @click="$emit('action')"
             >
+                <component :is="actionIcon" v-if="actionIcon" class="h-4 w-4" />
                 {{ actionLabel }}
-                <component
-                    :is="actionIcon"
-                    v-if="actionIcon"
-                    class="h-4 w-4"
-                />
             </button>
         </div>
     </div>

@@ -16,6 +16,8 @@ import { handleCreate } from '@/lib/handleRequest';
 import { store } from '@/routes/satgas/reports/handling/document';
 import { useForm } from '@inertiajs/vue3';
 import { getAvatarColor, getInitials } from '@/composables/useInitials';
+import { Check } from 'lucide-vue-next';
+import DialogFooter from './DialogFooter.vue';
 
 const props = defineProps<{
     open: boolean;
@@ -85,8 +87,8 @@ const handleSubmit = async () => {
                 mime_type: encryptedPDF.mimeType,
                 size: encryptedPDF.size,
                 edeks: JSON.stringify(encryptedPDF.edeks),
-                type: 'clarification',
-                subtype: 'generated_pdf',
+                type: props.report.progress,
+                subtype: 'notulensi',
             },
         ];
 
@@ -326,35 +328,14 @@ watch(
                     </div>
 
                     <!-- Footer -->
-                    <div
-                        class="flex items-center justify-between border-t border-gray-200 px-6 py-2.5"
-                    >
-                        <button
-                            class="rounded-lg border border-gray-300 px-4 py-2 text-sm transition hover:bg-gray-50"
-                            @click="$emit('close')"
-                        >
-                            Batal
-                        </button>
-                        <button
-                            class="flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-orange-600"
-                            @click="handleSubmit"
-                        >
-                            <svg
-                                class="h-4 w-4"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M5 13l4 4L19 7"
-                                />
-                            </svg>
-                            Simpan & Buat PDF
-                        </button>
-                    </div>
+                    <DialogFooter
+                        back-label="Batal"
+                        action-label="Simpan & Buat PDF"
+                        :action-icon="Check"
+                        :action-disabled="form.processing"
+                        @back="$emit('close')"
+                        @action="handleSubmit"
+                    />
                 </div>
             </div>
         </Transition>

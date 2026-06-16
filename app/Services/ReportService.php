@@ -9,8 +9,10 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class ReportService
 {
@@ -183,5 +185,38 @@ class ReportService
                 : 'Laporan Ditolak',
             'reject_reason' => $request->reason,
         ]);
+    }
+
+    public function update(Report $report, array $data): Report
+    {
+        $validated = $this->validate($data);
+
+        $report->update($validated);
+
+        return $report->fresh();
+    }
+
+    private function validate(array $data): array
+    {
+        $validator = Validator::make($data, [
+            'reporter_id' => ['sometimes', 'integer', 'exists:users,id'],
+            'status_pelapor' => ['sometimes', 'string', 'max:50'],
+            'nama_terlapor' => ['sometimes', 'string', 'max:255'],
+            'status_terlapor' => ['sometimes', 'string', 'max:50'],
+            'jenis_kekerasan' => ['sometimes', 'string', 'max:100'],
+            'tempat_kejadian' => ['sometimes', 'string', 'max:255'],
+            'waktu_kejadian' => ['sometimes', 'date'],
+            'kronologi' => ['sometimes', 'string'],
+            'progress' => ['sometimes', 'string', 'max:50'],
+            'rejected_reason' => ['sometimes', 'string', 'nullable'],
+            'note_reason' => ['sometimes', 'string', 'nullable'],
+            'type' => ['sometimes', 'string', 'nullable'],
+        ]);
+
+        if ($validator->fails()) {
+            throw new ValidationException($validator);
+        }
+
+        return $validator->validated();
     }
 }

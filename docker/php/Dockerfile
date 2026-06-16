@@ -14,7 +14,9 @@ COPY --from=node:20 /usr/local/lib /usr/local/lib
 
 RUN npm install -g pnpm
 
-RUN useradd -u 1000 -m -s /bin/bash devuser
+RUN useradd -u 1000 -m -s /bin/bash kota301
+
+COPY docker/php/uploads.ini /usr/local/etc/php/conf.d/uploads.ini
 
 WORKDIR /var/www/html
 
@@ -22,10 +24,10 @@ COPY . .
 
 RUN composer install --no-interaction --prefer-dist
 
-RUN chown -R devuser:devuser /var/www/html
+RUN chown -R kota301:kota301 /var/www/html
 
-USER devuser
-ENV HOME=/home/devuser
+USER kota301 
+ENV HOME=/home/kota301
 
 EXPOSE 9000
 

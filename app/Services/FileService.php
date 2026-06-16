@@ -9,14 +9,13 @@ use Illuminate\Support\Str;
 
 class FileService
 {
-    public function store(array $bukti, $relation, string $folder): void
+    public function store(array $files, $relation, string $folder): void
     {
-        foreach ($bukti as $item) {
+        if (isset($files['file'])) {
+            $files = [$files];
+        }
 
-            if (!isset($item['file'])) {
-                continue;
-            }
-
+        foreach ($files as $item) {
             $storedPath = Storage::putFileAs(
                 "reports/{$folder}",
                 $item['file'],
@@ -29,7 +28,7 @@ class FileService
         }
     }
 
-    public function show($table, $id)
+    public function show(string $table, string $id)
     {
         $model = match ($table) {
             'evidence' => ReportEvidence::class,

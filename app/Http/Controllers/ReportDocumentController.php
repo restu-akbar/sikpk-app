@@ -12,47 +12,66 @@ class ReportDocumentController extends Controller
 {
     public function __construct(
         protected FileService $fileService
-    ) {}
+    ) {
+    }
 
     public function show($document)
     {
         return $this->fileService->show('document', $document);
     }
 
-    public function store(Request $request, String $report)
+    public function store(Request $request, string $report)
     {
         try {
-            $validated = $request->validate([
-                'document' => ['nullable', 'array'],
-                'document.*.file' => ['required'],
-                'document.*.edeks' => ['required', 'string'],
-                'document.*.filename' => ['required', 'string'],
-                'document.*.mime_type' => ['required', 'string'],
-                'document.*.size' => ['required', 'integer'],
-                'document.*.type' => ['required', 'string'],
-                'document.*.subtype' => ['required', 'string'],
-            ]);
+            $documents = $request->input('document', []);
+
+            if ($documents && array_is_list($documents) === false) {
+                $documents = [$documents];
+            }
+
+            foreach ($documents as $index => &$document) {
+                $document['file'] = $request->file("document.$index.file");
+            }
+
+            unset($document);
+            $validated = validator(
+                ['document' => $documents],
+                [
+                    'document' => ['nullable', 'array'],
+                    'document.*.file' => ['required', 'file'],
+                    'document.*.edeks' => ['required', 'string'],
+                    'document.*.filename' => ['required', 'string'],
+                    'document.*.mime_type' => ['required', 'string'],
+                    'document.*.size' => ['required', 'integer'],
+                    'document.*.type' => ['required', 'string'],
+                    'document.*.subtype' => ['required', 'string'],
+                ]
+            )->validate();
 
             $report = Report::findOrFail($report);
+
             $this->fileService->store(
                 $validated['document'] ?? [],
                 $report->reportDocuments(),
                 'documents',
             );
 
-            return back()
-                ->with(
-                    'toast',
-                    Toast::success('File berhasil disimpan'),
-                );
+            return back()->with(
+                'toast',
+                Toast::success('File berhasil disimpan'),
+            );
         } catch (ValidationException $e) {
             $firstError = collect($e->errors())->flatten()->first();
+
             return back()
                 ->withInput()
                 ->withErrors($e->errors())
-                ->with('toast', Toast::error(
-                    $firstError ?? 'Silakan periksa kembali form Anda.'
-                ));
+                ->with(
+                    'toast',
+                    Toast::error(
+                        $firstError ?? 'Silakan periksa kembali form Anda.'
+                    )
+                );
         }
     }
     public function download(String $document)

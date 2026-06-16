@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, onMounted, onBeforeUnmount } from 'vue';
 import { useGoBack } from '@/composables/useGoBack';
 import Button from '@/components/Button.vue';
 import { jenisKekerasanOptions } from '@/constants/jenisKekerasanOptions';
@@ -9,16 +9,53 @@ import ClarifyForm from '@/components/ClarifyForm.vue';
 import DataTable from '@/components/table/DataTable.vue';
 import CryptoUnlockDialog from '@/components/CryptoUnlockDialog.vue';
 import { useCryptoUnlock } from '@/composables/useCryptoUnlock';
-import { User } from '@/types';
 import { getReportLabel } from '@/lib/mapping/reportTypeLabelMap';
-import { ChevronRight, Download } from 'lucide-vue-next';
+import { ArrowRight, Ban, ChevronRight, Eye } from 'lucide-vue-next';
 import { getAvatarColor, getInitials } from '@/composables/useInitials';
 import { satgasApi } from '@/lib/axios';
-import axios from 'axios';
-import { getFileName } from '@/lib/getFilename';
 import { useCryptoStore } from '@/lib/crypto/store';
 import { decryptFile } from '@/lib/mediaCrypto';
+import DocumentationDialog from '@/components/DocumentationDialog.vue';
+import {
+    DEFAULT_REJECTED_REASONS,
+    REJECTED_REASON_MAPPING,
+    Report,
+} from '@/types/reports';
+import ConfirmDialog from '@/components/ConfirmDialog.vue';
+import { useForm } from '@inertiajs/vue3';
+import { handleEdit } from '@/lib/handleRequest';
+import { update } from '@/routes/satgas/reports';
+import { progressColor } from '@/constants/progressColor';
 
+const dialogRegistry: Record<string, any> = {
+    notulensi: ClarifyForm,
+    documentation: DocumentationDialog,
+};
+const activeDialog = ref<null | {
+    name: string;
+    props?: any;
+}>(null);
+const props = defineProps<{
+    report: Report;
+}>();
+const activeDialogComponent = computed(() => {
+    if (!activeDialog.value) return null;
+    return dialogRegistry[activeDialog.value.name] ?? null;
+});
+function openDialog(name: string, props: any = {}) {
+    activeDialog.value = { name, props };
+}
+
+function closeDialog() {
+    activeDialog.value = null;
+}
+
+const cryptoStore = useCryptoStore();
+
+const { goBack } = useGoBack('/satgas');
+
+const showDocMenu = ref(false);
+const docMenuRef = ref<HTMLElement | null>(null);
 const {
     showUnlockDialog,
     unlockLoading,
@@ -27,38 +64,31 @@ const {
     cancelUnlock,
 } = useCryptoUnlock();
 
-type StepStatus = 'BERJALAN' | 'MENDATANG' | 'SELESAI';
-
-interface ReportLog {
-    id: string;
-    progress: string;
-    created_at: string;
-}
-
-interface Report {
-    id: string;
-    progress: string;
-    case_number: string;
-    jenis_kekerasan: string;
-    created_at: string;
-    tempat_kejadian: string;
-    waktu_kejadian: string;
-    kronologi: string;
-    team_number: string;
-    completeness_status: boolean;
-    members: User[];
-    reporter: any;
-    report_logs: ReportLog[];
-    report_documents: any[];
-}
-
-const props = defineProps<{
-    report: Report;
-}>();
-
-const { goBack } = useGoBack('/satgas');
-
 const stepMaster = ['Klarifikasi', 'Pemeriksaan', 'Kesimpulan', 'Pasca'];
+
+function handleSelectOption(opt: any) {
+    openDialog(opt.subtype, {
+        report: props.report,
+    });
+
+    showDocMenu.value = false;
+}
+
+function handleClickOutside(event: MouseEvent) {
+    if (docMenuRef.value && !docMenuRef.value.contains(event.target as Node)) {
+        showDocMenu.value = false;
+    }
+}
+
+onMounted(() => {
+    document.addEventListener('click', handleClickOutside);
+});
+
+onBeforeUnmount(() => {
+    document.removeEventListener('click', handleClickOutside);
+});
+
+type StepStatus = 'BERJALAN' | 'MENDATANG' | 'SELESAI';
 
 const steps = computed(() => {
     const currentIndex = stepMaster.findIndex(
@@ -86,7 +116,44 @@ const steps = computed(() => {
         };
     });
 });
+const documentationFieldsMap = {
+    Klarifikasi: [
+        {
+            label: 'Dokumentasi BAP',
+            description:
+                'Foto / scan dokumen BAP klarifikasi. Bisa unggah beberapa gambar.',
+            accept: 'image/*',
+        },
+        {
+            label: 'Rekaman Klarifikasi',
+            description: 'File audio sesi klarifikasi.',
+            accept: 'audio/*',
+        },
+    ],
 
+    Pemeriksaan: [
+        {
+            label: 'Dokumentasi Pemeriksaan',
+            description:
+                'Foto / scan dokumen BAP pemeriksaan. Bisa unggah beberapa gambar.',
+            accept: 'image/*',
+        },
+        {
+            label: 'Rekaman Pemeriksaan',
+            description: 'File audio sesi pemeriksaan.',
+            accept: 'audio/*',
+        },
+        {
+            label: 'Berita Acara Pemeriksaan',
+            description: 'Hasil scan dokumen yang sudah ditandatangani',
+            accept: '.pdf',
+        },
+    ],
+};
+
+const documentationFields = computed(() => {
+    return documentationFieldsMap[props.report.progress] ?? [];
+});
 const handleStepClick = (step: (typeof steps.value)[number]) => {
     if (step.status === 'MENDATANG') {
         return;
@@ -129,31 +196,74 @@ const reportSections = computed(() => [
     },
 ]);
 
-const isDocumentFormOpen = ref(false);
+const documentOptionsMap = {
+    Klarifikasi: ['notulensi', 'documentation'],
+    Pemeriksaan: ['periksa_saksi', 'periksa_pelapor', 'periksa_terlapor'],
+    Kesimpulan: [
+        'kesimpulan_rekomendasi',
+        'penyampaian_hasil',
+        'pernyataan_pelaku',
+    ],
+    Pasca: ['pemulihan_korban', 'pemulihan_nama_baik'],
+};
 
-function openDocumentForm() {
-    isDocumentFormOpen.value = true;
-}
+const availableDocumentOptions = computed(() => {
+    const progress = props.report.progress;
+    const options = documentOptionsMap[progress] ?? [];
 
-function onSuccessHandler() {
-    isDocumentFormOpen.value = false;
-}
+    return options.map((subtype) => ({
+        subtype,
+        label: getReportLabel(progress, subtype),
+    }));
+});
+
+const isAllDocumentsComplete = computed(() => {
+    const progress = props.report.progress;
+    if (!progress) return false;
+
+    const requiredTypes = documentOptionsMap[progress] ?? [];
+    const existingTypes =
+        props.report.report_documents?.map((d: any) => d.subtype) ?? [];
+
+    return requiredTypes.every((type) => existingTypes.includes(type));
+});
+
+const filteredReportDocuments = computed(() => {
+    if (props.report.progress === 'Laporan Dihentikan') {
+        return props.report.report_documents;
+    }
+
+    return props.report.report_documents.filter(
+        (doc) => doc.type === props.report.progress,
+    );
+});
 const columns = [
     { key: 'no', label: 'No.' },
     { key: 'jenis_dokumen', label: 'Jenis Dokumen' },
     { key: 'created_at', label: 'Tanggal Dibuat', sortable: true },
     { key: 'status', label: 'Status' },
-    { key: 'pdf', label: 'PDF' },
+    { key: 'file', label: 'File' },
     { key: 'arrow', label: '' },
 ];
+function handleRowClick() {
+    if (!isAllDocumentsComplete) return;
 
-const cryptoStore = useCryptoStore();
-const downloadPdf = async (row: any) => {
+    openDialog('documentation', {
+        report: props.report,
+        attachmentFields: documentationFields.value,
+    });
+}
+const viewFile = async (row: any) => {
     try {
         const { data } = await satgasApi.get(`files/${row.id}`, {
             responseType: 'blob',
+            params: {
+                type: 'document',
+            },
         });
+
         const edek = row.edeks[cryptoStore.userId];
+
         const decryptedFile = await decryptFile({
             encryptedFile: data,
             edek,
@@ -161,24 +271,95 @@ const downloadPdf = async (row: any) => {
             filename: row.original_filename,
             mimeType: row.mime_type,
         });
-
         const url = URL.createObjectURL(decryptedFile);
-
-        const link = document.createElement('a');
-        link.href = url;
-        link.download =
-            `${getFileName(row.original_filename)}-${props.report.case_number}` ||
-            'file.pdf';
-
-        document.body.appendChild(link);
-        link.click();
-
-        link.remove();
-        URL.revokeObjectURL(url);
+        window.open(url, '_blank');
     } catch (error) {
         console.error('Download error:', error);
     }
 };
+const isDialogOpen = ref(false);
+
+const dialogMode = ref<'continue' | 'stop'>('continue');
+
+function openConfirmDialog(mode: 'continue' | 'stop') {
+    dialogMode.value = mode;
+    isDialogOpen.value = true;
+}
+
+function closeConfirmDialog() {
+    isDialogOpen.value = false;
+}
+const dialogConfig = computed(() => {
+    if (dialogMode.value === 'stop') {
+        return {
+            title: 'Hentikan Penanganan',
+            description: 'Apakah Anda yakin?',
+            actionLabel: 'Hentikan',
+            actionIcon: 'x',
+            actionVariant: 'danger',
+            showSelect: true,
+            showTextarea: true,
+        };
+    }
+
+    return {
+        title: 'Lanjutkan Penanganan',
+        description: 'Apakah Anda yakin?',
+        actionLabel: 'Lanjutkan',
+        actionIcon: 'check',
+        actionVariant: 'success',
+        showSelect: false,
+        showTextarea: false,
+    };
+});
+
+const form = useForm({
+    progress: '',
+    rejected_reason: '',
+    note_reason: '',
+});
+function handleConfirm() {
+    if (dialogMode.value === 'stop') {
+        stopHandling();
+    } else {
+        continueHandling();
+    }
+
+    closeConfirmDialog();
+}
+function stopHandling() {
+    form.progress = 'Laporan Dihentikan';
+    handleEdit(form, update(props.report.id));
+}
+
+const progressFlow = [
+    'Laporan Baru',
+    'Klarifikasi',
+    'Pemeriksaan',
+    'Kesimpulan',
+    'Pasca',
+];
+
+function continueHandling() {
+    const currentIndex = progressFlow.indexOf(props.report.progress);
+
+    if (currentIndex === -1 || currentIndex >= progressFlow.length - 1) {
+        return;
+    }
+
+    form.progress = progressFlow[currentIndex + 1];
+
+    handleEdit(form, update(props.report.id));
+}
+const nextProgress = computed(() => {
+    const currentIndex = progressFlow.indexOf(props.report.progress);
+
+    if (currentIndex === -1 || currentIndex >= progressFlow.length - 1) {
+        return props.report.progress;
+    }
+
+    return progressFlow[currentIndex + 1];
+});
 </script>
 
 <template>
@@ -212,12 +393,29 @@ const downloadPdf = async (row: any) => {
                 class="my-5 w-full overflow-hidden rounded-xl border border-[#EBE5DA] shadow-sm"
             >
                 <div class="border-b border-[#EBE5DA] bg-[#FBF9F5] px-6 py-6">
-                    <h2 class="mb-1.5 text-xl font-bold">Progress Kasus</h2>
-                    <p class="text-sm leading-tight text-[#595959]">
-                        Tekan tahap untuk melihat dokumen pada tahap tersebut.
-                        Tahap yang sudah selesai dapat diakses untuk meninjau
-                        dokumen sebelumnya.
-                    </p>
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <h2 class="mb-1.5 text-xl font-bold">
+                                Progress Kasus
+                            </h2>
+                            <p class="text-sm leading-tight text-[#595959]">
+                                Tekan tahap untuk melihat dokumen pada tahap
+                                tersebut. Tahap yang sudah selesai dapat diakses
+                                untuk meninjau dokumen sebelumnya.
+                            </p>
+                        </div>
+
+                        <div class="ml-4 shrink-0">
+                            <span
+                                :class="[
+                                    'inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold',
+                                    progressColor(props.report.progress).badge,
+                                ]"
+                            >
+                                {{ props.report.progress }}
+                            </span>
+                        </div>
+                    </div>
                 </div>
                 <div class="p-6">
                     <div class="grid grid-cols-1 gap-4 md:grid-cols-4">
@@ -299,8 +497,14 @@ const downloadPdf = async (row: any) => {
                         </p>
                     </div>
 
-                    <div class="shrink-0">
-                        <Button @click="openDocumentForm">
+                    <div
+                        ref="docMenuRef"
+                        class="relative inline-block shrink-0"
+                    >
+                        <Button
+                            @click="showDocMenu = !showDocMenu"
+                            class="bg-blue-600 text-white shadow-sm transition hover:brightness-90"
+                        >
                             <template #left-icon>
                                 <svg
                                     class="h-4 w-4"
@@ -316,9 +520,37 @@ const downloadPdf = async (row: any) => {
                                     />
                                 </svg>
                             </template>
-
                             Tambah Dokumen
                         </Button>
+
+                        <Transition name="fade-scale">
+                            <div
+                                v-if="showDocMenu"
+                                class="absolute left-0 z-50 mt-2 w-72 origin-top-left overflow-hidden rounded-xl border bg-white shadow-xl ring-1 ring-black/5"
+                            >
+                                <div
+                                    class="border-b bg-gray-50 px-3 py-2 text-xs font-semibold text-gray-500"
+                                >
+                                    Pilih Jenis Dokumen
+                                </div>
+
+                                <button
+                                    v-for="opt in availableDocumentOptions"
+                                    :key="opt.subtype"
+                                    class="flex w-full items-center justify-between px-4 py-2.5 text-left text-sm transition hover:bg-gray-100"
+                                    @click="handleSelectOption(opt)"
+                                >
+                                    <span>{{ opt.label }}</span>
+                                </button>
+
+                                <div
+                                    v-if="availableDocumentOptions.length === 0"
+                                    class="px-4 py-3 text-sm text-gray-400"
+                                >
+                                    Semua dokumen sudah lengkap
+                                </div>
+                            </div>
+                        </Transition>
                     </div>
                 </div>
 
@@ -408,9 +640,17 @@ const downloadPdf = async (row: any) => {
             </div>
             <DataTable
                 :columns="columns"
-                :rows="props.report.report_documents"
+                :rows="filteredReportDocuments"
                 :searchable="false"
                 :pagination="false"
+                @row-click="
+                    !isAllDocumentsComplete &&
+                    ['Klarifikasi', 'Pemeriksaan'].includes(
+                        props.report.progress,
+                    )
+                        ? handleRowClick
+                        : undefined
+                "
                 resource-route="/documents"
             >
                 <!-- Filter slot: badge tahap -->
@@ -461,40 +701,72 @@ const downloadPdf = async (row: any) => {
                     <span
                         :class="[
                             'inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium',
-                            props.report.completeness_status
+                            isAllDocumentsComplete
                                 ? 'bg-green-50 text-green-600'
                                 : 'bg-orange-50 text-orange-600',
                         ]"
                     >
                         <span class="h-1.5 w-1.5 rounded-full bg-current" />
-                        {{
-                            props.report.completeness_status
-                                ? 'Selesai'
-                                : 'Menunggu'
-                        }}
+                        {{ isAllDocumentsComplete ? 'Selesai' : 'Menunggu' }}
                     </span>
                 </template>
 
-                <template #pdf="{ row }">
+                <template #file="{ row }">
                     <button
                         type="button"
-                        @click.stop="downloadPdf(row)"
+                        @click.stop="viewFile(row)"
                         class="flex h-8 w-8 items-center justify-center rounded-lg border border-border text-muted-foreground transition hover:bg-muted hover:text-foreground"
-                        title="Unduh PDF"
+                        title="Lihat File"
                     >
-                        <Download class="h-4 w-4" />
+                        <Eye class="h-4 w-4" />
                     </button>
                 </template>
                 <template #arrow>
-                    <ChevronRight class="h-4 w-4 text-muted-foreground" />
+                    <ChevronRight
+                        v-if="
+                            !isAllDocumentsComplete &&
+                            ['Klarifikasi', 'Pemeriksaan'].includes(
+                                props.report.progress,
+                            )
+                        "
+                        class="h-4 w-4 text-muted-foreground"
+                    />
                 </template>
             </DataTable>
+            <div class="mt-5 flex justify-end gap-3">
+                <Button
+                    v-if="
+                        ['Klarifikasi', 'Pemeriksaan'].includes(
+                            props.report.progress,
+                        )
+                    "
+                    variant="secondary"
+                    :disabled="!isAllDocumentsComplete"
+                    @click="openConfirmDialog('stop')"
+                >
+                    <Ban class="h-4 w-4" />
+                    Hentikan Penanganan
+                </Button>
+
+                <Button
+                    :disabled="
+                        !isAllDocumentsComplete ||
+                        props.report.progress == 'Laporan Dihentikan'
+                    "
+                    @click="openConfirmDialog('continue')"
+                >
+                    <ArrowRight class="h-4 w-4" />
+                    Lanjutkan
+                </Button>
+            </div>
         </div>
-        <ClarifyForm
-            :open="isDocumentFormOpen"
-            :report="report"
-            @close="isDocumentFormOpen = false"
-            @success="onSuccessHandler"
+
+        <component
+            :is="activeDialogComponent"
+            v-if="activeDialogComponent"
+            v-bind="activeDialog?.props"
+            :open="true"
+            @close="closeDialog"
         />
         <CryptoUnlockDialog
             :open="showUnlockDialog"
@@ -502,6 +774,31 @@ const downloadPdf = async (row: any) => {
             :error="unlockError"
             @submit="unlockCrypto"
             @cancel="cancelUnlock"
+        />
+        <ConfirmDialog
+            :open="isDialogOpen"
+            :title="dialogConfig.title"
+            :description="dialogConfig.description"
+            :action-label="dialogConfig.actionLabel"
+            :show-select="dialogConfig.showSelect"
+            :show-textarea="dialogConfig.showTextarea"
+            select-label="Kategori Penolakan"
+            :select-options="
+                REJECTED_REASON_MAPPING[
+                    props.report
+                        .progress as keyof typeof REJECTED_REASON_MAPPING
+                ] ?? DEFAULT_REJECTED_REASONS
+            "
+            textarea-label="Alasan Penolakan"
+            v-model:select-value="form.rejected_reason"
+            v-model:textarea-value="form.note_reason"
+            :reject-label="dialogConfig.rejectLabel"
+            :reject-variant="dialogConfig.rejectVariant"
+            :action-variant="dialogConfig.actionVariant"
+            :action-icon="dialogConfig.actionIcon"
+            :row-name="props.report.case_number"
+            @close="closeConfirmDialog"
+            @confirm="handleConfirm"
         />
     </div>
 </template>
