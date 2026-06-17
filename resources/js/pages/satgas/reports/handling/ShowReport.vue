@@ -31,6 +31,11 @@ import WitnessInspectionModal from '@/components/WitnessInspectionModal.vue';
 import ReporterInspectionModal from '@/components/ReporterInspectionModal.vue';
 import SuspectInspectionModal from '@/components/SuspectInspectionModal.vue';
 import { toast } from 'vue-sonner';
+import ConclusionModal from '@/components/ConclusionModal.vue';
+import BapResultModal from '@/components/BapResultModal.vue';
+import SuspectStatementModal from '@/components/SuspectStatementModal.vue';
+import VictimRecoveryModal from '@/components/VictimRecoveryModal.vue';
+import VindicationModal from '@/components/VindicationModal.vue';
 
 const dialogRegistry: Record<string, any> = {
     notulensi: ClarifyModal,
@@ -38,6 +43,11 @@ const dialogRegistry: Record<string, any> = {
     periksa_saksi: WitnessInspectionModal,
     periksa_pelapor: ReporterInspectionModal,
     periksa_terlapor: SuspectInspectionModal,
+    kesimpulan_rekomendasi: ConclusionModal,
+    penyampaian_hasil: BapResultModal,
+    pernyataan_pelaku: SuspectStatementModal,
+    pemulihan_korban: VictimRecoveryModal,
+    pemulihan_nama_baik: VindicationModal,
 };
 const activeDialog = ref<null | {
     name: string;
@@ -73,10 +83,16 @@ const {
 } = useCryptoUnlock();
 
 const stepMaster = ['Klarifikasi', 'Pemeriksaan', 'Kesimpulan', 'Pasca'];
-const selectedStep = ref(props.report.progress);
+const selectedStep = ref(
+    ['Selesai', 'Laporan Dihentikan'].includes(props.report.progress)
+        ? 'Pasca'
+        : props.report.progress,
+);
 
 const isReviewMode = computed(
-    () => selectedStep.value !== props.report.progress,
+    () =>
+        selectedStep.value !== props.report.progress ||
+        ['Selesai', 'Laporan Dihentikan'].includes(props.report.progress),
 );
 
 function handleSelectOption(opt: any) {
@@ -95,9 +111,13 @@ onClickOutside(docMenuRef, () => {
 type StepStatus = 'BERJALAN' | 'MENDATANG' | 'SELESAI';
 
 const steps = computed(() => {
-    const currentIndex = stepMaster.findIndex(
+    let currentIndex = stepMaster.findIndex(
         (step) => step === props.report.progress,
     );
+
+    if (props.report.progress === 'Selesai') {
+        currentIndex = stepMaster.length;
+    }
 
     return stepMaster.map((title, index) => {
         const log = props.report.report_logs.find(
@@ -106,10 +126,14 @@ const steps = computed(() => {
 
         let status: StepStatus = 'MENDATANG';
 
-        if (index < currentIndex) {
-            status = 'SELESAI';
-        } else if (index === currentIndex) {
-            status = 'BERJALAN';
+        if (props.report.progress === 'Laporan Dihentikan') {
+            if (log) status = 'SELESAI';
+        } else {
+            if (index < currentIndex) {
+                status = 'SELESAI';
+            } else if (index === currentIndex) {
+                status = 'BERJALAN';
+            }
         }
 
         return {
@@ -232,18 +256,34 @@ const validationRulesMap: Record<
         periksa_pelapor: { document: 1, documentation: 3 },
         periksa_terlapor: { document: 1, documentation: 3 },
     },
-    Kesimpulan: {},
-    Pasca: {},
+    Kesimpulan: {
+        kesimpulan_rekomendasi: { document: 1 },
+        penyampaian_hasil: { document: 1 },
+        pernyataan_pelaku: { document: 1 },
+    },
+    Pasca: {
+        pemulihan_korban: { document: 1 },
+        pemulihan_nama_baik: { document: 1 },
+    },
 };
 
 const isAllDocumentsComplete = computed(() => {
-    const stepRules = validationRulesMap[selectedStep.value];
-    if (!stepRules || Object.keys(stepRules).length === 0) return true;
+    const progress = selectedStep.value as keyof typeof documentOptionsMap;
+    const requiredSubtypes = documentOptionsMap[progress] ?? [];
 
     const currentDocs =
         props.report.report_documents?.filter(
-            (doc) => doc?.type === selectedStep.value,
+            (doc) => doc?.type === progress,
         ) ?? [];
+
+    const hasAllRequiredDocs = requiredSubtypes.every((subtype) =>
+        currentDocs.some((doc) => doc.subtype === subtype),
+    );
+
+    if (!hasAllRequiredDocs) return false;
+
+    const stepRules = validationRulesMap[progress];
+    if (!stepRules || Object.keys(stepRules).length === 0) return true;
 
     return Object.entries(stepRules).every(([subtype, targetTypes]) => {
         const docsOfSubtype = currentDocs.filter((d) => d.subtype === subtype);
@@ -429,6 +469,7 @@ const progressFlow = [
     'Pemeriksaan',
     'Kesimpulan',
     'Pasca',
+    'Selesai',
 ];
 
 function continueHandling() {
@@ -446,7 +487,11 @@ function continueHandling() {
 watch(
     () => props.report.progress,
     (newProgress) => {
-        selectedStep.value = newProgress;
+        selectedStep.value = ['Selesai', 'Laporan Dihentikan'].includes(
+            newProgress,
+        )
+            ? 'Pasca'
+            : newProgress;
     },
 );
 const activeViewDocMenuId = ref<string | number | null>(null);
@@ -989,7 +1034,14 @@ function isRowComplete(row: any): boolean {
                     />
                 </template>
             </DataTable>
-            <div class="mt-5 flex justify-end gap-3">
+            <div
+                v-if="
+                    !['Selesai', 'Laporan Dihentikan'].includes(
+                        props.report.progress,
+                    )
+                "
+                class="mt-5 flex justify-end gap-3"
+            >
                 <Button
                     v-if="
                         ['Klarifikasi', 'Pemeriksaan'].includes(

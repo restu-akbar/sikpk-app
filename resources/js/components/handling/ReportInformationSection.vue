@@ -3,13 +3,19 @@ import FormSectionTitle from '../form/FormSectionTitle.vue';
 import FieldReadonly from '../form/FieldReadonly.vue';
 import DropdownField from '../form/DropdownField.vue';
 
-defineProps<{
-    caseNumber: string;
-    reportDate: string;
-    clarificationDate: string;
-    error?: string;
-    jenisKekerasanOptions: Array<any>;
-}>();
+const props = withDefaults(
+    defineProps<{
+        caseNumber: string;
+        reportDate: string;
+        clarificationDate: string;
+        error?: string;
+        jenisKekerasanOptions: Array<any>;
+        showJenisKekerasan?: boolean;
+    }>(),
+    {
+        showJenisKekerasan: true,
+    },
+);
 
 const jenisKekerasan = defineModel<string>('jenisKekerasan');
 </script>
@@ -30,6 +36,7 @@ const jenisKekerasan = defineModel<string>('jenisKekerasan');
         </div>
 
         <DropdownField
+            v-if="showJenisKekerasan"
             name="jenisKekerasan"
             v-model="jenisKekerasan"
             label="Jenis dugaan kekerasan"
