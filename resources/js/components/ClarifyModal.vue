@@ -12,12 +12,12 @@ import { useForm } from '@inertiajs/vue3';
 import { Check } from 'lucide-vue-next';
 import DialogFooter from './DialogFooter.vue';
 import ReportInformationSection from './handling/ReportInformationSection.vue';
-import ReporterIdentitySection from './handling/ReporterIdentitySection.vue';
 import HandlingTeamSection from './handling/HandlingTeamSection.vue';
 import { useDocumentEncryption } from '@/composables/useDocumentEncryption';
 import { requiredFields, RequiredFormKeys } from '@/constants/requiredFields';
 import BaseModal from './handling/BaseModal.vue';
 import { Report } from '@/types/reports';
+import IdentitySection from './handling/IdentitySection.vue';
 
 const props = defineProps<{
     open: boolean;
@@ -136,9 +136,10 @@ watch(
             :error="stepErrors.jenisKekerasan"
         />
 
-        <ReporterIdentitySection
+        <IdentitySection
             v-model:form="form"
             :step-errors="stepErrors"
+            title="2. Identitas Pelapor"
         />
 
         <section>

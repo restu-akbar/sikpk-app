@@ -29,12 +29,15 @@ import ClarifyModal from '@/components/ClarifyModal.vue';
 import DocumentationModal from '@/components/DocumentationModal.vue';
 import WitnessInspectionModal from '@/components/WitnessInspectionModal.vue';
 import ReporterInspectionModal from '@/components/ReporterInspectionModal.vue';
+import SuspectInspectionModal from '@/components/SuspectInspectionModal.vue';
+import { toast } from 'vue-sonner';
 
 const dialogRegistry: Record<string, any> = {
     notulensi: ClarifyModal,
     documentation: DocumentationModal,
     periksa_saksi: WitnessInspectionModal,
     periksa_pelapor: ReporterInspectionModal,
+    periksa_terlapor: SuspectInspectionModal,
 };
 const activeDialog = ref<null | {
     name: string;
@@ -350,6 +353,26 @@ const isDialogOpen = ref(false);
 const dialogMode = ref<'continue' | 'stop'>('continue');
 
 function openConfirmDialog(mode: 'continue' | 'stop') {
+    if (mode === 'continue' && props.report.progress === 'Laporan Dihentikan') {
+        return;
+    }
+
+    if (isReviewMode.value) {
+        toast.error('Aksi Tidak Diizinkan', {
+            description:
+                'Anda sedang dalam Mode Tinjau. Harap kembali ke tahap penanganan yang sedang berjalan untuk melakukan aksi.',
+        });
+        return;
+    }
+
+    if (!isAllDocumentsComplete.value) {
+        toast.error('Dokumen Belum Lengkap', {
+            description:
+                'Harap lengkapi semua dokumen wajib dan lampirannya sesuai aturan pada tahap ini sebelum melanjutkan atau menghentikan penanganan.',
+        });
+        return;
+    }
+
     dialogMode.value = mode;
     isDialogOpen.value = true;
 }
@@ -971,7 +994,10 @@ function isRowComplete(row: any): boolean {
                         )
                     "
                     variant="secondary"
-                    :disabled="!isAllDocumentsComplete"
+                    :class="{
+                        'cursor-not-allowed opacity-50':
+                            !isAllDocumentsComplete || isReviewMode,
+                    }"
                     @click="openConfirmDialog('stop')"
                 >
                     <Ban class="h-4 w-4" />
@@ -979,10 +1005,12 @@ function isRowComplete(row: any): boolean {
                 </Button>
 
                 <Button
-                    :disabled="
-                        !isAllDocumentsComplete ||
-                        props.report.progress == 'Laporan Dihentikan'
-                    "
+                    :class="{
+                        'cursor-not-allowed opacity-50':
+                            !isAllDocumentsComplete ||
+                            props.report.progress == 'Laporan Dihentikan' ||
+                            isReviewMode,
+                    }"
                     @click="openConfirmDialog('continue')"
                 >
                     <ArrowRight class="h-4 w-4" />

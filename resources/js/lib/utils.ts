@@ -3,7 +3,6 @@ import type { InertiaLinkProps } from '@inertiajs/vue3';
 import { clsx } from 'clsx';
 import type { ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { toast } from 'vue-sonner';
 
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -65,13 +64,9 @@ export const downloadRecoveryFile = (
 
 export function handleCreate(resourceRoute: string, data: any) {
     router.post(resourceRoute, data, {
-        onSuccess: () => {
-            toast.success('Data berhasil ditambahkan');
-        },
+        onSuccess: () => {},
 
-        onError: () => {
-            toast.error('Gagal menambahkan data');
-        },
+        onError: () => {},
     });
 }
 
@@ -87,14 +82,10 @@ export function handleEdit(
 ) {
     router.put(url, data ?? {}, {
         onSuccess: () => {
-            toast.success(options?.success ?? 'Data berhasil diperbarui');
-
             options?.onSuccess?.();
         },
 
         onError: () => {
-            toast.error(options?.error ?? 'Gagal memperbarui data');
-
             options?.onError?.();
         },
     });
@@ -102,12 +93,8 @@ export function handleEdit(
 
 export function handleDelete(resourceRoute: string, row: any) {
     router.delete(`${resourceRoute}/${row.id}`, {
-        onSuccess: () => {
-            toast.success('Data berhasil dihapus');
-        },
+        onSuccess: () => {},
 
-        onError: () => {
-            toast.error('Gagal menghapus data');
-        },
+        onError: () => {},
     });
 }

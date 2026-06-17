@@ -33,7 +33,6 @@ import {
 
 import { getPublicKeys } from '@/lib/crypto/getPublicKeys';
 import { encryptFile } from '@/lib/mediaCrypto';
-import ErrorField from '@/components/form/ErrorField.vue';
 
 provide('formTheme', 'blue');
 
@@ -248,7 +247,24 @@ watch(
         form.prodi = '';
     },
 );
+watch(
+    () => form.disabilitas,
+    (newVal, oldVal) => {
+        if (!newVal || !oldVal) return;
 
+        const justAddedTidakAda =
+            newVal.includes('tidak_ada') && !oldVal.includes('tidak_ada');
+
+        if (justAddedTidakAda) {
+            form.disabilitas = ['tidak_ada'];
+        } else if (newVal.length > 1 && newVal.includes('tidak_ada')) {
+            form.disabilitas = newVal.filter((val) => val !== 'tidak_ada');
+        } else if (newVal.length === 0) {
+            form.disabilitas = ['tidak_ada'];
+        }
+    },
+    { deep: true },
+);
 watchedFields.forEach((field) => {
     watch(
         () => form[field],
@@ -266,31 +282,6 @@ watchedFields.forEach((field) => {
         },
     );
 });
-
-const toggleDisability = (value: Disabilitas) => {
-    if (value === 'tidak_ada') {
-        form.disabilitas = ['tidak_ada'];
-        return;
-    }
-
-    const idx = form.disabilitas.indexOf(value);
-
-    const tidakAdaIdx = form.disabilitas.indexOf('tidak_ada');
-
-    if (tidakAdaIdx !== -1) {
-        form.disabilitas.splice(tidakAdaIdx, 1);
-    }
-
-    if (idx !== -1) {
-        form.disabilitas.splice(idx, 1);
-
-        if (form.disabilitas.length === 0) {
-            form.disabilitas = ['tidak_ada'];
-        }
-    } else {
-        form.disabilitas.push(value);
-    }
-};
 
 const display = (value?: string) => value || '-';
 
@@ -645,38 +636,13 @@ const handleSubmit = async () => {
 
                             <FormCardSection>
                                 <FormSectionTitle title="Kebutuhan Khusus" />
-                                <div>
-                                    <p
-                                        class="mb-2 text-sm font-medium text-gray-700"
-                                    >
-                                        Apakah Anda memiliki kebutuhan
-                                        disabilitas tertentu?
-                                    </p>
-                                    <div class="flex flex-wrap gap-2.5">
-                                        <button
-                                            type="button"
-                                            v-for="opt in disabilityOptions"
-                                            :key="opt.value"
-                                            @click="toggleDisability(opt.value)"
-                                            :class="[
-                                                'rounded-lg border px-4 py-2 text-sm font-medium transition-all',
-                                                form.disabilitas.includes(opt.value)
-                                                    ? 'border-[#1A5BA6] bg-[#EDF3FB] text-[#1A5BA6]'
-                                                    : 'border-gray-300 text-gray-600 hover:border-gray-400',
-                                            ]"
-                                        >
-                                            {{ opt.label }}
-                                        </button>
-                                    </div>
-                                    <ErrorField
-                                        :error="form.errors.disabilitas"
-                                    />
-                                    <p class="mt-3 text-[11px] text-gray-400">
-                                        Informasi ini membantu Satgas
-                                        menyediakan akomodasi yang sesuai pada
-                                        tahap klarifikasi.
-                                    </p>
-                                </div>
+                                <MultiSelect
+                                    v-model="form.disabilitas"
+                                    label="Apakah Anda memiliki kebutuhan disabilitas tertentu?"
+                                    :options="disabilityOptions"
+                                    :error="stepErrors.disabilitas"
+                                    helperText="Informasi ini membantu Satgas menyediakan akomodasi yang sesuai pada tahap klarifikasi."
+                                />
                             </FormCardSection>
                         </div>
 
@@ -892,7 +858,6 @@ const handleSubmit = async () => {
                             </div>
                         </div>
                     </div>
-                    <!-- /bg-white p-8 -->
 
                     <!-- Footer full-width -->
                     <div

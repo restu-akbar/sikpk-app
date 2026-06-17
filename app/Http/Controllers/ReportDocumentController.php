@@ -46,7 +46,7 @@ class ReportDocumentController extends Controller
                     'document.*.type' => ['required', 'string'],
                     'document.*.subtype' => ['required', 'string'],
                     'document.*.attachment_type' => ['required', 'string'],
-                    'document.*.document_id' => ['required', 'string'],
+                    'document.*.document_id' => ['string'],
                 ]
             )->validate();
 
