@@ -1,18 +1,10 @@
 <script setup lang="ts">
-import {
-    computed,
-    ref,
-    onMounted,
-    onBeforeUnmount,
-    watch,
-    nextTick,
-} from 'vue';
+import { computed, ref, watch, nextTick } from 'vue';
 import { useGoBack } from '@/composables/useGoBack';
 import Button from '@/components/Button.vue';
 import { jenisKekerasanOptions } from '@/constants/jenisKekerasanOptions';
 import { formatDate } from '@/lib/formatDate';
 import { getLabel } from '@/lib/getLabel';
-import ClarifyForm from '@/components/ClarifyForm.vue';
 import DataTable from '@/components/table/DataTable.vue';
 import CryptoUnlockDialog from '@/components/CryptoUnlockDialog.vue';
 import { useCryptoUnlock } from '@/composables/useCryptoUnlock';
@@ -22,7 +14,6 @@ import { getAvatarColor, getInitials } from '@/composables/useInitials';
 import { satgasApi } from '@/lib/axios';
 import { useCryptoStore } from '@/lib/crypto/store';
 import { decryptFile } from '@/lib/mediaCrypto';
-import DocumentationDialog from '@/components/DocumentationDialog.vue';
 import {
     DEFAULT_REJECTED_REASONS,
     REJECTED_REASON_MAPPING,
@@ -33,12 +24,17 @@ import { useForm } from '@inertiajs/vue3';
 import { handleEdit } from '@/lib/handleRequest';
 import { update } from '@/routes/satgas/reports';
 import { progressColor } from '@/constants/progressColor';
-import WitnessForm from '@/components/WitnessForm.vue';
+import { onClickOutside } from '@vueuse/core';
+import ClarifyModal from '@/components/ClarifyModal.vue';
+import DocumentationModal from '@/components/DocumentationModal.vue';
+import WitnessInspectionModal from '@/components/WitnessInspectionModal.vue';
+import ReporterInspectionModal from '@/components/ReporterInspectionModal.vue';
 
 const dialogRegistry: Record<string, any> = {
-    notulensi: ClarifyForm,
-    documentation: DocumentationDialog,
-    periksa_saksi: WitnessForm,
+    notulensi: ClarifyModal,
+    documentation: DocumentationModal,
+    periksa_saksi: WitnessInspectionModal,
+    periksa_pelapor: ReporterInspectionModal,
 };
 const activeDialog = ref<null | {
     name: string;
@@ -88,28 +84,9 @@ function handleSelectOption(opt: any) {
     showDocMenu.value = false;
 }
 
-function handleClickOutside(event: MouseEvent) {
-    if (docMenuRef.value && !docMenuRef.value.contains(event.target as Node)) {
-        showDocMenu.value = false;
-    }
-
-    if (activeViewDocMenuId.value !== null) {
-        const target = event.target as HTMLElement;
-        if (
-            !target.closest('.eye-menu-btn') &&
-            !target.closest('.eye-menu-popup')
-        ) {
-            activeViewDocMenuId.value = null;
-        }
-    }
-}
-
-onMounted(() => {
-    document.addEventListener('click', handleClickOutside);
-});
-
-onBeforeUnmount(() => {
-    document.removeEventListener('click', handleClickOutside);
+onClickOutside(docMenuRef, () => {
+    showDocMenu.value = false;
+    activeViewDocMenuId.value = null;
 });
 
 type StepStatus = 'BERJALAN' | 'MENDATANG' | 'SELESAI';
@@ -262,7 +239,7 @@ const isAllDocumentsComplete = computed(() => {
 
     const currentDocs =
         props.report.report_documents?.filter(
-            (doc) => doc.type === selectedStep.value,
+            (doc) => doc?.type === selectedStep.value,
         ) ?? [];
 
     return Object.entries(stepRules).every(([subtype, targetTypes]) => {
@@ -289,7 +266,7 @@ const isAllDocumentsComplete = computed(() => {
 const filteredReportDocuments = computed(() => {
     let docs = props.report.report_documents ?? [];
     if (props.report.progress !== 'Laporan Dihentikan') {
-        docs = docs.filter((doc) => doc.type === selectedStep.value);
+        docs = docs.filter((doc) => doc?.type === selectedStep.value);
     }
 
     return docs;
@@ -330,11 +307,12 @@ function onRowClick(row: any) {
 }
 
 function handleRowClick(row: any) {
-    if (isReviewMode.value) return;
+    if (!row || isReviewMode.value) return;
 
     openDialog('documentation', {
         report: props.report,
         subtype: row.subtype,
+        documentId: row.id,
         attachmentFields: documentationFields.value,
     });
 }
@@ -482,6 +460,21 @@ async function toggleViewDocMenu(event: MouseEvent, row: any) {
             }
         }
     }
+}
+function isRowComplete(row: any): boolean {
+    if (!row) return true;
+    const stepRules = validationRulesMap[row.type]?.[row.subtype];
+
+    if (!stepRules) return true;
+
+    const attachments = row.attachments || [];
+
+    return Object.entries(stepRules).every(([attType, minCount]) => {
+        const count = attachments.filter(
+            (a: any) => a.attachment_type === attType,
+        ).length;
+        return count >= minCount;
+    });
 }
 </script>
 
@@ -823,8 +816,8 @@ async function toggleViewDocMenu(event: MouseEvent, row: any) {
 
                 <!-- Jenis Dokumen -->
                 <template #jenis_dokumen="{ row }">
-                    <span class="font-semibold text-foreground">
-                        {{ getReportLabel(row.type, row.subtype) }}
+                    <span v-if="row" class="font-semibold text-foreground">
+                        {{ getReportLabel(row?.type, row?.subtype) }}
                     </span>
                 </template>
 
@@ -834,17 +827,17 @@ async function toggleViewDocMenu(event: MouseEvent, row: any) {
                 </template>
 
                 <!-- Status badge -->
-                <template #status>
+                <template #status="{ row }">
                     <span
                         :class="[
                             'inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium',
-                            isAllDocumentsComplete
+                            isRowComplete(row)
                                 ? 'bg-green-50 text-green-600'
                                 : 'bg-orange-50 text-orange-600',
                         ]"
                     >
                         <span class="h-1.5 w-1.5 rounded-full bg-current" />
-                        {{ isAllDocumentsComplete ? 'Selesai' : 'Menunggu' }}
+                        {{ isRowComplete(row) ? 'Selesai' : 'Menunggu' }}
                     </span>
                 </template>
 

@@ -34,10 +34,24 @@ class ReportDocument extends Model
         array $item,
         string $storedPath
     ): void {
-        $document = $relation->firstOrCreate([
-            'type' => $item['type'],
-            'subtype' => $item['subtype'],
-        ]);
+        $attachmentType = $item['attachment_type'] ?? null;
+        $documentId = $item['document_id'] ?? null;
+
+        if ($attachmentType === 'document') {
+            $document = $relation->create([
+                'type' => $item['type'],
+                'subtype' => $item['subtype'],
+            ]);
+        } else {
+            if ($documentId) {
+                $document = $relation->findOrFail($documentId);
+            } else {
+                $document = $relation->firstOrCreate([
+                    'type' => $item['type'],
+                    'subtype' => $item['subtype'],
+                ]);
+            }
+        }
 
         $document->attachments()->create(
             ReportDocumentAttachment::toCreatePayload(

@@ -24,6 +24,7 @@ import { getInitials, getAvatarColor } from '@/composables/useInitials';
 import { useCryptoStore } from '@/lib/crypto/store';
 import { decryptFile } from '@/lib/mediaCrypto';
 import { satgasApi } from '@/lib/axios';
+import { Report } from '@/types/reports';
 
 const cryptoStore = useCryptoStore();
 
@@ -53,7 +54,7 @@ async function openEvidence(file: any) {
 
 const props = defineProps<{
     open: boolean;
-    report: any | null;
+    report: Report | null;
 }>();
 
 defineEmits<{

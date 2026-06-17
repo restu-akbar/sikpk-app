@@ -4,9 +4,10 @@ import ProgressBadge from '@/components/ProgressBadge.vue';
 import { formatDate } from '@/lib/formatDate';
 import { getLabel } from '@/lib/getLabel';
 import { jenisKekerasanOptions } from '@/constants/jenisKekerasanOptions';
+import { Report } from '@/types/reports';
 
 defineProps<{
-    report: any;
+    report: Report;
 }>();
 
 defineEmits<{

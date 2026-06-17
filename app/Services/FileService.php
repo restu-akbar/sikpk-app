@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Models\ReportDocument;
 use App\Models\ReportDocumentAttachment;
 use App\Models\ReportEvidence;
 use Illuminate\Support\Facades\Storage;
