@@ -14,9 +14,9 @@ defineProps<{
                     Penanganan Kasus
                 </h2>
                 <p class="text-sm text-muted-foreground">
-                    Kasus aktif yang sedang ditangani oleh tim Satgas. Tekan
-                    kasus untuk membuka detail penanganan, mengisi dokumen, dan
-                    memantau progress di setiap tahapan.
+                    Kasus aktif yang sedang ditangani oleh tim Satgas. Tekan kasus untuk membuka detail
+                    <br />
+                    penanganan, mengisi dokumen, dan memantau progress di setiap tahapan.
                 </p>
             </div>
 

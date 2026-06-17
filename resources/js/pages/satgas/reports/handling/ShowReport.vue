@@ -544,7 +544,7 @@ function isRowComplete(row: any): boolean {
                             </p>
                         </div>
 
-                        <div class="ml-4 shrink-0">
+                        <div class="ml-4 shrink-0 text-right">
                             <span
                                 :class="[
                                     'inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold',
@@ -553,6 +553,9 @@ function isRowComplete(row: any): boolean {
                             >
                                 {{ props.report.progress }}
                             </span>
+                            <h3 class="mt-2 text-lg font-bold text-gray-900">
+                                {{ props.report.case_number }}
+                            </h3>
                         </div>
                     </div>
                 </div>

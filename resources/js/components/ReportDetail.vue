@@ -494,7 +494,7 @@ function fileIconType(name: string) {
                                                 class="flex items-center gap-3 rounded-lg border border-nav-stroke p-3"
                                             >
                                                 <div
-                                                    class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#F6F2EE]"
+                                                    class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#E7EEF7]"
                                                 >
                                                     <svg
                                                         v-if="
@@ -502,7 +502,7 @@ function fileIconType(name: string) {
                                                                 file.original_filename,
                                                             ) === 'image'
                                                         "
-                                                        class="h-4 w-4 text-[#6B6862]"
+                                                        class="h-4 w-4 text-[#1A5BA6]"
                                                         fill="none"
                                                         stroke="currentColor"
                                                         stroke-width="1.5"
@@ -543,7 +543,7 @@ function fileIconType(name: string) {
                                                     </svg>
                                                     <svg
                                                         v-else
-                                                        class="h-4 w-4 text-[#6B6862]"
+                                                        class="h-4 w-4 text-[#1A5BA6]"
                                                         fill="none"
                                                         stroke="currentColor"
                                                         stroke-width="1.5"
