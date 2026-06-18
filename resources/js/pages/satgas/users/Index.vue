@@ -250,6 +250,9 @@ function submitDelete() {
             title="Hapus anggota?"
             description="akan dihapus dari daftar anggota satgas."
             :row-name="selectedRow?.name"
+            action-label=""
+            reject-label="Hapus"
+            reject-variant="danger"
             @close="isDeleteOpen = false"
             @confirm="submitDelete"
         />

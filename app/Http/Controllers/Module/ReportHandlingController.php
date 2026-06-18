@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Services\ReportService;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Services\UserService;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
@@ -29,18 +30,27 @@ class ReportHandlingController extends Controller
     {
         $report = $this->reportService->show(
             $id,
-            ['reportLogs', 'reporter', 'handlers', 'reportDocuments.attachments'],
+            ['reportLogs', 'reporter', 'handlers', 'reportDocuments.attachments', 'reportEvidences', 'audioRecordings'],
             true
         );
 
-        $report->members = $report->handlers->map(function ($user) {
-            return [
-                'id' => $user->id,
-                'name' => $user->name,
-                'academic_role' => $user->academic_role,
-                'department' => $user->department,
-            ];
-        })->values();
+        $orderedIds = DB::table('report_handlers')
+            ->where('report_id', $id)
+            ->pluck('user_id');
+
+        $handlersById = $report->handlers->keyBy('id');
+
+        $report->members = $orderedIds
+            ->filter(fn ($uid) => $handlersById->has($uid))
+            ->map(fn ($uid) => $handlersById->get($uid))
+            ->map(function ($user) {
+                return [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'academic_role' => $user->academic_role,
+                    'department' => $user->department,
+                ];
+            })->values();
 
         unset($report->handlers);
         return Inertia::render('satgas/reports/handling/ShowReport', [

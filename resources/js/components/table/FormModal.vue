@@ -2,6 +2,8 @@
 import { reactive, watch, ref, nextTick } from 'vue';
 import FormField from '@/components/form/FormField.vue';
 import DropdownField from '@/components/form/DropdownField.vue';
+import DialogFooter from '@/components/DialogFooter.vue';
+import { Check } from 'lucide-vue-next';
 
 const props = defineProps<{
     open: boolean;
@@ -160,25 +162,14 @@ watch(
             </div>
 
             <!-- FOOTER -->
-            <div class="flex items-center justify-between rounded-b-2xl border-t border-border bg-surface px-6 py-4">
-                <!-- Batal — kiri -->
-                <button
-                    class="rounded-xl border border-border bg-background px-5 py-2 text-sm font-medium text-foreground transition hover:bg-muted"
-                    @click="emit('close')"
-                >
-                    Batal
-                </button>
-
-                <!-- Simpan — kanan -->
-                <button
-                    class="inline-flex items-center gap-2 rounded-xl bg-[#F5821F] px-5 py-2 text-sm font-medium text-white transition hover:opacity-90"
-                    @click="submit"
-                >
-                    <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                    </svg>
-                    {{ submitLabel || 'Simpan' }}
-                </button>
+            <div class="rounded-b-2xl bg-surface">
+                <DialogFooter
+                    back-label="Batal"
+                    :action-label="submitLabel || 'Simpan'"
+                    :action-icon="Check"
+                    @back="emit('close')"
+                    @action="submit"
+                />
             </div>
         </div>
     </div>

@@ -27,10 +27,10 @@ defineEmits<{
 const rejectClass = computed(() => {
     switch (props.rejectVariant) {
         case 'danger':
-            return 'border-red-600 text-red-600 bg-white hover:bg-red-50';
+            return 'border-[#C8442B] text-[#C8442B] bg-white hover:bg-red-50';
 
         default:
-            return 'border-gray-300 text-gray-600 bg-white hover:bg-gray-50';
+            return 'border-[#C8442B] text-[#C8442B] bg-white hover:bg-red-50';
     }
 });
 
@@ -40,7 +40,7 @@ const actionClass = computed(() => {
             return 'border-green-600 bg-green-600 text-white hover:bg-green-700';
 
         case 'danger':
-            return 'border-red-600 bg-red-600 text-white hover:bg-red-700';
+            return 'border-[#C8442B] bg-[#C8442B] text-white hover:opacity-90';
 
         default:
             return 'border-brand-accent bg-brand-accent text-white hover:opacity-90';
@@ -49,7 +49,7 @@ const actionClass = computed(() => {
 </script>
 
 <template>
-    <div class="flex items-center justify-between border-t bg-white px-6 py-4">
+    <div class="flex items-center justify-between border-t bg-[#FBF9F5] px-6 py-4">
         <!-- BACK -->
         <button
             v-if="backLabel"

@@ -10,6 +10,7 @@ use App\Services\FileService;
 use App\Services\ReportService;
 use Inertia\Inertia;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Services\UserService;
 use Illuminate\Validation\ValidationException;
 
@@ -34,8 +35,30 @@ class ReportController extends Controller
 
     public function index()
     {
+        $reports = $this->reportService->index(with: ['reportEvidences', 'reporter', 'handlers', 'audioRecordings']);
+
+        $reportIds = $reports->pluck('id');
+        $pivotRows = DB::table('report_handlers')
+            ->whereIn('report_id', $reportIds)
+            ->get()
+            ->groupBy('report_id');
+
+        $reports->each(function ($report) use ($pivotRows) {
+            $orderedIds = ($pivotRows[$report->id] ?? collect())->pluck('user_id');
+            if ($orderedIds->isNotEmpty()) {
+                $handlersById = $report->handlers->keyBy('id');
+                $report->setRelation(
+                    'handlers',
+                    $orderedIds
+                        ->filter(fn ($uid) => $handlersById->has($uid))
+                        ->map(fn ($uid) => $handlersById->get($uid))
+                        ->values()
+                );
+            }
+        });
+
         return Inertia::render('satgas/reports/Index', [
-            'rows' => $this->reportService->index(with: ['reportEvidences', 'reporter', 'handlers', 'audioRecordings'])
+            'rows' => $reports
         ]);
     }
 

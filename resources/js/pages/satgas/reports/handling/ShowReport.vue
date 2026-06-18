@@ -9,7 +9,7 @@ import DataTable from '@/components/table/DataTable.vue';
 import CryptoUnlockDialog from '@/components/CryptoUnlockDialog.vue';
 import { useCryptoUnlock } from '@/composables/useCryptoUnlock';
 import { getReportLabel } from '@/lib/mapping/reportTypeLabelMap';
-import { ArrowRight, Ban, ChevronRight, Eye } from 'lucide-vue-next';
+import { ArrowRight, Ban, ChevronRight, Eye, Play, Pause, Mic } from 'lucide-vue-next';
 import { getAvatarColor, getInitials } from '@/composables/useInitials';
 import { satgasApi } from '@/lib/axios';
 import { useCryptoStore } from '@/lib/crypto/store';
@@ -23,7 +23,6 @@ import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import { useForm } from '@inertiajs/vue3';
 import { handleEdit } from '@/lib/handleRequest';
 import { update } from '@/routes/satgas/reports';
-import { progressColor } from '@/constants/progressColor';
 import { onClickOutside } from '@vueuse/core';
 import ClarifyModal from '@/components/ClarifyModal.vue';
 import DocumentationModal from '@/components/DocumentationModal.vue';
@@ -189,40 +188,105 @@ const handleStepClick = (step: (typeof steps.value)[number]) => {
 
     selectedStep.value = step.title;
 };
-const reportSections = computed(() => [
-    {
-        title: 'Ringkasan Laporan',
-        items: [
-            { label: 'No. Laporan', value: props.report.case_number },
-            {
-                label: 'Jenis Kekerasan',
-                value: getLabel(
-                    jenisKekerasanOptions,
-                    props.report.jenis_kekerasan,
-                ),
-            },
-            {
-                label: 'Tanggal Lapor',
-                value: formatDate(props.report.created_at, false),
-            },
+const isVoiceReport = computed(() => {
+    return (props.report.audio_recordings?.length ?? 0) > 0;
+});
+
+const reportSections = computed(() => {
+    const ringkasanItems = [
+        { label: 'No. Laporan', value: props.report.case_number },
+        {
+            label: 'Jenis Kekerasan',
+            value: getLabel(
+                jenisKekerasanOptions,
+                props.report.jenis_kekerasan,
+            ),
+        },
+        {
+            label: 'Tanggal Lapor',
+            value: formatDate(props.report.created_at, false),
+        },
+    ];
+
+    if (!isVoiceReport.value) {
+        ringkasanItems.push(
             { label: 'Tempat Kejadian', value: props.report.tempat_kejadian },
-            {
-                label: 'Waktu Kejadian',
-                value: formatDate(props.report.waktu_kejadian),
-            },
-        ],
-    },
-    {
-        title: 'Data Pelapor',
-        items: [
-            { label: 'Nama', value: props.report.reporter.name },
-            { label: 'NIM', value: props.report.reporter.nim },
-            { label: 'Jurusan', value: props.report.reporter.jurusan },
-            { label: 'Program Studi', value: props.report.reporter.prodi },
-            { label: 'WhatsApp', value: props.report.reporter.whatsapp },
-        ],
-    },
-]);
+            { label: 'Waktu Kejadian', value: formatDate(props.report.waktu_kejadian) },
+        );
+    }
+
+    return [
+        { title: 'Ringkasan Laporan', items: ringkasanItems },
+        {
+            title: 'Data Pelapor',
+            items: [
+                { label: 'Nama', value: props.report.reporter.name },
+                { label: 'NIM', value: props.report.reporter.nim },
+                { label: 'Jurusan', value: props.report.reporter.jurusan },
+                { label: 'Program Studi', value: props.report.reporter.prodi },
+                { label: 'WhatsApp', value: props.report.reporter.whatsapp },
+            ],
+        },
+    ];
+});
+
+const playingAudioId = ref<string | null>(null);
+const audioCurrentTime = ref<Record<string, number>>({});
+const audioDuration = ref<Record<string, number>>({});
+
+function formatDuration(seconds: number) {
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+function toggleAudio(audioId: string) {
+    const el = document.getElementById(`audio-${audioId}`) as HTMLAudioElement;
+    if (!el) return;
+
+    if (playingAudioId.value === audioId) {
+        el.pause();
+        playingAudioId.value = null;
+    } else {
+        if (playingAudioId.value) {
+            const prev = document.getElementById(`audio-${playingAudioId.value}`) as HTMLAudioElement;
+            prev?.pause();
+        }
+        el.play();
+        playingAudioId.value = audioId;
+    }
+}
+
+function onAudioEnded(audioId: string) {
+    playingAudioId.value = null;
+    audioCurrentTime.value[audioId] = 0;
+}
+
+function onTimeUpdate(audioId: string, event: Event) {
+    const el = event.target as HTMLAudioElement;
+    audioCurrentTime.value[audioId] = el.currentTime;
+}
+
+function onLoadedMetadata(audioId: string, event: Event) {
+    const el = event.target as HTMLAudioElement;
+    audioDuration.value[audioId] = el.duration;
+}
+
+function seekAudio(audioId: string, event: MouseEvent) {
+    const el = document.getElementById(`audio-${audioId}`) as HTMLAudioElement;
+    const bar = event.currentTarget as HTMLElement;
+    if (!el || !bar) return;
+    const rect = bar.getBoundingClientRect();
+    const ratio = (event.clientX - rect.left) / rect.width;
+    el.currentTime = ratio * el.duration;
+}
+
+function audioProgress(audioId: string): number {
+    const current = audioCurrentTime.value[audioId] ?? 0;
+    const duration = audioDuration.value[audioId] ?? 0;
+    if (duration === 0) return 0;
+    return (current / duration) * 100;
+}
 
 const documentOptionsMap = {
     Klarifikasi: ['notulensi'],
@@ -529,6 +593,33 @@ async function toggleViewDocMenu(event: MouseEvent, row: any) {
         }
     }
 }
+function formatFileSize(bytes: number) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / 1048576).toFixed(1) + ' MB';
+}
+
+const viewEvidence = async (file: any) => {
+    try {
+        const { data } = await satgasApi.get(`files/${file.id}`, {
+            responseType: 'blob',
+            params: { type: 'evidence' },
+        });
+        const edek = file.edeks[cryptoStore.userId];
+        const decryptedFile = await decryptFile({
+            encryptedFile: data,
+            edek,
+            privateKey: cryptoStore.privateKey!,
+            filename: file.original_filename,
+            mimeType: file.mime_type,
+        });
+        const url = URL.createObjectURL(decryptedFile);
+        window.open(url, '_blank');
+    } catch (error) {
+        console.error('View evidence error:', error);
+    }
+};
+
 function isRowComplete(row: any): boolean {
     if (!row) return true;
     const stepRules = validationRulesMap[row.type]?.[row.subtype];
@@ -577,31 +668,15 @@ function isRowComplete(row: any): boolean {
                 class="my-5 w-full overflow-hidden rounded-xl border border-[#EBE5DA] shadow-sm"
             >
                 <div class="border-b border-[#EBE5DA] bg-[#FBF9F5] px-6 py-6">
-                    <div class="flex items-start justify-between">
-                        <div>
-                            <h2 class="mb-1.5 text-xl font-bold">
-                                Progress Kasus
-                            </h2>
-                            <p class="text-sm leading-tight text-[#595959]">
-                                Tekan tahap untuk melihat dokumen pada tahap
-                                tersebut. Tahap yang sudah selesai dapat diakses
-                                untuk meninjau dokumen sebelumnya.
-                            </p>
-                        </div>
-
-                        <div class="ml-4 shrink-0 text-right">
-                            <span
-                                :class="[
-                                    'inline-flex items-center rounded-full px-3 py-1 text-sm font-semibold',
-                                    progressColor(props.report.progress).badge,
-                                ]"
-                            >
-                                {{ props.report.progress }}
-                            </span>
-                            <h3 class="mt-2 text-lg font-bold text-gray-900">
-                                {{ props.report.case_number }}
-                            </h3>
-                        </div>
+                    <div>
+                        <h2 class="mb-1.5 text-xl font-bold">
+                            Progress Kasus
+                        </h2>
+                        <p class="text-sm leading-tight text-[#595959]">
+                            Tekan tahap untuk melihat dokumen pada tahap
+                            tersebut. Tahap yang sudah selesai dapat diakses
+                            untuk meninjau dokumen sebelumnya.
+                        </p>
                     </div>
                 </div>
                 <div class="p-6">
@@ -623,7 +698,7 @@ function isRowComplete(row: any): boolean {
                             <div class="flex items-center space-x-4">
                                 <div
                                     :class="[
-                                        'flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-bold',
+                                        'flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold',
 
                                         step.status === 'BERJALAN'
                                             ? 'bg-[#E36D13] text-white'
@@ -654,7 +729,7 @@ function isRowComplete(row: any): boolean {
 
                             <span
                                 :class="[
-                                    'rounded-full px-3 py-1 text-xs font-bold uppercase',
+                                    'rounded-full px-2 py-0.5 text-[10px] font-bold uppercase',
 
                                     step.status === 'BERJALAN'
                                         ? 'border border-[#F5D5BA] bg-white text-[#E36D13]'
@@ -743,82 +818,201 @@ function isRowComplete(row: any): boolean {
                 </div>
 
                 <!-- Content -->
-                <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                    <div class="p-5">
-                        <div
-                            v-for="section in reportSections"
-                            :key="section.title"
-                            class="mb-8 last:mb-0"
-                        >
-                            <p
-                                class="mb-3 text-sm font-bold tracking-wider text-muted-foreground uppercase"
-                            >
-                                {{ section.title }}
-                            </p>
-
-                            <div class="space-y-3">
+                <div class="bg-white">
+                    <div class="flex">
+                        <!-- Left 50% -->
+                        <div class="w-1/2 px-6">
+                            <!-- Ringkasan Laporan -->
+                            <div class="border-b border-nav-stroke py-5">
+                                <p class="mb-3 text-sm font-bold text-[#3B3A37]">
+                                    RINGKASAN LAPORAN
+                                </p>
                                 <div
-                                    v-for="item in section.items"
+                                    v-for="item in reportSections[0].items"
                                     :key="item.label"
-                                    class="grid grid-cols-[180px_1fr] gap-4 border-b"
+                                    class="flex border-b border-dashed border-nav-stroke py-2 last:border-0"
                                 >
-                                    <p class="text-sm text-gray-500">
+                                    <span class="w-36 shrink-0 text-sm text-[#6B6862]">
                                         {{ item.label }}
-                                    </p>
+                                    </span>
+                                    <span class="text-sm text-[#1B1A18]">
+                                        {{ item.value ?? '—' }}
+                                    </span>
+                                </div>
+                            </div>
 
-                                    <p class="text-sm text-gray-900">
-                                        {{ item.value }}
-                                    </p>
+                            <!-- Data Pelapor -->
+                            <div class="py-5">
+                                <p class="mb-3 text-sm font-bold text-[#3B3A37]">
+                                    DATA PELAPOR
+                                </p>
+                                <div
+                                    v-for="item in reportSections[1].items"
+                                    :key="item.label"
+                                    class="flex border-b border-dashed border-nav-stroke py-2 last:border-0"
+                                >
+                                    <span class="w-36 shrink-0 text-sm text-[#6B6862]">
+                                        {{ item.label }}
+                                    </span>
+                                    <span class="text-sm text-[#1B1A18]">
+                                        {{ item.value ?? '—' }}
+                                    </span>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Kolom Kanan -->
-                    <div class="p-5">
-                        <div class="mb-5">
-                            <p
-                                class="mb-2 text-sm font-bold tracking-wider text-muted-foreground uppercase"
-                            >
-                                Kronologi
-                            </p>
-
-                            <div class="rounded-lg bg-[#F6F2EE] p-3">
-                                <p>{{ props.report.kronologi }}</p>
-                            </div>
-                        </div>
-
-                        <div>
-                            <p
-                                class="mb-4 text-sm font-bold tracking-wider text-muted-foreground uppercase"
-                            >
-                                Tim Penanganan - {{ props.report.team_number }}
-                            </p>
-
-                            <div class="space-y-3">
-                                <div
-                                    v-for="anggota in props.report.members"
-                                    :key="anggota.id"
-                                    class="flex items-center gap-3 p-3"
-                                >
-                                    <div
-                                        class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold group-data-[collapsible=icon]:h-7 group-data-[collapsible=icon]:w-7"
-                                        :class="getAvatarColor(anggota.name)"
-                                    >
-                                        {{ getInitials(anggota.name) }}
+                        <!-- Right 50% -->
+                        <div class="w-1/2 px-5 py-5">
+                            <div class="flex flex-col gap-6">
+                                <!-- Rekaman Suara (voice report) -->
+                                <template v-if="isVoiceReport">
+                                    <div>
+                                        <p class="mb-3 text-sm font-bold text-[#3B3A37]">
+                                            REKAMAN SUARA
+                                        </p>
+                                        <div class="flex flex-col gap-2">
+                                            <div
+                                                v-for="(audio, index) in props.report.audio_recordings"
+                                                :key="audio.id"
+                                                class="rounded-lg bg-[#F6F2EE] p-3"
+                                            >
+                                                <div class="flex items-center gap-3">
+                                                    <button
+                                                        class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#F5821F] text-white transition-colors hover:bg-[#e0741a]"
+                                                        @click="toggleAudio(audio.id)"
+                                                    >
+                                                        <Pause v-if="playingAudioId === audio.id" class="h-4 w-4" />
+                                                        <Play v-else class="h-4 w-4" />
+                                                    </button>
+                                                    <div class="min-w-0 flex-1">
+                                                        <div class="flex items-center justify-between">
+                                                            <p class="text-sm font-medium text-[#3B3A37]">
+                                                                Rekaman {{ index + 1 }}
+                                                            </p>
+                                                            <p class="text-xs text-[#6B6862]">
+                                                                {{ formatDuration(audioCurrentTime[audio.id] ?? 0) }}
+                                                                /
+                                                                {{ audio.duration ? formatDuration(audio.duration) : '—' }}
+                                                            </p>
+                                                        </div>
+                                                        <div
+                                                            class="mt-1.5 h-1.5 w-full cursor-pointer rounded-full bg-[#DDD7CD]"
+                                                            @click="seekAudio(audio.id, $event)"
+                                                        >
+                                                            <div
+                                                                class="h-full rounded-full bg-[#F5821F] transition-all duration-150"
+                                                                :style="{ width: audioProgress(audio.id) + '%' }"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <Mic class="h-4 w-4 shrink-0 text-[#908C84]" />
+                                                </div>
+                                                <audio
+                                                    :id="`audio-${audio.id}`"
+                                                    :src="`/satgas/audio-recordings/${audio.id}`"
+                                                    preload="none"
+                                                    @ended="onAudioEnded(audio.id)"
+                                                    @timeupdate="onTimeUpdate(audio.id, $event)"
+                                                    @loadedmetadata="onLoadedMetadata(audio.id, $event)"
+                                                />
+                                            </div>
+                                        </div>
                                     </div>
+                                </template>
 
-                                    <div class="min-w-0">
-                                        <p class="font-medium text-foreground">
-                                            {{ anggota.name }}
+                                <!-- Kronologi (form report) -->
+                                <template v-else>
+                                    <div>
+                                        <p class="mb-3 text-sm font-bold text-[#3B3A37]">
+                                            KRONOLOGI KEJADIAN
                                         </p>
+                                        <div class="rounded-lg bg-[#F6F2EE] p-4 text-sm leading-relaxed text-[#3B3A37]">
+                                            {{ props.report.kronologi }}
+                                        </div>
+                                    </div>
+                                </template>
 
-                                        <p
-                                            class="text-sm text-muted-foreground"
+                                <!-- Tim Penanganan -->
+                                <div>
+                                    <p class="mb-3 text-sm font-bold text-[#3B3A37]">
+                                        TIM PENANGANAN - {{ props.report.team_number }}
+                                    </p>
+                                    <div class="flex flex-col gap-3">
+                                        <div
+                                            v-for="(anggota, index) in props.report.members"
+                                            :key="anggota.id"
+                                            class="flex items-center gap-3"
                                         >
-                                            {{ anggota.academic_role }} -
-                                            {{ anggota.department }}
-                                        </p>
+                                            <div
+                                                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold"
+                                                :class="getAvatarColor(anggota.name)"
+                                            >
+                                                {{ getInitials(anggota.name) }}
+                                            </div>
+                                            <div class="min-w-0 flex-1">
+                                                <div class="flex items-center gap-2">
+                                                    <p class="text-sm font-medium text-[#1B1A18]">
+                                                        {{ anggota.name }}
+                                                    </p>
+                                                    <span
+                                                        v-if="index === 0"
+                                                        class="rounded-full bg-[#FEF3E7] px-2 py-0.5 text-[10px] font-semibold text-[#C9651A]"
+                                                    >
+                                                        Ketua Tim
+                                                    </span>
+                                                </div>
+                                                <p class="text-xs text-[#6B6862]">
+                                                    {{ anggota.academic_role === 'dosen' ? 'Dosen' : 'Mahasiswa' }} · {{ anggota.department }}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Bukti Digital -->
+                                <div class="rounded-xl border border-nav-stroke bg-white p-4">
+                                    <p class="mb-3 text-sm font-bold text-[#3B3A37]">
+                                        BUKTI DIGITAL ({{ props.report.report_evidences?.length ?? 0 }})
+                                    </p>
+                                    <div class="flex flex-col gap-2">
+                                        <div
+                                            v-for="file in props.report.report_evidences"
+                                            :key="file.id"
+                                            class="flex items-center gap-3 rounded-lg border border-nav-stroke p-3"
+                                        >
+                                            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#E7EEF7]">
+                                                <svg
+                                                    class="h-4 w-4 text-[#1A5BA6]"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    stroke-width="1.5"
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" />
+                                                    <path d="M14 2v6h6" />
+                                                </svg>
+                                            </div>
+                                            <div class="min-w-0 flex-1">
+                                                <p class="truncate text-sm font-medium text-[#1B1A18]">
+                                                    {{ file.original_filename }}
+                                                </p>
+                                                <p class="text-xs text-[#6B6862]">
+                                                    {{ file.size ? formatFileSize(file.size) : '—' }}
+                                                </p>
+                                            </div>
+                                            <button
+                                                class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-nav-stroke transition-colors hover:bg-surface"
+                                                @click="viewEvidence(file)"
+                                            >
+                                                <Eye class="h-4 w-4 text-[#6B6862]" />
+                                            </button>
+                                        </div>
+                                        <div
+                                            v-if="!props.report.report_evidences || props.report.report_evidences.length === 0"
+                                            class="py-3 text-center text-sm text-[#908C84] italic"
+                                        >
+                                            Tidak ada bukti digital
+                                        </div>
                                     </div>
                                 </div>
                             </div>

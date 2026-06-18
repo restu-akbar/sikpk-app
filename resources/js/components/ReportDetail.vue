@@ -91,6 +91,8 @@ const isVoiceReport = computed(() => {
 });
 
 const playingAudioId = ref<string | null>(null);
+const audioCurrentTime = ref<Record<string, number>>({});
+const audioDuration = ref<Record<string, number>>({});
 
 function toggleAudio(audioId: string) {
     const el = document.getElementById(`audio-${audioId}`) as HTMLAudioElement;
@@ -111,8 +113,35 @@ function toggleAudio(audioId: string) {
     }
 }
 
-function onAudioEnded() {
+function onAudioEnded(audioId: string) {
     playingAudioId.value = null;
+    audioCurrentTime.value[audioId] = 0;
+}
+
+function onTimeUpdate(audioId: string, event: Event) {
+    const el = event.target as HTMLAudioElement;
+    audioCurrentTime.value[audioId] = el.currentTime;
+}
+
+function onLoadedMetadata(audioId: string, event: Event) {
+    const el = event.target as HTMLAudioElement;
+    audioDuration.value[audioId] = el.duration;
+}
+
+function seekAudio(audioId: string, event: MouseEvent) {
+    const el = document.getElementById(`audio-${audioId}`) as HTMLAudioElement;
+    const bar = event.currentTarget as HTMLElement;
+    if (!el || !bar) return;
+    const rect = bar.getBoundingClientRect();
+    const ratio = (event.clientX - rect.left) / rect.width;
+    el.currentTime = ratio * el.duration;
+}
+
+function audioProgress(audioId: string): number {
+    const current = audioCurrentTime.value[audioId] ?? 0;
+    const duration = audioDuration.value[audioId] ?? 0;
+    if (duration === 0) return 0;
+    return (current / duration) * 100;
 }
 
 function formatDuration(seconds: number) {
@@ -283,56 +312,48 @@ function fileIconType(name: string) {
                                         </p>
                                         <div class="flex flex-col gap-2">
                                             <div
-                                                v-for="(
-                                                    audio, index
-                                                ) in report.audio_recordings"
+                                                v-for="(audio, index) in report.audio_recordings"
                                                 :key="audio.id"
-                                                class="flex items-center gap-3 rounded-lg bg-[#F6F2EE] p-3"
+                                                class="rounded-lg bg-[#F6F2EE] p-3"
                                             >
-                                                <button
-                                                    class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#F5821F] text-white transition-colors hover:bg-[#e0741a]"
-                                                    @click="
-                                                        toggleAudio(audio.id)
-                                                    "
-                                                >
-                                                    <Pause
-                                                        v-if="
-                                                            playingAudioId ===
-                                                            audio.id
-                                                        "
-                                                        class="h-4 w-4"
-                                                    />
-                                                    <Play
-                                                        v-else
-                                                        class="h-4 w-4"
-                                                    />
-                                                </button>
-                                                <div class="min-w-0 flex-1">
-                                                    <p
-                                                        class="text-sm font-medium text-[#3B3A37]"
+                                                <div class="flex items-center gap-3">
+                                                    <button
+                                                        class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#F5821F] text-white transition-colors hover:bg-[#e0741a]"
+                                                        @click="toggleAudio(audio.id)"
                                                     >
-                                                        Rekaman {{ index + 1 }}
-                                                    </p>
-                                                    <p
-                                                        class="text-xs text-[#6B6862]"
-                                                    >
-                                                        {{
-                                                            audio.duration
-                                                                ? formatDuration(
-                                                                      audio.duration,
-                                                                  )
-                                                                : '—'
-                                                        }}
-                                                    </p>
+                                                        <Pause v-if="playingAudioId === audio.id" class="h-4 w-4" />
+                                                        <Play v-else class="h-4 w-4" />
+                                                    </button>
+                                                    <div class="min-w-0 flex-1">
+                                                        <div class="flex items-center justify-between">
+                                                            <p class="text-sm font-medium text-[#3B3A37]">
+                                                                Rekaman {{ index + 1 }}
+                                                            </p>
+                                                            <p class="text-xs text-[#6B6862]">
+                                                                {{ formatDuration(audioCurrentTime[audio.id] ?? 0) }}
+                                                                /
+                                                                {{ audio.duration ? formatDuration(audio.duration) : '—' }}
+                                                            </p>
+                                                        </div>
+                                                        <div
+                                                            class="mt-1.5 h-1.5 w-full cursor-pointer rounded-full bg-[#DDD7CD]"
+                                                            @click="seekAudio(audio.id, $event)"
+                                                        >
+                                                            <div
+                                                                class="h-full rounded-full bg-[#F5821F] transition-all duration-150"
+                                                                :style="{ width: audioProgress(audio.id) + '%' }"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <Mic class="h-4 w-4 shrink-0 text-[#908C84]" />
                                                 </div>
-                                                <Mic
-                                                    class="h-4 w-4 shrink-0 text-[#908C84]"
-                                                />
                                                 <audio
                                                     :id="`audio-${audio.id}`"
                                                     :src="`/satgas/audio-recordings/${audio.id}`"
                                                     preload="none"
-                                                    @ended="onAudioEnded"
+                                                    @ended="onAudioEnded(audio.id)"
+                                                    @timeupdate="onTimeUpdate(audio.id, $event)"
+                                                    @loadedmetadata="onLoadedMetadata(audio.id, $event)"
                                                 />
                                             </div>
                                         </div>
@@ -409,13 +430,14 @@ function fileIconType(name: string) {
                                         <p
                                             class="mb-3 text-sm font-bold text-[#3B3A37]"
                                         >
-                                            TIM PENANGANAN
+                                            TIM PENANGANAN - {{ report.team_number }}
                                         </p>
-                                        <div class="flex flex-col gap-3">
+                                        <div class="flex flex-col">
                                             <div
-                                                v-for="handler in report.handlers"
+                                                v-for="(handler, index) in report.handlers"
                                                 :key="handler.id"
-                                                class="flex items-center gap-3"
+                                                class="flex items-center gap-3 py-3"
+                                                :class="index < report.handlers.length - 1 ? 'border-b border-dashed border-nav-stroke' : ''"
                                             >
                                                 <div
                                                     class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold"
@@ -431,12 +453,20 @@ function fileIconType(name: string) {
                                                         )
                                                     }}
                                                 </div>
-                                                <div>
-                                                    <p
-                                                        class="text-sm font-medium text-[#1B1A18]"
-                                                    >
-                                                        {{ handler.name }}
-                                                    </p>
+                                                <div class="min-w-0 flex-1">
+                                                    <div class="flex items-center gap-2">
+                                                        <p
+                                                            class="text-sm font-medium text-[#1B1A18]"
+                                                        >
+                                                            {{ handler.name }}
+                                                        </p>
+                                                        <span
+                                                            v-if="index === 0"
+                                                            class="rounded-full bg-[#FEF3E7] px-2 py-0.5 text-[10px] font-semibold text-[#C9651A]"
+                                                        >
+                                                            Ketua Tim
+                                                        </span>
+                                                    </div>
                                                     <p
                                                         class="text-xs text-[#6B6862]"
                                                     >
