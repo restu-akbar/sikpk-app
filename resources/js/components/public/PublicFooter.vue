@@ -8,8 +8,8 @@ import { home } from '@/routes';
     <footer class="bg-brand-dark text-white">
 
         <!-- Main footer content -->
-        <div class="mx-auto max-w-screen-xl px-8 py-14">
-            <div class="grid grid-cols-1 gap-12 lg:grid-cols-4">
+        <div class="mx-auto max-w-screen-xl px-4 py-10 sm:px-6 md:px-8 md:py-14">
+            <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4 lg:gap-12">
 
                 <!-- Brand column -->
                 <div class="flex flex-col gap-4">
@@ -131,7 +131,7 @@ import { home } from '@/routes';
 
         <!-- Bottom bar -->
         <div class="border-t border-white/10">
-            <div class="mx-auto flex max-w-screen-xl items-center justify-between px-8 py-4">
+            <div class="mx-auto flex max-w-screen-xl items-center justify-between px-4 py-4 sm:px-6 md:px-8">
                 <p class="text-xs text-white/40">
                     &copy; {{ new Date().getFullYear() }} Politeknik Negeri Bandung &ndash; Satgas PPK
                 </p>

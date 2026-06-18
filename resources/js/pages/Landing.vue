@@ -22,17 +22,17 @@ interface Slide {
 
 const slides: Slide[] = [
     {
-        image: '/images/landing/slide-1.jpg',
+        image: '/images/landing/slide-1.webp',
         badge: 'Sosialisasi PPK',
         caption: 'Bersama membangun Polban yang aman dan bebas kekerasan',
     },
     {
-        image: '/images/landing/slide-2.jpg',
+        image: '/images/landing/slide-2.webp',
         badge: 'Pendampingan Korban',
         caption: 'Setiap pelapor mendapat pendampingan penuh dari tim profesional',
     },
     {
-        image: '/images/landing/slide-3.jpg',
+        image: '/images/landing/slide-3.webp',
         badge: 'Kerja Nyata Satgas',
         caption: 'Satgas PPK Polban berkomitmen menangani setiap kasus dengan tuntas',
     },
@@ -72,20 +72,20 @@ onUnmounted(() => {
     <Head title="Beranda" />
 
     <!-- Hero Section 1 -->
-    <section class="mx-auto max-w-screen-xl px-8 py-16" style="scroll-snap-align: start;">
-        <div class="grid grid-cols-2 items-center gap-12">
+    <section class="mx-auto max-w-screen-xl px-4 py-10 sm:px-6 md:px-8 md:py-16" style="scroll-snap-align: start;">
+        <div class="grid grid-cols-1 items-center gap-8 lg:grid-cols-2 lg:gap-12">
 
             <!-- Left: text content -->
-            <div class="flex flex-col gap-6">
+            <div class="flex flex-col gap-5 md:gap-6">
 
                 <!-- Heading -->
-                <h1 class="font-display text-5xl font-extrabold leading-tight tracking-tight text-foreground">
+                <h1 class="font-display text-3xl font-extrabold leading-tight tracking-tight text-foreground sm:text-4xl lg:text-5xl">
                     Anda <span class="text-brand">tidak sendirian.</span><br />
                     Laporan Anda kami<br />dengar.
                 </h1>
 
                 <!-- Description -->
-                <p class="text-base leading-relaxed text-muted-foreground text-justify">
+                <p class="text-sm leading-relaxed text-muted-foreground text-justify sm:text-base">
                     Di SIKPK, setiap suara berharga. Sebagai kanal resmi pelaporan
                     dan penanganan kekerasan di lingkungan Politeknik Negeri Bandung,
                     kami hadir untuk mendengarkan, menjaga kerahasiaan identitas Anda,
@@ -93,32 +93,32 @@ onUnmounted(() => {
                 </p>
 
                 <!-- CTAs -->
-                <div class="flex items-center gap-3">
-                    <Button as-child variant="brand-accent" size="lg" class="font-semibold">
+                <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+                    <Button as-child variant="brand-accent" size="lg" class="w-full font-semibold sm:w-auto">
                         <Link :href="buatLaporanUrl">
                             Buat Laporan Sekarang
                             <ArrowRight class="ml-1 size-4" />
                         </Link>
                     </Button>
-                    <Button variant="outline" size="lg" class="font-semibold">
+                    <Button variant="outline" size="lg" class="w-full font-semibold sm:w-auto">
                         Lacak Kasus Anda
                     </Button>
                 </div>
 
                 <!-- Stats -->
-                <div class="flex items-center gap-8 border-t border-border pt-6">
+                <div class="flex flex-wrap items-center gap-4 border-t border-border pt-6 sm:gap-8">
                     <div>
-                        <p class="font-display text-2xl font-bold text-[#0F3A6C]">100%</p>
+                        <p class="font-display text-xl font-bold text-[#0F3A6C] sm:text-2xl">100%</p>
                         <p class="text-xs text-muted-foreground">Identitas dilindungi</p>
                     </div>
                     <div class="h-8 w-px bg-border" />
                     <div>
-                        <p class="font-display text-2xl font-bold text-[#0F3A6C]">&lt; 24 Jam</p>
+                        <p class="font-display text-xl font-bold text-[#0F3A6C] sm:text-2xl">&lt; 24 Jam</p>
                         <p class="text-xs text-muted-foreground">Respons pertama</p>
                     </div>
-                    <div class="h-8 w-px bg-border" />
-                    <div>
-                        <p class="font-display text-2xl font-bold text-[#0F3A6C]">Anggota Satgas</p>
+                    <div class="hidden h-8 w-px bg-border sm:block" />
+                    <div class="hidden sm:block">
+                        <p class="font-display text-xl font-bold text-[#0F3A6C] sm:text-2xl">Anggota Satgas</p>
                         <p class="text-xs text-muted-foreground">Pendamping profesional</p>
                     </div>
                 </div>
@@ -149,11 +149,11 @@ onUnmounted(() => {
                             <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-black/40" />
 
                             <!-- Caption -->
-                            <div class="absolute bottom-0 left-0 right-0 px-5 pb-10 pt-5">
+                            <div class="absolute bottom-0 left-0 right-0 px-4 pb-8 pt-5 sm:px-5 sm:pb-10">
                                 <span class="mb-2 inline-block rounded-full bg-brand-accent px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-white">
                                     {{ slide.badge }}
                                 </span>
-                                <p class="font-display text-base font-bold leading-snug text-white">
+                                <p class="font-display text-sm font-bold leading-snug text-white sm:text-base">
                                     {{ slide.caption }}
                                 </p>
                             </div>
@@ -161,16 +161,16 @@ onUnmounted(() => {
                     </transition-group>
                 </div>
 
-                <!-- Logo overlay — selalu tampil di atas semua slide -->
-                <div class="absolute left-0 right-0 top-0 flex items-center gap-3 p-5">
-                    <div class="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/30 bg-white/[0.14] backdrop-blur-sm">
-                        <AppLogoIcon class="size-8 object-contain" />
+                <!-- Logo overlay -->
+                <div class="absolute left-0 right-0 top-0 flex items-center gap-3 p-4 sm:p-5">
+                    <div class="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/30 bg-white/[0.14] backdrop-blur-sm sm:h-10 sm:w-10">
+                        <AppLogoIcon class="size-7 object-contain sm:size-8" />
                     </div>
                     <div class="flex flex-col gap-0.5">
-                        <span class="font-display text-sm font-bold leading-none text-white drop-shadow">
+                        <span class="font-display text-xs font-bold leading-none text-white drop-shadow sm:text-sm">
                             Satuan Tugas PPK
                         </span>
-                        <span class="font-display text-xs leading-none text-white/80 drop-shadow">
+                        <span class="font-display text-[10px] leading-none text-white/80 drop-shadow sm:text-xs">
                             Politeknik Negeri Bandung
                         </span>
                     </div>
@@ -178,14 +178,14 @@ onUnmounted(() => {
 
                 <!-- Prev / Next arrows -->
                 <button
-                    class="absolute left-3 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm transition hover:bg-white/40"
+                    class="absolute left-2 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm transition hover:bg-white/40 sm:left-3"
                     @click="prevSlide"
                     aria-label="Slide sebelumnya"
                 >
                     <ChevronLeft class="size-5 text-white" />
                 </button>
                 <button
-                    class="absolute right-3 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm transition hover:bg-white/40"
+                    class="absolute right-2 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm transition hover:bg-white/40 sm:right-3"
                     @click="nextSlide"
                     aria-label="Slide berikutnya"
                 >
@@ -193,7 +193,7 @@ onUnmounted(() => {
                 </button>
 
                 <!-- Dot indicators -->
-                <div class="absolute bottom-4 right-4 flex gap-1.5">
+                <div class="absolute bottom-3 right-3 flex gap-1.5 sm:bottom-4 sm:right-4">
                     <button
                         v-for="(_, i) in slides"
                         :key="i"
@@ -213,14 +213,14 @@ onUnmounted(() => {
     <!-- Access Information Section 2 -->
     <section
         id="informasi"
-        class="py-16"
+        class="py-10 md:py-16"
         style="background: linear-gradient(165deg, #1A5BA6 0%, #0B2A4F 68%); scroll-snap-align: start;"
     >
-        <div class="mx-auto max-w-screen-xl px-8">
+        <div class="mx-auto max-w-screen-xl px-4 sm:px-6 md:px-8">
 
             <!-- Header -->
             <div class="mb-6 max-w-lg">
-                <h2 class="font-display text-4xl font-extrabold leading-tight text-white">
+                <h2 class="font-display text-2xl font-extrabold leading-tight text-white sm:text-3xl lg:text-4xl">
                     Kerahasiaan adalah<br />
                     <span class="text-brand-accent">Prioritas Utama Kami</span>
                 </h2>
@@ -231,22 +231,22 @@ onUnmounted(() => {
             </div>
 
             <!-- Feature cards -->
-            <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
 
                 <!-- Card: Enkripsi -->
-                <div class="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm sm:p-6">
                     <div class="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-[#F5821F]/[0.16]">
                         <Lock class="size-5 text-[#FBA661]" />
                     </div>
                     <h3 class="mb-2 font-display text-base font-bold text-white">Enkripsi End-to-End</h3>
                     <p class="text-sm leading-relaxed text-white/60 text-justify">
-                        Seluruh bukti dan dokumen yang Anda kirimkan akan diamankan terlebih dahulu sebelum disimpan ke dalam sistem. 
+                        Seluruh bukti dan dokumen yang Anda kirimkan akan diamankan terlebih dahulu sebelum disimpan ke dalam sistem.
                         Tidak ada pihak lain yang dapat membaca isi laporan Anda.
                     </p>
                 </div>
 
                 <!-- Card: Anonimitas -->
-                <div class="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm sm:p-6">
                     <div class="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-[#F5821F]/[0.16]">
                         <EyeOff class="size-5 text-[#FBA661]" />
                     </div>
@@ -258,7 +258,7 @@ onUnmounted(() => {
                 </div>
 
                 <!-- Card: Akses Terbatas -->
-                <div class="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+                <div class="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm sm:col-span-2 sm:p-6 md:col-span-1">
                     <div class="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-[#F5821F]/[0.16]">
                         <ShieldCheck class="size-5 text-[#FBA661]" />
                     </div>
@@ -272,7 +272,7 @@ onUnmounted(() => {
             </div>
 
             <!-- Legal banner -->
-            <div class="mt-6 flex items-start gap-4 rounded-2xl border border-white/10 bg-white/5 px-6 py-5 backdrop-blur-sm">
+            <div class="mt-6 flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-4 backdrop-blur-sm sm:gap-4 sm:px-6 sm:py-5">
                 <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10">
                     <ShieldCheck class="size-5 text-white" />
                 </div>
@@ -291,12 +291,12 @@ onUnmounted(() => {
     </section>
 
     <!-- General Information Section 3 -->
-    <section class="py-16" style="background-color: #FDFCFB; scroll-snap-align: start;">
-        <div class="mx-auto max-w-screen-xl px-8">
+    <section class="py-10 md:py-16" style="background-color: #FDFCFB; scroll-snap-align: start;">
+        <div class="mx-auto max-w-screen-xl px-4 sm:px-6 md:px-8">
 
             <!-- Header -->
             <div class="mb-8 text-center">
-                <h2 class="font-display text-4xl font-extrabold leading-tight text-foreground">
+                <h2 class="font-display text-2xl font-extrabold leading-tight text-foreground sm:text-3xl lg:text-4xl">
                     Sebelum Anda melaporkan,<br />perhatikan hal berikut
                 </h2>
                 <p class="mx-auto mt-4 max-w-md text-sm leading-relaxed text-muted-foreground">
@@ -305,14 +305,14 @@ onUnmounted(() => {
             </div>
 
             <!-- 3 columns -->
-            <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+            <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
 
                 <!-- Col 1 — Suara Anda Berarti -->
-                <div class="flex flex-col gap-4 rounded-2xl bg-white p-6 shadow-sm">
+                <div class="flex flex-col gap-4 rounded-2xl bg-white p-5 shadow-sm sm:p-6">
                     <span class="inline-flex w-fit items-center rounded-full border border-brand/20 bg-brand/10 px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-brand">
                         Suara Anda Berarti
                     </span>
-                    <h3 class="font-display text-xl font-bold leading-snug text-foreground">
+                    <h3 class="font-display text-lg font-bold leading-snug text-foreground sm:text-xl">
                         Melapor adalah langkah pertama menuju perubahan
                     </h3>
                     <p class="text-sm leading-relaxed text-muted-foreground text-justify">
@@ -333,11 +333,11 @@ onUnmounted(() => {
                 </div>
 
                 <!-- Col 2 — Cakupan Laporan -->
-                <div class="flex flex-col gap-4 rounded-2xl bg-white p-6 shadow-sm">
+                <div class="flex flex-col gap-4 rounded-2xl bg-white p-5 shadow-sm sm:p-6">
                     <span class="inline-flex w-fit items-center rounded-full border border-brand-accent/20 bg-brand-accent/10 px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-brand-accent">
                         Cakupan Laporan
                     </span>
-                    <h3 class="font-display text-xl font-bold leading-snug text-foreground">
+                    <h3 class="font-display text-lg font-bold leading-snug text-foreground sm:text-xl">
                         Jenis dugaan kekerasan yang dapat dilaporkan
                     </h3>
                     <p class="text-sm leading-relaxed text-muted-foreground text-justify">
@@ -359,11 +359,11 @@ onUnmounted(() => {
                 </div>
 
                 <!-- Col 3 — Peran Satgas PPKPT -->
-                <div class="flex flex-col gap-4 rounded-2xl bg-white p-6 shadow-sm">
+                <div class="flex flex-col gap-4 rounded-2xl bg-white p-5 shadow-sm md:col-span-2 md:p-6 lg:col-span-1">
                     <span class="inline-flex w-fit items-center rounded-full border border-emerald-600/20 bg-emerald-500/10 px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-emerald-700">
                         Peran Satgas PPKPT
                     </span>
-                    <h3 class="font-display text-xl font-bold leading-snug text-foreground">
+                    <h3 class="font-display text-lg font-bold leading-snug text-foreground sm:text-xl">
                         Mandat berdasarkan Permendikbudristek No. 55/2024
                     </h3>
                     <p class="text-sm leading-relaxed text-muted-foreground text-justify">
@@ -387,15 +387,15 @@ onUnmounted(() => {
     </section>
 
     <!-- Satgas Location Section 4 -->
-    <section id="lokasi-satgas" class="bg-gray-50 py-16" style="scroll-snap-align: start;">
-        <div class="mx-auto max-w-screen-xl px-8">
+    <section id="lokasi-satgas" class="bg-gray-50 py-10 md:py-16" style="scroll-snap-align: start;">
+        <div class="mx-auto max-w-screen-xl px-4 sm:px-6 md:px-8">
 
             <!-- Header -->
-            <div class="mb-10">
-                <h2 class="font-display text-4xl font-extrabold text-foreground">Temukan Kami</h2>
+            <div class="mb-8 md:mb-10">
+                <h2 class="font-display text-2xl font-extrabold text-foreground sm:text-3xl lg:text-4xl">Temukan Kami</h2>
             </div>
 
-            <div class="grid grid-cols-3 gap-8">
+            <div class="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
 
                 <!-- Contact info -->
                 <div class="flex flex-col gap-3">
@@ -450,11 +450,11 @@ onUnmounted(() => {
 
                 </div>
 
-                <!-- Map embed — col-span-2 agar 1:2 dengan kolom info -->
-                <div class="col-span-2 overflow-hidden rounded-2xl border border-border shadow-sm">
+                <!-- Map embed -->
+                <div class="overflow-hidden rounded-2xl border border-border shadow-sm lg:col-span-2">
                     <iframe
                         src="https://www.openstreetmap.org/export/embed.html?bbox=107.5709%2C-6.8734%2C107.5769%2C-6.8694&layer=mapnik&marker=-6.871406%2C107.573901"
-                        class="h-full min-h-[380px] w-full"
+                        class="h-full min-h-[300px] w-full sm:min-h-[380px]"
                         frameborder="0"
                         allowfullscreen
                         loading="lazy"

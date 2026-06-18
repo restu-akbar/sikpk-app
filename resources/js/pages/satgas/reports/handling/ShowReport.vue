@@ -789,22 +789,36 @@ function isRowComplete(row: any): boolean {
                         <Transition name="fade-scale">
                             <div
                                 v-if="showDocMenu"
-                                class="absolute top-0 right-full z-50 mr-3 max-w-[420px] min-w-[320px] overflow-hidden rounded-xl border bg-white shadow-xl ring-1 ring-black/5"
+                                class="absolute top-full right-0 z-50 mt-2 max-w-[420px] min-w-[320px] overflow-hidden rounded-xl border bg-white shadow-xl ring-1 ring-black/5"
                             >
                                 <div
-                                    class="border-b bg-gray-50 px-3 py-2 text-xs font-semibold text-gray-500"
+                                    class="border-b bg-gray-50 px-3 py-2 text-xs font-semibold tracking-wider text-gray-500 uppercase"
                                 >
-                                    Pilih Jenis Dokumen
+                                    TAHAP SAAT INI · {{ props.report.progress }}
                                 </div>
 
-                                <button
-                                    v-for="opt in availableDocumentOptions"
-                                    :key="opt.subtype"
-                                    class="flex w-full items-center justify-between px-4 py-2.5 text-left text-sm transition hover:bg-gray-100"
-                                    @click="handleSelectOption(opt)"
-                                >
-                                    <span>{{ opt.label }}</span>
-                                </button>
+                                <div class="py-1">
+                                    <button
+                                        v-for="opt in availableDocumentOptions"
+                                        :key="opt.subtype"
+                                        class="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition hover:bg-gray-100"
+                                        @click="handleSelectOption(opt)"
+                                    >
+                                        <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#E7EEF7]">
+                                            <svg
+                                                class="h-4 w-4 text-[#1A5BA6]"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                stroke-width="1.5"
+                                                viewBox="0 0 24 24"
+                                            >
+                                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" />
+                                                <path d="M14 2v6h6" />
+                                            </svg>
+                                        </div>
+                                        <span class="font-medium text-[#1B1A18]">{{ opt.label }}</span>
+                                    </button>
+                                </div>
 
                                 <div
                                     v-if="availableDocumentOptions.length === 0"

@@ -6,7 +6,7 @@ import StepIndicator from '@/components/StepIndicator.vue';
 import axios from 'axios';
 import { jenisKekerasanOptions } from '@/constants/jenisKekerasanOptions';
 import { progressStatusMap } from '@/constants/progressMap';
-import { currentStatus } from '@/constants/progressMap';
+import ProgressBadge from '@/components/ProgressBadge.vue';
 import { getLabel } from '@/lib/getLabel';
 import { formatDate } from '@/lib/formatDate';
 
@@ -154,10 +154,10 @@ const timelineItems = computed(() => {
         class="flex min-h-screen flex-col overflow-x-hidden overflow-y-auto"
         style="font-family: 'Plus Jakarta Sans', sans-serif"
     >
-        <main class="mx-auto w-full max-w-4xl flex-1 px-4 py-10">
+        <main class="mx-auto w-full max-w-4xl flex-1 px-4 py-6 sm:py-10">
             <!-- Page Header -->
             <div class="mb-6 text-center">
-                <h1 class="mb-2 text-3xl font-bold">Cek Status Laporan</h1>
+                <h1 class="mb-2 text-2xl font-bold sm:text-3xl">Cek Status Laporan</h1>
                 <p class="mx-auto max-w-md text-sm leading-relaxed">
                     <span class="font-bold text-gray-900">
                         Pantau perkembangan laporan Anda.
@@ -185,14 +185,14 @@ const timelineItems = computed(() => {
                 <div v-if="currentStep === 1">
                     <!-- Hero Banner -->
                     <div
-                        class="bg-[linear-gradient(126.92deg,_#1A5BA6_0%,_#0B2A4F_100%)] px-8 py-8"
+                        class="bg-[linear-gradient(126.92deg,_#1A5BA6_0%,_#0B2A4F_100%)] px-4 py-6 sm:px-8 sm:py-8"
                     >
-                        <div class="flex items-start gap-4">
+                        <div class="flex items-start gap-3 sm:gap-4">
                             <div
-                                class="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-white/30"
+                                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-white/30 sm:h-11 sm:w-11"
                             >
                                 <svg
-                                    class="h-6 w-6 text-white"
+                                    class="h-5 w-5 text-white sm:h-6 sm:w-6"
                                     fill="none"
                                     stroke="currentColor"
                                     stroke-width="1.5"
@@ -206,7 +206,7 @@ const timelineItems = computed(() => {
                                 </svg>
                             </div>
                             <div>
-                                <h2 class="text-xl font-bold text-white">
+                                <h2 class="text-lg font-bold text-white sm:text-xl">
                                     Pernyataan Kerahasiaan
                                 </h2>
                                 <p
@@ -223,9 +223,9 @@ const timelineItems = computed(() => {
                     </div>
 
                     <!-- Content -->
-                    <div class="p-6">
+                    <div class="p-4 sm:p-6">
                         <!-- Declaration Card -->
-                        <div class="mb-6 rounded-xl border border-gray-200 p-6">
+                        <div class="mb-6 rounded-xl border border-gray-200 bg-[#FDFCFB] p-4 sm:p-6">
                             <p class="mb-4 font-bold text-gray-800">
                                 Saya menyatakan bahwa:
                             </p>
@@ -234,7 +234,7 @@ const timelineItems = computed(() => {
                                     class="flex gap-3 text-sm leading-relaxed text-gray-600"
                                 >
                                     <span
-                                        class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-blue-50 text-[11px] font-bold text-[#1A5BA6]"
+                                        class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#FDFCFB] text-[11px] font-bold text-gray-700"
                                     >
                                         1
                                     </span>
@@ -255,7 +255,7 @@ const timelineItems = computed(() => {
                                     class="flex gap-3 text-sm leading-relaxed text-gray-600"
                                 >
                                     <span
-                                        class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-blue-50 text-[11px] font-bold text-[#1A5BA6]"
+                                        class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#FDFCFB] text-[11px] font-bold text-gray-700"
                                     >
                                         2
                                     </span>
@@ -274,7 +274,7 @@ const timelineItems = computed(() => {
                                     class="flex gap-3 text-sm leading-relaxed text-gray-600"
                                 >
                                     <span
-                                        class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-blue-50 text-[11px] font-bold text-[#1A5BA6]"
+                                        class="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#FDFCFB] text-[11px] font-bold text-gray-700"
                                     >
                                         3
                                     </span>
@@ -312,11 +312,11 @@ const timelineItems = computed(() => {
                         <!-- Action -->
                         <div class="mt-6 flex justify-end">
                             <button
-                                class="flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold text-white transition-all duration-200"
+                                class="flex w-full items-center justify-center gap-2 rounded-lg px-5 py-2.5 text-sm font-semibold text-white transition-all duration-200 sm:w-auto"
                                 :class="
                                     agreed
-                                        ? 'bg-[#1A5BA6] hover:bg-[#154d8e] active:scale-[0.98]'
-                                        : 'cursor-not-allowed bg-[#1A5BA6]/40'
+                                        ? 'bg-[#F5821F] hover:bg-[#e0741a] active:scale-[0.98]'
+                                        : 'cursor-not-allowed bg-[#F5821F]/50'
                                 "
                                 @click="handleNext"
                             >
@@ -341,10 +341,10 @@ const timelineItems = computed(() => {
 
                 <!-- Step 2: Pilih Laporan -->
                 <div v-else-if="currentStep === 2">
-                    <div class="p-6">
+                    <div class="bg-white p-4 sm:p-6">
                         <div class="mb-6">
                             <h1
-                                class="mb-1 text-xl font-semibold text-gray-900"
+                                class="mb-1 text-lg font-semibold text-gray-900 sm:text-xl"
                             >
                                 Pilih kasus yang ingin Anda pantau
                             </h1>
@@ -362,7 +362,7 @@ const timelineItems = computed(() => {
                                 v-for="report in reports"
                                 :key="report.id"
                                 type="button"
-                                class="w-full rounded-2xl border bg-white p-6 text-left transition-all hover:border-[#1A5BA6] hover:shadow-sm"
+                                class="w-full rounded-2xl border bg-white p-4 text-left transition-all hover:border-[#1A5BA6] hover:shadow-sm sm:p-6"
                                 :class="
                                     selectedReport === report.id
                                         ? 'border-[#1A5BA6] ring-2 ring-blue-100'
@@ -370,24 +370,20 @@ const timelineItems = computed(() => {
                                 "
                                 @click="selectReport(report)"
                             >
-                                <div class="flex items-center justify-between">
-                                    <div class="flex-1">
-                                        <div class="flex items-center gap-3">
+                                <div class="flex items-center justify-between gap-3">
+                                    <div class="min-w-0 flex-1">
+                                        <div class="flex flex-wrap items-center gap-2 sm:gap-3">
                                             <span
-                                                class="font-mono text-sm font-semibold text-[#1A5BA6]"
+                                                class="font-mono text-xs font-semibold text-[#1A5BA6] sm:text-sm"
                                             >
                                                 {{ report.case_number }}
                                             </span>
 
-                                            <span
-                                                class="rounded-full bg-blue-50 px-2 py-0.5 text-[11px] font-medium text-blue-700"
-                                            >
-                                                {{ report.progress }}
-                                            </span>
+                                            <ProgressBadge :status="report.progress" />
                                         </div>
 
                                         <h3
-                                            class="mt-3 text-xl font-semibold text-gray-900"
+                                            class="mt-2 text-base font-semibold text-gray-900 sm:mt-3 sm:text-xl"
                                         >
                                             {{
                                                 getLabel(
@@ -398,7 +394,7 @@ const timelineItems = computed(() => {
                                         </h3>
 
                                         <div
-                                            class="mt-3 flex flex-wrap gap-x-8 gap-y-2 text-sm text-gray-500"
+                                            class="mt-2 flex flex-col gap-1 text-xs text-gray-500 sm:mt-3 sm:flex-row sm:flex-wrap sm:gap-x-8 sm:gap-y-2 sm:text-sm"
                                         >
                                             <span>
                                                 Dilaporkan
@@ -429,7 +425,7 @@ const timelineItems = computed(() => {
                                     </div>
 
                                     <svg
-                                        class="h-6 w-6 text-gray-400"
+                                        class="hidden h-6 w-6 shrink-0 text-gray-400 sm:block"
                                         fill="none"
                                         stroke="currentColor"
                                         stroke-width="2"
@@ -448,19 +444,19 @@ const timelineItems = computed(() => {
                 </div>
 
                 <!-- Step 3: Lihat Progress -->
-                <div v-else-if="currentStep === 3">
-                    <div class="px-6 py-6">
+                <div v-else-if="currentStep === 3" class="bg-white">
+                    <div class="px-4 py-5 sm:px-6 sm:py-6">
                         <!-- Header Laporan -->
                         <div
-                            class="mb-6 flex items-start justify-between border-b border-gray-100 pb-5"
+                            class="mb-6 flex flex-col gap-3 border-b border-gray-100 pb-5 sm:flex-row sm:items-start sm:justify-between"
                         >
                             <!-- Kiri -->
-                            <div>
+                            <div class="min-w-0">
                                 <p class="mb-1 text-xs text-gray-400">
-                                    #{{ selectedReport.id }}
+                                    {{ selectedReport.case_number }}
                                 </p>
 
-                                <h2 class="text-2xl font-bold text-gray-900">
+                                <h2 class="text-xl font-bold text-gray-900 sm:text-2xl">
                                     {{
                                         getLabel(
                                             jenisKekerasanOptions,
@@ -470,7 +466,7 @@ const timelineItems = computed(() => {
                                 </h2>
 
                                 <div
-                                    class="mt-2 flex items-center gap-4 text-xs text-gray-500"
+                                    class="mt-2 flex flex-col gap-1 text-xs text-gray-500 sm:flex-row sm:items-center sm:gap-4"
                                 >
                                     <span>
                                         Dilaporkan
@@ -499,19 +495,12 @@ const timelineItems = computed(() => {
                             </div>
 
                             <!-- Kanan -->
-                            <span
-                                class="flex shrink-0 items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-[#1A5BA6]"
-                            >
-                                <span
-                                    class="h-1.5 w-1.5 rounded-full bg-[#1A5BA6]"
-                                ></span>
-                                {{ selectedReport.progress }}
-                            </span>
+                            <ProgressBadge :status="selectedReport.progress" size="large" />
                         </div>
 
                         <!-- Status Banner -->
                         <div
-                            class="mb-6 flex items-start gap-3 rounded-xl border px-4 py-4"
+                            class="mb-6 flex items-start gap-3 rounded-xl border px-3 py-3 sm:px-4 sm:py-4"
                             :class="currentStatusColor.container"
                         >
                             <svg
@@ -557,11 +546,11 @@ const timelineItems = computed(() => {
                                 v-for="(item, index) in timelineItems"
                                 :key="index"
                             >
-                                <div class="flex gap-4">
+                                <div class="flex gap-3 sm:gap-4">
                                     <!-- Circle & Line -->
                                     <div class="flex flex-col items-center">
                                         <div
-                                            class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold"
+                                            class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold sm:h-8 sm:w-8"
                                             :class="
                                                 item.done
                                                     ? 'bg-[#1A5BA6] text-white'
@@ -570,7 +559,7 @@ const timelineItems = computed(() => {
                                         >
                                             <svg
                                                 v-if="item.done"
-                                                class="h-4 w-4"
+                                                class="h-3.5 w-3.5 sm:h-4 sm:w-4"
                                                 fill="none"
                                                 stroke="currentColor"
                                                 stroke-width="2.5"
@@ -598,7 +587,7 @@ const timelineItems = computed(() => {
                                     </div>
 
                                     <!-- Content -->
-                                    <div class="flex-1 pb-6">
+                                    <div class="flex-1 pb-5 sm:pb-6">
                                         <div
                                             class="flex flex-wrap items-center gap-2"
                                         >
@@ -636,10 +625,10 @@ const timelineItems = computed(() => {
 
                     <!-- Footer Actions -->
                     <div
-                        class="flex items-center justify-between border-t border-gray-200 bg-white px-6 py-4"
+                        class="flex flex-col gap-3 border-t border-gray-200 bg-white px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6"
                     >
                         <button
-                            class="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 active:scale-[0.98]"
+                            class="flex items-center justify-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 active:scale-[0.98]"
                             @click="prevStep"
                         >
                             <svg
@@ -660,7 +649,7 @@ const timelineItems = computed(() => {
                         <a
                             href="https://wa.me/6285171047293"
                             target="_blank"
-                            class="flex items-center gap-2 rounded-lg bg-orange-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-orange-600 active:scale-[0.98]"
+                            class="flex items-center justify-center gap-2 rounded-lg bg-orange-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-orange-600 active:scale-[0.98]"
                         >
                             Hubungi Sekretariat Satgas
                         </a>

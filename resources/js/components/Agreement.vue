@@ -19,7 +19,7 @@ const toggle = () => {
 <template>
     <div
         data-field="agreed"
-        class="cursor-pointer rounded-xl border border-blue-200 bg-blue-50 p-4"
+        class="cursor-pointer rounded-xl border border-[#A6BFE6] bg-[#EDF3FB] p-4"
         @click="toggle"
     >
         <div class="flex items-start gap-3">

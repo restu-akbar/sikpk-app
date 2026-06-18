@@ -11,14 +11,14 @@ defineProps<{
 </script>
 
 <template>
-    <div class="border-b border-gray-200 bg-white px-6 py-5 md:px-10">
+    <div class="border-b border-gray-200 bg-white px-4 py-4 sm:px-6 sm:py-5 md:px-10">
         <div class="mx-auto flex max-w-3xl items-start justify-between">
             <template v-for="(step, index) in steps" :key="index">
                 <div
-                    class="flex flex-1 flex-col items-center gap-1.5 select-none"
+                    class="flex flex-1 flex-col items-center gap-1 select-none sm:gap-1.5"
                 >
                     <div
-                        class="flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold transition-all duration-300"
+                        class="flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold transition-all duration-300 sm:h-9 sm:w-9 sm:text-sm"
                         :class="[
                             currentStep >= index + 1
                                 ? 'bg-[#1A5BA6] text-white shadow-sm'
@@ -27,7 +27,7 @@ defineProps<{
                     >
                         <svg
                             v-if="currentStep > index + 1"
-                            class="h-4 w-4 text-white"
+                            class="h-3.5 w-3.5 text-white sm:h-4 sm:w-4"
                             fill="none"
                             stroke="currentColor"
                             stroke-width="3"
@@ -43,7 +43,7 @@ defineProps<{
                     </div>
 
                     <span
-                        class="mt-1 text-center text-xs font-bold transition-colors duration-300"
+                        class="mt-1 text-center text-[10px] font-bold transition-colors duration-300 sm:text-xs"
                         :class="
                             currentStep >= index + 1
                                 ? 'text-gray-900'
@@ -54,7 +54,7 @@ defineProps<{
                     </span>
 
                     <span
-                        class="max-w-[140px] text-center text-[10px] leading-tight text-gray-400"
+                        class="hidden max-w-[140px] text-center text-[10px] leading-tight text-gray-400 sm:block"
                     >
                         {{ step.desc }}
                     </span>
@@ -62,7 +62,7 @@ defineProps<{
 
                 <div
                     v-if="index < steps.length - 1"
-                    class="mt-4.5 h-[2px] flex-1 transition-all duration-500"
+                    class="mt-3.5 h-[2px] flex-1 transition-all duration-500 sm:mt-4.5"
                     :class="
                         currentStep > index + 1 ? 'bg-[#1A5BA6]' : 'bg-gray-200'
                     "
