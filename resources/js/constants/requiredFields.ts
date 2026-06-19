@@ -32,4 +32,14 @@ export const pelaporRequiredFields = {
     domisili: 'Domisili',
     kontakLain: 'Kontak pihak lain',
 };
+export const clarifyRequiredFields = {
+    jenisKekerasan: 'Jenis kekerasan',
+    nama: 'Nama',
+    status: 'Status pelapor',
+    civitas: 'Status civitas',
+    whatsapp: 'Nomor WhatsApp',
+    jurusan: 'Jurusan',
+    prodi: 'Program studi',
+    catatanKlarifikasi: 'Catatan klarifikasi',
+} as const;
 export type RequiredFormKeys = keyof typeof requiredFields;

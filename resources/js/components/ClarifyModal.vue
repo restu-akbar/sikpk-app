@@ -14,7 +14,10 @@ import DialogFooter from './DialogFooter.vue';
 import ReportInformationSection from './handling/ReportInformationSection.vue';
 import HandlingTeamSection from './handling/HandlingTeamSection.vue';
 import { useDocumentEncryption } from '@/composables/useDocumentEncryption';
-import { requiredFields, RequiredFormKeys } from '@/constants/requiredFields';
+import {
+    clarifyRequiredFields,
+    RequiredFormKeys,
+} from '@/constants/requiredFields';
 import BaseModal from './handling/BaseModal.vue';
 import { Report } from '@/types/reports';
 import IdentitySection from './handling/IdentitySection.vue';
@@ -32,8 +35,8 @@ const emit = defineEmits<{
 const form = useForm({
     jenisKekerasan: '',
     nama: '',
-    statusPelapor: '',
-    statusCivitas: '',
+    status: '',
+    civitas: '',
     whatsapp: '',
     jurusan: '',
     prodi: '',
@@ -55,10 +58,11 @@ const form = useForm({
 const stepErrors = ref<Record<string, string>>({});
 const { getTeamPublicKeys, encryptToPayload } = useDocumentEncryption();
 const handleSubmit = async () => {
+    console.log(form);
     try {
         stepErrors.value = {};
 
-        for (const [key, label] of Object.entries(requiredFields)) {
+        for (const [key, label] of Object.entries(clarifyRequiredFields)) {
             const formKey = key as RequiredFormKeys;
 
             if (!form[formKey].trim()) {
@@ -66,13 +70,16 @@ const handleSubmit = async () => {
             }
         }
 
+        console.log('tes1');
         if (Object.keys(stepErrors.value).length > 0) return;
+        console.log('tes1');
 
         const cryptoStore = useCryptoStore();
         if (!cryptoStore.privateKey) {
             throw new Error('Private key belum tersedia');
         }
 
+        console.log('tes2');
         const publicKeys = await getTeamPublicKeys(props.report.members);
 
         const pdf = generateClarifyReport(props.report, form);
@@ -108,7 +115,7 @@ const handleSubmit = async () => {
 watch(
     form,
     (newValue) => {
-        for (const key in requiredFields) {
+        for (const key in clarifyRequiredFields) {
             const formKey = key as RequiredFormKeys;
 
             if (newValue[formKey] && newValue[formKey].trim()) {
