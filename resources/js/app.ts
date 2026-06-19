@@ -11,6 +11,7 @@ import AuthLayout from '@/layouts/AuthLayout.vue';
 import PublicLayout from '@/layouts/PublicLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
 import RootLayout from './RootLayout.vue';
+import { vReveal } from '@/directives/vReveal';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -73,7 +74,8 @@ createInertiaApp({
                 }),
         })
             .use(plugin)
-            .use(pinia);
+            .use(pinia)
+            .directive('reveal', vReveal);
 
         if (typeof window !== 'undefined') {
             app.mount(el);

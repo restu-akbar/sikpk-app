@@ -33,7 +33,7 @@ const isAudio = computed(() => props.file?.type?.startsWith('audio/') ?? false);
 
 <template>
     <div
-        class="relative rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900"
+        class="relative min-w-0 overflow-hidden rounded-xl border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900"
     >
         <button
             v-if="removable"
@@ -64,9 +64,9 @@ const isAudio = computed(() => props.file?.type?.startsWith('audio/') ?? false);
 
             <div
                 v-else
-                class="flex h-40 items-center justify-center rounded-lg border border-dashed"
+                class="flex h-40 items-center justify-center overflow-hidden rounded-lg border border-dashed"
             >
-                <span class="truncate px-4 text-sm">
+                <span class="block w-full truncate px-4 text-center text-sm">
                     {{ file.name }}
                 </span>
             </div>

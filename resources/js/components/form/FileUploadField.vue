@@ -131,15 +131,15 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <div>
+    <div class="min-w-0">
         <FieldLabel>
             {{ label }}
         </FieldLabel>
 
         <label
-            class="flex h-48 w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-white text-center transition-all hover:border-blue-500 hover:bg-blue-50 dark:border-gray-700 dark:bg-gray-900 dark:hover:border-blue-400 dark:hover:bg-gray-800"
+            class="flex h-36 w-full cursor-pointer flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-white px-4 text-center transition-all hover:border-blue-500 hover:bg-blue-50 sm:h-48 dark:border-gray-700 dark:bg-gray-900 dark:hover:border-blue-400 dark:hover:bg-gray-800"
         >
-            <Upload class="mb-3 h-10 w-10 text-gray-400" />
+            <Upload class="mb-2 h-8 w-8 text-gray-400 sm:mb-3 sm:h-10 sm:w-10" />
 
             <p class="text-sm font-medium text-gray-700 dark:text-gray-200">
                 Klik untuk unggah berkas

@@ -18,21 +18,20 @@ const select = (value: string) => {
 
 <template>
     <!-- Outer card pembungkus -->
-    <div class="flex gap-3 rounded-xl border border-gray-200 bg-white p-3 shadow-sm">
-        <!-- Inner card per metode -->
+    <div class="flex flex-col gap-3 rounded-xl border border-gray-200 bg-white p-3 shadow-sm sm:flex-row">
         <button
             v-for="(opt, index) in options"
             :key="opt.value"
             type="button"
             @click="select(opt.value)"
-            class="flex-1 rounded-xl border-2 border-transparent p-4 text-left transition-all"
+            class="flex-1 rounded-xl border-2 border-transparent p-3 text-left transition-all sm:p-4"
             :class="
                 modelValue === opt.value
                     ? 'bg-[#EDF3FB]'
                     : 'hover:bg-gray-50'
             "
         >
-            <div class="mb-3 flex items-center justify-between gap-2">
+            <div class="mb-2 flex items-center justify-between gap-2 sm:mb-3">
                 <span
                     class="text-[10px] font-semibold tracking-widest uppercase"
                     :class="modelValue === opt.value ? 'text-[#0F3A6C]' : 'text-[#847B6E]'"
@@ -53,11 +52,11 @@ const select = (value: string) => {
                 </span>
             </div>
 
-            <h3 class="mb-1.5 text-base font-bold" style="color: #181613">
+            <h3 class="mb-1 text-sm font-bold sm:mb-1.5 sm:text-base" style="color: #181613">
                 {{ opt.title }}
             </h3>
 
-            <p class="text-xs leading-relaxed" style="color: #0F3A6C">
+            <p class="hidden text-xs leading-relaxed sm:block" style="color: #0F3A6C">
                 {{ opt.description }}
             </p>
         </button>

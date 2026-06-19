@@ -71,21 +71,38 @@ onUnmounted(() => {
 <template>
     <Head title="Beranda" />
 
-    <!-- Hero Section 1 -->
-    <section class="mx-auto max-w-screen-xl px-4 py-10 sm:px-6 md:px-8 md:py-16" style="scroll-snap-align: start;">
+    <!-- Info banner + Hero Section 1 -->
+    <section style="scroll-snap-align: start;">
+        <div class="border-b border-border bg-[#FDFCFB] px-4 py-8 sm:px-6 sm:py-10 md:px-8">
+            <div class="mx-auto max-w-screen-xl text-center">
+                <h2 v-reveal class="font-display text-lg font-extrabold tracking-tight text-foreground sm:text-xl">Informasi Penting</h2>
+                <p v-reveal="'100'" class="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground">
+                    Portal pelaporan ini hanya diperuntukkan bagi civitas akademika yang memiliki alamat email POLBAN.
+                    Bagi pihak lain yang ingin menyampaikan laporan, silakan menghubungi hotline Satgas melalui
+                    <a
+                        href="https://wa.me/6281324050594"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="font-semibold text-brand underline"
+                    >WhatsApp</a>.
+                </p>
+            </div>
+        </div>
+
+        <div class="mx-auto max-w-screen-xl px-4 py-10 sm:px-6 md:px-8 md:py-16">
         <div class="grid grid-cols-1 items-center gap-8 lg:grid-cols-2 lg:gap-12">
 
             <!-- Left: text content -->
             <div class="flex flex-col gap-5 md:gap-6">
 
                 <!-- Heading -->
-                <h1 class="font-display text-3xl font-extrabold leading-tight tracking-tight text-foreground sm:text-4xl lg:text-5xl">
+                <h1 v-reveal class="font-display text-3xl font-extrabold leading-tight tracking-tight text-foreground sm:text-4xl lg:text-5xl">
                     Anda <span class="text-brand">tidak sendirian.</span><br />
                     Laporan Anda kami<br />dengar.
                 </h1>
 
                 <!-- Description -->
-                <p class="text-sm leading-relaxed text-muted-foreground text-justify sm:text-base">
+                <p v-reveal="'100'" class="text-sm leading-relaxed text-muted-foreground text-justify sm:text-base">
                     Di SIKPK, setiap suara berharga. Sebagai kanal resmi pelaporan
                     dan penanganan kekerasan di lingkungan Politeknik Negeri Bandung,
                     kami hadir untuk mendengarkan, menjaga kerahasiaan identitas Anda,
@@ -93,7 +110,7 @@ onUnmounted(() => {
                 </p>
 
                 <!-- CTAs -->
-                <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <div v-reveal="'200'" class="flex flex-col gap-3 sm:flex-row sm:items-center">
                     <Button as-child variant="brand-accent" size="lg" class="w-full font-semibold sm:w-auto">
                         <Link :href="buatLaporanUrl">
                             Buat Laporan Sekarang
@@ -106,7 +123,7 @@ onUnmounted(() => {
                 </div>
 
                 <!-- Stats -->
-                <div class="flex flex-wrap items-center gap-4 border-t border-border pt-6 sm:gap-8">
+                <div v-reveal="'300'" class="flex flex-wrap items-center gap-4 border-t border-border pt-6 sm:gap-8">
                     <div>
                         <p class="font-display text-xl font-bold text-[#0F3A6C] sm:text-2xl">100%</p>
                         <p class="text-xs text-muted-foreground">Identitas dilindungi</p>
@@ -125,7 +142,7 @@ onUnmounted(() => {
             </div>
 
             <!-- Right: image slider -->
-            <div class="relative overflow-hidden rounded-2xl shadow-xl"
+            <div v-reveal="'200'" class="relative overflow-hidden rounded-2xl shadow-xl"
                  @mouseenter="stopAuto"
                  @mouseleave="startAuto">
 
@@ -208,6 +225,7 @@ onUnmounted(() => {
             </div>
 
         </div>
+        </div>
     </section>
 
     <!-- Access Information Section 2 -->
@@ -219,7 +237,7 @@ onUnmounted(() => {
         <div class="mx-auto max-w-screen-xl px-4 sm:px-6 md:px-8">
 
             <!-- Header -->
-            <div class="mb-6 max-w-lg">
+            <div v-reveal class="mb-6 max-w-lg">
                 <h2 class="font-display text-2xl font-extrabold leading-tight text-white sm:text-3xl lg:text-4xl">
                     Kerahasiaan adalah<br />
                     <span class="text-brand-accent">Prioritas Utama Kami</span>
@@ -234,7 +252,7 @@ onUnmounted(() => {
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
 
                 <!-- Card: Enkripsi -->
-                <div class="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm sm:p-6">
+                <div v-reveal="'100'" class="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm sm:p-6">
                     <div class="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-[#F5821F]/[0.16]">
                         <Lock class="size-5 text-[#FBA661]" />
                     </div>
@@ -246,7 +264,7 @@ onUnmounted(() => {
                 </div>
 
                 <!-- Card: Anonimitas -->
-                <div class="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm sm:p-6">
+                <div v-reveal="'200'" class="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm sm:p-6">
                     <div class="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-[#F5821F]/[0.16]">
                         <EyeOff class="size-5 text-[#FBA661]" />
                     </div>
@@ -258,7 +276,7 @@ onUnmounted(() => {
                 </div>
 
                 <!-- Card: Akses Terbatas -->
-                <div class="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm sm:col-span-2 sm:p-6 md:col-span-1">
+                <div v-reveal="'300'" class="rounded-2xl border border-white/10 bg-white/5 p-5 backdrop-blur-sm sm:col-span-2 sm:p-6 md:col-span-1">
                     <div class="mb-4 flex h-10 w-10 items-center justify-center rounded-xl bg-[#F5821F]/[0.16]">
                         <ShieldCheck class="size-5 text-[#FBA661]" />
                     </div>
@@ -272,7 +290,7 @@ onUnmounted(() => {
             </div>
 
             <!-- Legal banner -->
-            <div class="mt-6 flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-4 backdrop-blur-sm sm:gap-4 sm:px-6 sm:py-5">
+            <div v-reveal="'400'" class="mt-6 flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 px-4 py-4 backdrop-blur-sm sm:gap-4 sm:px-6 sm:py-5">
                 <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10">
                     <ShieldCheck class="size-5 text-white" />
                 </div>
@@ -295,7 +313,7 @@ onUnmounted(() => {
         <div class="mx-auto max-w-screen-xl px-4 sm:px-6 md:px-8">
 
             <!-- Header -->
-            <div class="mb-8 text-center">
+            <div v-reveal class="mb-8 text-center">
                 <h2 class="font-display text-2xl font-extrabold leading-tight text-foreground sm:text-3xl lg:text-4xl">
                     Sebelum Anda melaporkan,<br />perhatikan hal berikut
                 </h2>
@@ -308,7 +326,7 @@ onUnmounted(() => {
             <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
 
                 <!-- Col 1 — Suara Anda Berarti -->
-                <div class="flex flex-col gap-4 rounded-2xl bg-white p-5 shadow-sm sm:p-6">
+                <div v-reveal="'100'" class="flex flex-col gap-4 rounded-2xl bg-white p-5 shadow-sm sm:p-6">
                     <span class="inline-flex w-fit items-center rounded-full border border-brand/20 bg-brand/10 px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-brand">
                         Suara Anda Berarti
                     </span>
@@ -333,7 +351,7 @@ onUnmounted(() => {
                 </div>
 
                 <!-- Col 2 — Cakupan Laporan -->
-                <div class="flex flex-col gap-4 rounded-2xl bg-white p-5 shadow-sm sm:p-6">
+                <div v-reveal="'200'" class="flex flex-col gap-4 rounded-2xl bg-white p-5 shadow-sm sm:p-6">
                     <span class="inline-flex w-fit items-center rounded-full border border-brand-accent/20 bg-brand-accent/10 px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-brand-accent">
                         Cakupan Laporan
                     </span>
@@ -359,7 +377,7 @@ onUnmounted(() => {
                 </div>
 
                 <!-- Col 3 — Peran Satgas PPKPT -->
-                <div class="flex flex-col gap-4 rounded-2xl bg-white p-5 shadow-sm md:col-span-2 md:p-6 lg:col-span-1">
+                <div v-reveal="'300'" class="flex flex-col gap-4 rounded-2xl bg-white p-5 shadow-sm md:col-span-2 md:p-6 lg:col-span-1">
                     <span class="inline-flex w-fit items-center rounded-full border border-emerald-600/20 bg-emerald-500/10 px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-emerald-700">
                         Peran Satgas PPKPT
                     </span>
@@ -391,14 +409,14 @@ onUnmounted(() => {
         <div class="mx-auto max-w-screen-xl px-4 sm:px-6 md:px-8">
 
             <!-- Header -->
-            <div class="mb-8 md:mb-10">
+            <div v-reveal class="mb-8 md:mb-10">
                 <h2 class="font-display text-2xl font-extrabold text-foreground sm:text-3xl lg:text-4xl">Temukan Kami</h2>
             </div>
 
             <div class="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:gap-8">
 
                 <!-- Contact info -->
-                <div class="flex flex-col gap-3">
+                <div v-reveal="'100'" class="flex flex-col gap-3">
 
                     <!-- Alamat Kantor -->
                     <div class="flex items-center gap-4 rounded-xl border border-border bg-white px-4 py-4">
@@ -451,7 +469,7 @@ onUnmounted(() => {
                 </div>
 
                 <!-- Map embed -->
-                <div class="overflow-hidden rounded-2xl border border-border shadow-sm lg:col-span-2">
+                <div v-reveal="'200'" class="overflow-hidden rounded-2xl border border-border shadow-sm lg:col-span-2">
                     <iframe
                         src="https://www.openstreetmap.org/export/embed.html?bbox=107.5709%2C-6.8734%2C107.5769%2C-6.8694&layer=mapnik&marker=-6.871406%2C107.573901"
                         class="h-full min-h-[300px] w-full sm:min-h-[380px]"

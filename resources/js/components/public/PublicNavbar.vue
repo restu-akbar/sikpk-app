@@ -141,11 +141,7 @@ function avatarColor(name: string): string {
 
                 <!-- Right side actions (desktop) -->
                 <div class="hidden shrink-0 items-center gap-3 md:flex">
-                    <!-- Not logged in -->
                     <template v-if="!user">
-                        <Button as-child variant="outline" size="default">
-                            <Link :href="loginGoogle()">Masuk</Link>
-                        </Button>
                         <Button as-child variant="brand-accent" size="default">
                             <Link :href="loginGoogle()">Buat Laporan</Link>
                         </Button>
@@ -255,14 +251,9 @@ function avatarColor(name: string): string {
 
                 <div class="border-t border-border pt-3">
                     <template v-if="!user">
-                        <div class="flex flex-col gap-2">
-                            <Button as-child variant="outline" size="default" class="w-full">
-                                <Link :href="loginGoogle()">Masuk</Link>
-                            </Button>
-                            <Button as-child variant="brand-accent" size="default" class="w-full">
-                                <Link :href="loginGoogle()">Buat Laporan</Link>
-                            </Button>
-                        </div>
+                        <Button as-child variant="brand-accent" size="default" class="w-full">
+                            <Link :href="loginGoogle()">Buat Laporan</Link>
+                        </Button>
                     </template>
                     <template v-else>
                         <div class="mb-3 flex items-center gap-3">

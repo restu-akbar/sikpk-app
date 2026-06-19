@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useForm, router } from '@inertiajs/vue3';
-import { computed, provide, ref, watch } from 'vue';
+import { computed, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue';
 import { ReportForm } from '@/types/reports';
 import { useStep } from '@/composables/useStep';
 import { store } from '@/routes/reports';
@@ -15,6 +15,7 @@ import TextareaField from '@/components/form/TextareaField.vue';
 import FileUploadField from '@/components/form/FileUploadField.vue';
 import VoiceRecorder from '@/components/form/VoiceRecorder.vue';
 import type { AudioRecording } from '@/components/form/VoiceRecorder.vue';
+import MultiSelect from '@/components/form/MultiSelect.vue';
 
 import { disabilityOptions } from '@/constants/disability';
 import {
@@ -69,7 +70,26 @@ const stepsData = [
 // Menggunakan composable baru untuk management state steps
 const { currentStep, steps, nextStep, prevStep } = useStep(stepsData, 3);
 
+const isMobile = ref(false);
+const updateMobile = () => {
+    isMobile.value = window.innerWidth < 640;
+};
+onMounted(() => {
+    updateMobile();
+    window.addEventListener('resize', updateMobile);
+});
+onBeforeUnmount(() => {
+    window.removeEventListener('resize', updateMobile);
+});
+
 const nextButtonLabel = computed(() => {
+    if (isMobile.value) {
+        const labels: Record<number, string> = {
+            1: 'Detail Kejadian',
+            2: 'Konfirmasi',
+        };
+        return labels[currentStep.value] ?? 'Lanjut';
+    }
     const labels: Record<number, string> = {
         1: 'Lanjut ke Detail Kejadian',
         2: 'Lanjut ke Konfirmasi',
@@ -104,6 +124,11 @@ const form = useForm<ReportForm>({
     agreed: false,
 });
 
+const showJurusan = computed(() =>
+    ['mahasiswa', 'dosen'].includes(form.statusCivitas),
+);
+const showProdi = computed(() => form.statusCivitas === 'mahasiswa');
+
 const filteredProdi = computed(() =>
     form.jurusan ? getProdiByJurusan(form.jurusan) : prodiList,
 );
@@ -127,13 +152,15 @@ const step1Fields = computed(() => {
         fields.push(['nama', 'Nama wajib diisi']);
     }
     fields.push(['whatsapp', 'No WhatsApp wajib diisi']);
-    if (isFirstReport.value) {
-        fields.push(['jurusan', 'Jurusan wajib dipilih']);
-        fields.push(['prodi', 'Program studi wajib dipilih']);
-    }
     fields.push(['statusPelapor', 'Status pelapor wajib dipilih']);
     if (isFirstReport.value) {
         fields.push(['statusCivitas', 'Status civitas akademik wajib dipilih']);
+    }
+    if (isFirstReport.value && showJurusan.value) {
+        fields.push(['jurusan', 'Jurusan wajib dipilih']);
+    }
+    if (isFirstReport.value && showProdi.value) {
+        fields.push(['prodi', 'Program studi wajib dipilih']);
     }
     return fields;
 });
@@ -241,6 +268,17 @@ const watchedFields = [
     'agreed',
 ] as const;
 
+watch(
+    () => form.statusCivitas,
+    (val) => {
+        if (!['mahasiswa', 'dosen'].includes(val)) {
+            form.jurusan = '';
+            form.prodi = '';
+        } else if (val === 'dosen') {
+            form.prodi = '';
+        }
+    },
+);
 watch(
     () => form.jurusan,
     () => {
@@ -442,10 +480,10 @@ const handleSubmit = async () => {
         style="font-family: 'Plus Jakarta Sans', sans-serif"
     >
         <!-- Main Content -->
-        <main class="mx-auto w-full max-w-4xl flex-1 px-4 py-10">
+        <main class="mx-auto w-full max-w-4xl flex-1 px-4 py-6 sm:py-10">
             <!-- Page Header -->
-            <div class="mb-6 text-center">
-                <h1 class="mb-2 text-3xl font-bold">Buat Laporan</h1>
+            <div v-reveal class="mb-6 text-center">
+                <h1 class="mb-2 text-2xl font-bold sm:text-3xl">Buat Laporan</h1>
                 <p class="mx-auto max-w-md text-sm leading-relaxed">
                     <span class="font-bold text-gray-900"
                         >Pilih metode pelaporan yang paling nyaman.</span
@@ -464,24 +502,27 @@ const handleSubmit = async () => {
             ></div>
 
             <!-- Method Selector — hanya tampil di step 1 dan 2 -->
-            <div v-if="currentStep < 3" class="mb-6">
+            <div v-if="currentStep < 3" v-reveal="'100'" class="mb-6">
                 <MethodSelector v-model="selectedMethod" :options="methods" />
             </div>
 
             <div
+                v-reveal="'200'"
                 class="my-6 overflow-hidden rounded-2xl border border-gray-200 bg-[#ECE8E2] shadow-sm"
             >
                 <!-- STEP INDICATOR -->
-                <div class="border-b border-gray-200 bg-white px-10 py-5">
+                <div class="border-b border-gray-200 bg-white px-4 py-4 sm:px-10 sm:py-5">
                     <div class="flex items-start">
                         <template v-for="(step, index) in steps" :key="index">
                             <div
-                                class="flex flex-col items-center gap-1.5"
-                                style="min-width: 110px"
+                                class="flex flex-col items-center gap-1"
+                                :class="[
+                                    'min-w-[60px] sm:min-w-[110px]',
+                                    'sm:gap-1.5',
+                                ]"
                             >
-                                <!-- Circle -->
                                 <div
-                                    class="flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold transition-all"
+                                    class="flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold transition-all sm:h-9 sm:w-9 sm:text-sm"
                                     :class="[
                                         currentStep >= index + 1
                                             ? 'bg-[#1A5BA6] text-white'
@@ -490,7 +531,7 @@ const handleSubmit = async () => {
                                 >
                                     <svg
                                         v-if="currentStep > index + 1"
-                                        class="h-4 w-4"
+                                        class="h-3.5 w-3.5 sm:h-4 sm:w-4"
                                         fill="none"
                                         stroke="currentColor"
                                         viewBox="0 0 24 24"
@@ -506,7 +547,7 @@ const handleSubmit = async () => {
                                 </div>
 
                                 <span
-                                    class="text-center text-xs font-bold"
+                                    class="text-center text-[10px] font-bold sm:text-xs"
                                     :class="
                                         currentStep >= index + 1
                                             ? 'text-gray-900'
@@ -517,16 +558,15 @@ const handleSubmit = async () => {
                                 </span>
 
                                 <span
-                                    class="max-w-[110px] text-center text-[10px] leading-tight text-gray-400"
+                                    class="hidden max-w-[110px] text-center text-[10px] leading-tight text-gray-400 sm:block"
                                 >
                                     {{ step.desc }}
                                 </span>
                             </div>
 
-                            <!-- Connector line -->
                             <div
                                 v-if="index < steps.length - 1"
-                                class="mt-4 h-0.5 flex-1"
+                                class="mt-3.5 h-0.5 flex-1 sm:mt-4"
                                 :class="
                                     currentStep > index + 1
                                         ? 'bg-[#1A5BA6]'
@@ -539,16 +579,21 @@ const handleSubmit = async () => {
 
                 <!-- Form Card -->
                 <form @submit.prevent="handleSubmit">
-                    <div class="bg-white p-8">
+                    <div class="bg-white p-4 sm:p-8">
                         <!-- STEP 1 -->
                         <div v-if="currentStep === 1">
                             <h2 class="mb-1 text-xl font-bold text-gray-900">
                                 Data Pelapor
                             </h2>
-                            <p class="mb-8 text-sm text-gray-500">
-                                Identitas Anda hanya diakses oleh Ketua Satgas.
-                                Nomor WhatsApp digunakan untuk komunikasi tindak
-                                lanjut.
+                            <p class="mb-8 text-sm leading-relaxed text-gray-500">
+                                Mohon mengisi identitas dengan benar dan sesuai
+                                data diri yang sebenarnya. Setiap laporan akan
+                                melalui proses verifikasi dan validasi.
+                                Kerahasiaan identitas Anda tetap terjaga dan
+                                hanya dapat diakses oleh Ketua Satgas. Nomor
+                                WhatsApp yang dicantumkan akan digunakan untuk
+                                keperluan komunikasi dan tindak lanjut terkait
+                                laporan yang disampaikan.
                             </p>
 
                             <FormCardSection>
@@ -574,36 +619,6 @@ const handleSubmit = async () => {
                                         placeholder="Mis. 081234567890"
                                         :pattern="phonePattern"
                                         hint="Format: 08xxxxxxxxxx, 10-13 panjang angka"
-                                    />
-                                    <DropdownField
-                                        name="jurusan"
-                                        v-model="form.jurusan"
-                                        label="Jurusan"
-                                        placeholder="Pilih jurusan..."
-                                        :options="
-                                            jurusanList.map((j) => ({
-                                                label: j.name,
-                                                value: j.name,
-                                            }))
-                                        "
-                                        :error="stepErrors.jurusan"
-                                        :required="isFirstReport"
-                                        :disabled="!isFirstReport"
-                                    />
-                                    <DropdownField
-                                        name="prodi"
-                                        v-model="form.prodi"
-                                        label="Program Studi"
-                                        placeholder="Pilih program studi..."
-                                        :options="
-                                            filteredProdi.map((p) => ({
-                                                label: `${p.degreeLevel} ${p.name}`,
-                                                value: `${p.degreeLevel} ${p.name}`,
-                                            }))
-                                        "
-                                        :error="stepErrors.prodi"
-                                        :required="isFirstReport"
-                                        :disabled="!isFirstReport"
                                     />
                                 </div>
                                 <div class="mt-5 flex flex-col gap-2">
@@ -632,6 +647,42 @@ const handleSubmit = async () => {
                                     :required="isFirstReport"
                                     :disabled="!isFirstReport"
                                 />
+                                <div
+                                    v-if="showJurusan"
+                                    class="mt-5 grid grid-cols-1 gap-5 md:grid-cols-2"
+                                >
+                                    <DropdownField
+                                        name="jurusan"
+                                        v-model="form.jurusan"
+                                        label="Jurusan"
+                                        placeholder="Pilih jurusan..."
+                                        :options="
+                                            jurusanList.map((j) => ({
+                                                label: j.name,
+                                                value: j.name,
+                                            }))
+                                        "
+                                        :error="stepErrors.jurusan"
+                                        :required="isFirstReport"
+                                        :disabled="!isFirstReport"
+                                    />
+                                    <DropdownField
+                                        v-if="showProdi"
+                                        name="prodi"
+                                        v-model="form.prodi"
+                                        label="Program Studi"
+                                        placeholder="Pilih program studi..."
+                                        :options="
+                                            filteredProdi.map((p) => ({
+                                                label: `${p.degreeLevel} ${p.name}`,
+                                                value: `${p.degreeLevel} ${p.name}`,
+                                            }))
+                                        "
+                                        :error="stepErrors.prodi"
+                                        :required="isFirstReport"
+                                        :disabled="!isFirstReport"
+                                    />
+                                </div>
                             </FormCardSection>
 
                             <FormCardSection>
@@ -861,7 +912,7 @@ const handleSubmit = async () => {
 
                     <!-- Footer full-width -->
                     <div
-                        class="flex items-center justify-between border-t border-[#ECE8E2] bg-[#FDFCFB] px-8 py-5"
+                        class="flex items-center justify-between border-t border-[#ECE8E2] bg-[#FDFCFB] px-4 py-4 sm:px-8 sm:py-5"
                     >
                         <span class="text-xs text-gray-500">
                             Langkah {{ currentStep }} dari {{ steps.length }}

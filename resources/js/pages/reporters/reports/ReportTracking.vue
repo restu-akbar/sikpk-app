@@ -156,7 +156,7 @@ const timelineItems = computed(() => {
     >
         <main class="mx-auto w-full max-w-4xl flex-1 px-4 py-6 sm:py-10">
             <!-- Page Header -->
-            <div class="mb-6 text-center">
+            <div v-reveal class="mb-6 text-center">
                 <h1 class="mb-2 text-2xl font-bold sm:text-3xl">Cek Status Laporan</h1>
                 <p class="mx-auto max-w-md text-sm leading-relaxed">
                     <span class="font-bold text-gray-900">
@@ -176,6 +176,7 @@ const timelineItems = computed(() => {
             ></div>
 
             <div
+                v-reveal="'100'"
                 class="my-6 overflow-hidden rounded-2xl border border-gray-200 shadow-sm"
             >
                 <!-- Step Indicator -->
