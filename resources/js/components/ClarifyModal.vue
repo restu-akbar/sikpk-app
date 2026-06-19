@@ -139,7 +139,8 @@ watch(
         <IdentitySection
             v-model:form="form"
             :step-errors="stepErrors"
-            title="2. Identitas Pelapor"
+            subject="Pelapor"
+            :step="2"
         />
 
         <section>

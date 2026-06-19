@@ -14,21 +14,17 @@ WORKDIR /var/www/html
 
 COPY . .
 
-RUN composer install --no-dev --optimize-autoloader --no-interaction
+RUN composer install --no-dev --optimize-autoloader --no-interaction \
+    && npm install \
+    && npm run build
 
-RUN npm install
+RUN chown -R www-data:www-data storage bootstrap/cache \
+    && chmod -R 775 storage bootstrap/cache
 
-RUN npm run build
-
-RUN php artisan config:cache
-RUN php artisan route:cache || true
-RUN php artisan view:cache
-
-RUN php artisan event:cache || true
-RUN composer dump-autoload --optimize
-
-RUN chmod -R 777 storage bootstrap/cache
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
 EXPOSE 8000
 
-CMD php artisan serve --host=0.0.0.0 --port=8000
+ENTRYPOINT ["entrypoint.sh"]
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]

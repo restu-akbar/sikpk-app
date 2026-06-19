@@ -17,15 +17,9 @@ jobs:
       contents: read
 
     steps:
-      # -----------------------------
-      # CHECKOUT
-      # -----------------------------
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # -----------------------------
-      # AZURE LOGIN
-      # -----------------------------
       - name: Azure Login
         uses: azure/login@v2
         with:
@@ -33,25 +27,17 @@ jobs:
           tenant-id: ${{ secrets.SIKPKAPP_AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.SIKPKAPP_AZURE_SUBSCRIPTION_ID }}
 
-      # -----------------------------
-      # BUILD + PUSH + DEPLOY
-      # -----------------------------
       - name: Build and Deploy Container App
         uses: azure/container-apps-deploy-action@v2
         with:
           appSourcePath: ${{ github.workspace }}
-
           dockerfilePath: ./docker/azure/Dockerfile
-
           disableOryxBuild: true
-
           registryUrl: kota301.azurecr.io
           registryUsername: ${{ secrets.SIKPKAPP_REGISTRY_USERNAME }}
           registryPassword: ${{ secrets.SIKPKAPP_REGISTRY_PASSWORD }}
-
           containerAppName: sikpk-app
           resourceGroup: kota301
-
           imageToBuild: kota301.azurecr.io/sikpk-app:${{ github.sha }}
 
       - name: Run Laravel Migrations
@@ -61,29 +47,6 @@ jobs:
             --resource-group kota301 \
             --command "php artisan migrate --force"
 
-      - name: Optimize Laravel
-        run: |
-          az containerapp exec \
-            --name sikpk-app \
-            --resource-group kota301 \
-            --command "php artisan optimize:clear && php artisan optimize"
-
-      # FORCE RESTART REVISION
-      # -----------------------------
-      - name: Restart latest revision
-        run: |
-          REVISION=$(az containerapp revision list \
-            --name sikpk-app \
-            --resource-group kota301 \
-            --query "[0].name" -o tsv)
-          az containerapp revision restart \
-            --name sikpk-app \
-            --resource-group kota301 \
-            --revision $REVISION
-
-      # -----------------------------
-      # VERIFY REVISION
-      # -----------------------------
       - name: Check Revisions
         run: |
           az containerapp revision list \
