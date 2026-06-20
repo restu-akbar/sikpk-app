@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { LockKeyhole } from 'lucide-vue-next';
+import DialogFooter from '@/components/DialogFooter.vue';
 
 const props = defineProps<{
     open: boolean;
@@ -29,6 +30,10 @@ function handleSubmit() {
 
     emit('submit', password.value);
 }
+
+const actionLabel = computed(() =>
+    props.loading ? 'Membuka kunci...' : 'Buka Kunci',
+);
 </script>
 
 <template>
@@ -39,7 +44,7 @@ function handleSubmit() {
                 class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
             >
                 <div
-                    class="w-full max-w-md rounded-xl border border-border bg-background shadow-2xl"
+                    class="w-full max-w-md overflow-hidden rounded-xl border border-border bg-background shadow-2xl"
                 >
                     <!-- Header -->
                     <div class="border-b border-border px-6 py-5">
@@ -87,25 +92,15 @@ function handleSubmit() {
                     </div>
 
                     <!-- Footer -->
-                    <div
-                        class="flex justify-between border-t border-border px-6 py-4"
-                    >
-                        <button
-                            class="inline-flex h-10 items-center rounded-lg border border-border px-4 text-sm hover:bg-muted"
-                            :disabled="loading"
-                            @click="emit('cancel')"
-                        >
-                            Batal
-                        </button>
-
-                        <button
-                            class="inline-flex h-10 items-center rounded-lg bg-orange-500 px-4 text-sm font-medium text-white hover:bg-orange-600 disabled:opacity-50"
-                            :disabled="loading || !password"
-                            @click="handleSubmit"
-                        >
-                            {{ loading ? 'Membuka kunci...' : 'Buka Kunci' }}
-                        </button>
-                    </div>
+                    <DialogFooter
+                        back-label="Batal"
+                        :back-disabled="loading"
+                        :action-label="actionLabel"
+                        :action-disabled="loading || !password"
+                        action-variant="primary"
+                        @back="emit('cancel')"
+                        @action="handleSubmit"
+                    />
                 </div>
             </div>
         </Transition>

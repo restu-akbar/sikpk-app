@@ -13,6 +13,8 @@ import { Spinner } from '@/components/ui/spinner';
 
 import { generateDecryption } from '@/lib/crypto';
 import { useCryptoStore } from '@/lib/crypto/store';
+import { useFieldErrorClass } from '@/composables/useFieldErrorClass';
+import { toRef } from 'vue';
 
 defineProps<{
     status?: string;
@@ -32,6 +34,8 @@ const form = reactive({
     password: '',
     remember: false,
 });
+
+const passwordInputClass = useFieldErrorClass(toRef(errors, 'password'), 'input');
 
 async function submit() {
     const cryptoStore = useCryptoStore();
@@ -129,7 +133,7 @@ async function submit() {
                     :tabindex="2"
                     autocomplete="current-password"
                     placeholder="Kata sandi"
-                    class="h-12 text-base"
+                    :class="[passwordInputClass, 'h-12 text-base']"
                 />
                 <ErrorField :error="errors.password" />
             </div>

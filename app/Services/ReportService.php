@@ -196,6 +196,15 @@ class ReportService
         return $report->fresh();
     }
 
+    public function isKetuaTim(Report $report, string $userId): bool
+    {
+        $ketuaId = DB::table('report_handlers')
+            ->where('report_id', $report->id)
+            ->value('user_id');
+
+        return $ketuaId && $ketuaId === $userId;
+    }
+
     private function validate(array $data): array
     {
         $validator = Validator::make($data, [

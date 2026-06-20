@@ -141,6 +141,15 @@ class ReportController extends Controller
         Request $request,
         Report $report,
     ) {
+        if (
+            $request->has('progress') &&
+            !$this->reportService->isKetuaTim($report, (string) auth()->id())
+        ) {
+            return back()->with('toast', Toast::error(
+                'Hanya ketua tim yang dapat mengubah tahapan penanganan laporan ini.'
+            ));
+        }
+
         $this->reportService->update($report, $request->all());
 
         return back()->with('toast', Toast::success('Berhasil update laporan'));

@@ -264,7 +264,6 @@ Ketua, Anda hanya dapat melihat progress, bukan isi dokumen penanganan."
                     </div>
                 </div>
 
-                <!-- Click outside to close -->
                 <div
                     v-if="moreFilterOpen"
                     class="fixed inset-0 z-40"

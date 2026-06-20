@@ -4,6 +4,7 @@ import { computed, type Component } from 'vue';
 const props = defineProps<{
     backLabel?: string;
     backIcon?: Component;
+    backDisabled?: boolean;
 
     rejectLabel?: string;
     rejectIcon?: Component;
@@ -54,6 +55,8 @@ const actionClass = computed(() => {
         <button
             v-if="backLabel"
             class="inline-flex h-9 items-center gap-2 rounded-lg border px-4 text-sm hover:bg-gray-50"
+            :class="backDisabled && 'cursor-not-allowed opacity-50'"
+            :disabled="backDisabled"
             @click="$emit('back')"
         >
             <component :is="backIcon" v-if="backIcon" class="h-4 w-4" />

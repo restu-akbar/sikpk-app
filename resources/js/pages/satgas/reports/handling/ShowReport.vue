@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch, nextTick } from 'vue';
+import { usePage } from '@inertiajs/vue3';
 import { useGoBack } from '@/composables/useGoBack';
 import Button from '@/components/Button.vue';
 import { jenisKekerasanOptions } from '@/constants/jenisKekerasanOptions';
@@ -9,7 +10,7 @@ import DataTable from '@/components/table/DataTable.vue';
 import CryptoUnlockDialog from '@/components/CryptoUnlockDialog.vue';
 import { useCryptoUnlock } from '@/composables/useCryptoUnlock';
 import { getReportLabel } from '@/lib/mapping/reportTypeLabelMap';
-import { ArrowRight, Ban, ChevronRight, Eye, Play, Pause, Mic } from 'lucide-vue-next';
+import { ArrowRight, Ban, ChevronRight, Eye, Play, Pause, Mic, X } from 'lucide-vue-next';
 import { getAvatarColor, getInitials } from '@/composables/useInitials';
 import { satgasApi } from '@/lib/axios';
 import { useCryptoStore } from '@/lib/crypto/store';
@@ -92,6 +93,11 @@ const isReviewMode = computed(
     () =>
         selectedStep.value !== props.report.progress ||
         ['Selesai', 'Laporan Dihentikan'].includes(props.report.progress),
+);
+
+const currentUserId = usePage().props.auth.user.id;
+const isKetuaTim = computed(
+    () => props.report.members?.[0]?.id === currentUserId,
 );
 
 function handleSelectOption(opt: any) {
@@ -424,6 +430,35 @@ function handleRowClick(row: any) {
     });
 }
 
+const audioPreview = ref<{ url: string; filename: string } | null>(null);
+
+const AUDIO_EXTENSIONS = /\.(mp3|wav|ogg|m4a|aac|flac|wma|mpga|opus)(\.[a-z0-9]+)?$/i;
+
+function isAudioFile(decryptedFile: File): boolean {
+    return (
+        decryptedFile.type.startsWith('audio/') ||
+        AUDIO_EXTENSIONS.test(decryptedFile.name)
+    );
+}
+
+function openDecryptedFile(decryptedFile: File) {
+    const url = URL.createObjectURL(decryptedFile);
+
+    if (isAudioFile(decryptedFile)) {
+        audioPreview.value = { url, filename: decryptedFile.name };
+        return;
+    }
+
+    window.open(url, '_blank');
+}
+
+function closeAudioPreview() {
+    if (audioPreview.value) {
+        URL.revokeObjectURL(audioPreview.value.url);
+    }
+    audioPreview.value = null;
+}
+
 const viewFile = async (attachment: any) => {
     try {
         activeViewDocMenuId.value = null;
@@ -445,8 +480,7 @@ const viewFile = async (attachment: any) => {
             filename: attachment.original_filename,
             mimeType: attachment.mime_type,
         });
-        const url = URL.createObjectURL(decryptedFile);
-        window.open(url, '_blank');
+        openDecryptedFile(decryptedFile);
     } catch (error) {
         console.error('Download error:', error);
     }
@@ -613,8 +647,7 @@ const viewEvidence = async (file: any) => {
             filename: file.original_filename,
             mimeType: file.mime_type,
         });
-        const url = URL.createObjectURL(decryptedFile);
-        window.open(url, '_blank');
+        openDecryptedFile(decryptedFile);
     } catch (error) {
         console.error('View evidence error:', error);
     }
@@ -1244,6 +1277,7 @@ function isRowComplete(row: any): boolean {
             </DataTable>
             <div
                 v-if="
+                    isKetuaTim &&
                     !['Selesai', 'Laporan Dihentikan'].includes(
                         props.report.progress,
                     )
@@ -1322,5 +1356,39 @@ function isRowComplete(row: any): boolean {
             @close="closeConfirmDialog"
             @confirm="handleConfirm"
         />
+
+        <Teleport to="body">
+            <div
+                v-if="audioPreview"
+                class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+                @click.self="closeAudioPreview"
+            >
+                <div
+                    class="w-full max-w-md overflow-hidden rounded-xl border border-border bg-background shadow-2xl"
+                >
+                    <div
+                        class="flex items-center justify-between border-b border-border px-6 py-4"
+                    >
+                        <p class="truncate text-sm font-semibold">
+                            {{ audioPreview.filename }}
+                        </p>
+                        <button
+                            class="shrink-0 text-muted-foreground hover:text-foreground"
+                            @click="closeAudioPreview"
+                        >
+                            <X class="h-4 w-4" />
+                        </button>
+                    </div>
+                    <div class="px-6 py-5">
+                        <audio
+                            :src="audioPreview.url"
+                            controls
+                            autoplay
+                            class="w-full"
+                        />
+                    </div>
+                </div>
+            </div>
+        </Teleport>
     </div>
 </template>

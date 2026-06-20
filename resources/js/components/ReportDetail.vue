@@ -28,6 +28,24 @@ import { Report } from '@/types/reports';
 
 const cryptoStore = useCryptoStore();
 
+const AUDIO_EXTENSIONS = /\.(mp3|wav|ogg|m4a|aac|flac|wma|mpga|opus)(\.[a-z0-9]+)?$/i;
+
+function isAudioFile(decryptedFile: File): boolean {
+    return (
+        decryptedFile.type.startsWith('audio/') ||
+        AUDIO_EXTENSIONS.test(decryptedFile.name)
+    );
+}
+
+const audioPreview = ref<{ url: string; filename: string } | null>(null);
+
+function closeAudioPreview() {
+    if (audioPreview.value) {
+        URL.revokeObjectURL(audioPreview.value.url);
+    }
+    audioPreview.value = null;
+}
+
 async function openEvidence(file: any) {
     try {
         const { data } = await satgasApi.get(`files/${file.id}`, {
@@ -46,6 +64,12 @@ async function openEvidence(file: any) {
         });
 
         const url = URL.createObjectURL(decryptedFile);
+
+        if (isAudioFile(decryptedFile)) {
+            audioPreview.value = { url, filename: decryptedFile.name };
+            return;
+        }
+
         window.open(url, '_blank');
     } catch (error) {
         console.error(error);
@@ -69,7 +93,6 @@ const progressSteps = [
     { label: 'Pemeriksaan', key: 'Pemeriksaan' },
     { label: 'Kesimpulan', key: 'Kesimpulan' },
     { label: 'Pasca', key: 'Pasca' },
-    { label: 'Selesai', key: 'Selesai' },
 ];
 
 const currentStepIndex = computed(() => {
@@ -634,5 +657,39 @@ function fileIconType(name: string) {
                 </div>
             </div>
         </Transition>
+    </Teleport>
+
+    <Teleport to="body">
+        <div
+            v-if="audioPreview"
+            class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm"
+            @click.self="closeAudioPreview"
+        >
+            <div
+                class="w-full max-w-md overflow-hidden rounded-xl border border-border bg-background shadow-2xl"
+            >
+                <div
+                    class="flex items-center justify-between border-b border-border px-6 py-4"
+                >
+                    <p class="truncate text-sm font-semibold">
+                        {{ audioPreview.filename }}
+                    </p>
+                    <button
+                        class="shrink-0 text-muted-foreground hover:text-foreground"
+                        @click="closeAudioPreview"
+                    >
+                        <X class="h-4 w-4" />
+                    </button>
+                </div>
+                <div class="px-6 py-5">
+                    <audio
+                        :src="audioPreview.url"
+                        controls
+                        autoplay
+                        class="w-full"
+                    />
+                </div>
+            </div>
+        </div>
     </Teleport>
 </template>
