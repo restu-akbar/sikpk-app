@@ -353,9 +353,9 @@ const timelineItems = computed(() => {
                             <p
                                 class="max-w-2xl text-sm leading-relaxed text-gray-600"
                             >
-                                Daftar berikut menampilkan laporan yang Anda
-                                kirim dari perangkat ini. Pilih satu kasus untuk
-                                melihat progres penanganannya.
+                                Daftar berikut menampilkan laporan yang Anda kirim dari perangkat ini. 
+                                <br>
+                                Pilih satu kasus untuk melihat progres penanganannya.
                             </p>
                         </div>
                         <div class="space-y-4">

@@ -315,8 +315,12 @@ function handleBack() {
 
                         <!-- Tim Terpilih -->
                         <div class="py-3">
-                            <p class="mb-3 text-sm font-bold text-[#3B3A37]">
+                            <p class="mb-1 text-sm font-bold text-[#3B3A37]">
                                 TIM TERPILIH ({{ selected.length }}/3)
+                            </p>
+                            <p class="mb-3 text-xs text-[#6B6862]">
+                                Anggota yang dipilih pertama akan ditetapkan
+                                sebagai Ketua Tim.
                             </p>
                             <div
                                 class="rounded-xl border border-[#E5E1D9] bg-surface p-3"

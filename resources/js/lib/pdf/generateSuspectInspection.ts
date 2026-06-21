@@ -1,5 +1,8 @@
 import jsPDF from 'jspdf';
 import { formatDate, today } from '@/lib/formatDate';
+import { getLabel } from '@/lib/getLabel';
+import { statusTerlaporOptions } from '@/constants/statusCivitasOptions';
+import { jenisKekerasanOptions } from '@/constants/jenisKekerasanOptions';
 
 export const generateSuspectInspection = (report: any, form: any) => {
     const pdf = new jsPDF({
@@ -104,17 +107,25 @@ export const generateSuspectInspection = (report: any, form: any) => {
     drawDataRow('Nomor Kasus', report.case_number);
     drawDataRow('Tanggal Masuk Laporan', formatDate(report.created_at, false));
     drawDataRow('Tanggal Pemeriksaan', today);
-    drawDataRow('Jenis Kekerasan', form.terlapor.jenisKekerasan);
+    drawDataRow(
+        'Jenis Kekerasan',
+        getLabel(jenisKekerasanOptions, form.terlapor.jenisKekerasan),
+    );
 
     y += 3;
 
     drawSectionTitle('II. IDENTITAS TERLAPOR');
     drawDataRow('Nama Lengkap', form.terlapor.nama);
     drawDataRow('Jenis Kelamin', form.terlapor.status);
-    drawDataRow('Civitas/Peran', form.terlapor.civitas);
+    drawDataRow(
+        'Civitas/Peran',
+        getLabel(statusTerlaporOptions, form.terlapor.civitas),
+    );
+    drawDataRow('Nomor Identitas', form.terlapor.nomorIdentitas);
     drawDataRow('Nomor WhatsApp', form.terlapor.whatsapp);
     drawDataRow('Jurusan', form.terlapor.jurusan);
     drawDataRow('Program Studi', form.terlapor.prodi);
+    drawDataRow('Angkatan', form.terlapor.angkatan);
     drawDataRow('Domisili', form.terlapor.domisili);
     drawDataRow('Kontak Pihak Lain', form.terlapor.kontakLain);
 

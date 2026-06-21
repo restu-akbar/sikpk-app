@@ -20,7 +20,7 @@ import MultiSelect from '@/components/form/MultiSelect.vue';
 import { disabilityOptions } from '@/constants/disability';
 import {
     statusCivitasOptions,
-    statusTerlaporrOptions,
+    statusTerlaporOptions,
     statusOptions,
 } from '@/constants/statusCivitasOptions';
 import { jenisKekerasanOptions } from '@/constants/jenisKekerasanOptions';
@@ -730,7 +730,7 @@ const handleSubmit = async () => {
                                         v-model="form.statusTerlapor"
                                         label="Terlapor sebagai"
                                         placeholder="Pilih status terlapor..."
-                                        :options="statusTerlaporrOptions"
+                                        :options="statusTerlaporOptions"
                                         :error="stepErrors.statusTerlapor"
                                     />
                                 </div>

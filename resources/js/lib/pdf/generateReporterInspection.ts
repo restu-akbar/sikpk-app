@@ -1,5 +1,11 @@
 import jsPDF from 'jspdf';
 import { formatDate, today } from '@/lib/formatDate';
+import { getLabel } from '@/lib/getLabel';
+import {
+    statusCivitasOptions,
+    statusTerlaporOptions,
+} from '@/constants/statusCivitasOptions';
+import { jenisKekerasanOptions } from '@/constants/jenisKekerasanOptions';
 
 export const generateReporterInspection = (report: any, form: any) => {
     const pdf = new jsPDF({
@@ -139,31 +145,33 @@ export const generateReporterInspection = (report: any, form: any) => {
     drawDataRow('Tanggal Pemeriksaan', today);
     drawDataRow(
         'Jenis Kekerasan',
-        form.jenisKekerasan || form.pelapor.jenisKekerasan,
+        getLabel(jenisKekerasanOptions, form.jenisKekerasan),
     );
 
     y += 3;
 
-    drawSectionTitle('II. IDENTITAS PELAPOR');
-    drawDataRow('Nama Lengkap', form.pelapor.nama);
-    drawDataRow(
-        'Status',
-        form.pelapor.status === 'korban' ? 'Korban' : 'Saksi',
-    );
-    drawDataRow('Civitas/Peran', form.pelapor.civitas);
-    drawDataRow('Nomor WhatsApp', form.pelapor.whatsapp);
-    drawDataRow('Jurusan', form.pelapor.jurusan);
-    drawDataRow('Program Studi', form.pelapor.prodi);
-    drawDataRow('Domisili', form.pelapor.domisili);
-    drawDataRow('Kontak Pihak Lain', form.pelapor.kontakLain);
+    drawSectionTitle('II. IDENTITAS KORBAN');
+    drawDataRow('Nama Lengkap', form.korban.nama);
+    drawDataRow('Jenis Kelamin', form.korban.status);
+    drawDataRow('Peran', getLabel(statusCivitasOptions, form.korban.civitas));
+    drawDataRow('Nomor Identitas', form.korban.nomorIdentitas);
+    drawDataRow('Nomor WhatsApp', form.korban.whatsapp);
+    drawDataRow('Jurusan', form.korban.jurusan);
+    drawDataRow('Program Studi', form.korban.prodi);
+    drawDataRow('Angkatan', form.korban.angkatan);
+    drawDataRow('Domisili', form.korban.domisili);
+    drawDataRow('Kontak Pihak Lain', form.korban.kontakLain);
 
     y += 3;
 
     drawSectionTitle('III. IDENTITAS TERLAPOR');
     if (form.terlapor && form.terlapor.nama) {
         drawDataRow('Nama Lengkap', form.terlapor.nama);
-        drawDataRow('Status', form.terlapor.status);
-        drawDataRow('Civitas/Peran', form.terlapor.civitas);
+        drawDataRow('Jenis Kelamin', form.terlapor.status);
+        drawDataRow(
+            'Civitas/Peran',
+            getLabel(statusTerlaporOptions, form.terlapor.civitas),
+        );
         drawDataRow('Jurusan', form.terlapor.jurusan);
         drawDataRow('Program Studi', form.terlapor.prodi);
     } else {

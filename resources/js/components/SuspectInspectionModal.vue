@@ -19,6 +19,7 @@ import { Report } from '@/types/reports';
 import IdentitySection from './handling/IdentitySection.vue';
 import { generateReporterInspection } from '@/lib/pdf/generateReporterInspection';
 import { generateSuspectInspection } from '@/lib/pdf/generateSuspectInspection';
+import { statusTerlaporOptions } from '@/constants/statusCivitasOptions';
 
 const props = defineProps<{
     open: boolean;
@@ -30,15 +31,19 @@ const emit = defineEmits<{
     success: [];
 }>();
 
+const existingTerlapor = props.report.terlapor ?? null;
+
 const form = useForm({
     terlapor: {
-        jenisKekerasan: '',
-        nama: '',
-        status: '',
-        civitas: '',
-        whatsapp: '',
-        jurusan: '',
-        prodi: '',
+        jenisKekerasan: props.report.jenis_kekerasan ?? '',
+        nama: existingTerlapor?.nama ?? props.report.nama_terlapor ?? '',
+        status: existingTerlapor?.jenis_kelamin ?? '',
+        civitas: existingTerlapor?.peran_akademik ?? props.report.status_terlapor ?? '',
+        nomorIdentitas: existingTerlapor?.nomor_identitas ?? '',
+        whatsapp: existingTerlapor?.nomor_wa ?? '',
+        jurusan: existingTerlapor?.jurusan ?? '',
+        prodi: existingTerlapor?.prodi ?? '',
+        angkatan: existingTerlapor?.angkatan ?? '',
         domisili: '',
         kontakLain: '',
     },
@@ -83,7 +88,15 @@ const handleSubmit = async () => {
             return !val;
         };
 
+        const showJurusanTerlapor = ['mahasiswa', 'dosen'].includes(
+            form.terlapor.civitas,
+        );
+        const showProdiTerlapor = form.terlapor.civitas === 'mahasiswa';
+
         for (const [key, label] of Object.entries(pelaporRequiredFields)) {
+            if (key === 'jurusan' && !showJurusanTerlapor) continue;
+            if (key === 'prodi' && !showProdiTerlapor) continue;
+
             const val = form.terlapor[key as keyof typeof form.terlapor];
             if (checkIsEmpty(val)) {
                 stepErrors.value[`terlapor.${key}`] = `${label} wajib diisi.`;
@@ -168,8 +181,11 @@ watch(
             :step-errors="terlaporErrors"
             :is-additional="true"
             :is-gender="true"
+            :show-nomor-identitas="true"
+            :show-angkatan="true"
             :step="2"
             subject="Terlapor"
+            :civitas-options="statusTerlaporOptions"
         />
         <section>
             <FormSectionTitle title="3. KRONOLOGI PERISTIWA VERSI TERLAPOR" />

@@ -32,14 +32,18 @@ const emit = defineEmits<{
     success: [];
 }>();
 
+const shouldPrefillPelapor = !props.report.has_notulensi;
+
 const form = useForm({
-    jenisKekerasan: '',
-    nama: '',
-    status: '',
-    civitas: '',
-    whatsapp: '',
-    jurusan: '',
-    prodi: '',
+    jenisKekerasan: props.report.jenis_kekerasan ?? '',
+    nama: shouldPrefillPelapor ? (props.report.reporter?.name ?? '') : '',
+    status: shouldPrefillPelapor ? (props.report.status_pelapor ?? '') : '',
+    civitas: shouldPrefillPelapor ? (props.report.reporter?.status_civitas ?? '') : '',
+    nomorIdentitas: '',
+    whatsapp: shouldPrefillPelapor ? (props.report.reporter?.whatsapp ?? '') : '',
+    jurusan: shouldPrefillPelapor ? (props.report.reporter?.jurusan ?? '') : '',
+    prodi: shouldPrefillPelapor ? (props.report.reporter?.prodi ?? '') : '',
+    angkatan: '',
     catatanKlarifikasi: '',
 
     document: [
@@ -62,8 +66,14 @@ const handleSubmit = async () => {
     try {
         stepErrors.value = {};
 
+        const showJurusan = ['mahasiswa', 'dosen'].includes(form.civitas);
+        const showProdi = form.civitas === 'mahasiswa';
+
         for (const [key, label] of Object.entries(clarifyRequiredFields)) {
             const formKey = key as RequiredFormKeys;
+
+            if (formKey === 'jurusan' && !showJurusan) continue;
+            if (formKey === 'prodi' && !showProdi) continue;
 
             if (!form[formKey].trim()) {
                 stepErrors.value[formKey] = `${label} wajib diisi.`;
@@ -148,6 +158,8 @@ watch(
             :step-errors="stepErrors"
             subject="Pelapor"
             :step="2"
+            :show-nomor-identitas="true"
+            :show-angkatan="true"
         />
 
         <section>

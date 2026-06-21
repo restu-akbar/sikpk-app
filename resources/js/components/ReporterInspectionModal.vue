@@ -22,6 +22,7 @@ import BaseModal from './handling/BaseModal.vue';
 import { Report } from '@/types/reports';
 import IdentitySection from './handling/IdentitySection.vue';
 import { generateReporterInspection } from '@/lib/pdf/generateReporterInspection';
+import { statusTerlaporOptions } from '@/constants/statusCivitasOptions';
 
 const props = defineProps<{
     open: boolean;
@@ -33,26 +34,31 @@ const emit = defineEmits<{
     success: [];
 }>();
 
+const existingKorban = props.report.korban ?? null;
+const existingTerlapor = props.report.terlapor ?? null;
+
 const form = useForm({
-    pelapor: {
-        jenisKekerasan: '',
-        nama: '',
-        status: '',
-        civitas: '',
-        whatsapp: '',
-        jurusan: '',
-        prodi: '',
-        domisili: '',
-        kontakLain: '',
-    },
+    jenisKekerasan: props.report.jenis_kekerasan ?? '',
 
     terlapor: {
-        jenisKekerasan: '',
-        nama: '',
-        status: '',
-        civitas: '',
-        jurusan: '',
-        prodi: '',
+        nama: existingTerlapor?.nama ?? props.report.nama_terlapor ?? '',
+        status: existingTerlapor?.jenis_kelamin ?? '',
+        civitas: existingTerlapor?.peran_akademik ?? props.report.status_terlapor ?? '',
+        jurusan: existingTerlapor?.jurusan ?? '',
+        prodi: existingTerlapor?.prodi ?? '',
+    },
+
+    korban: {
+        nama: existingKorban?.nama ?? '',
+        status: existingKorban?.jenis_kelamin ?? '',
+        civitas: existingKorban?.peran_akademik ?? '',
+        nomorIdentitas: existingKorban?.nomor_identitas ?? '',
+        whatsapp: existingKorban?.nomor_wa ?? '',
+        jurusan: existingKorban?.jurusan ?? '',
+        prodi: existingKorban?.prodi ?? '',
+        angkatan: existingKorban?.angkatan ?? '',
+        domisili: '',
+        kontakLain: '',
     },
     kronologi: '',
     ciriFisik: '',
@@ -76,7 +82,6 @@ const form = useForm({
         },
     ],
 });
-const pelaporErrors = computed(() => getErrorsFor('pelapor.'));
 const terlaporErrors = computed(() => getErrorsFor('terlapor.'));
 const alasanOptions = [
     { label: 'Mencari keadilan', value: 'keadilan' },
@@ -97,6 +102,7 @@ const kebutuhanKorbanOptions = [
 ];
 
 const stepErrors = ref<Record<string, string>>({});
+const korbanErrors = computed(() => getErrorsFor('korban.'));
 const getErrorsFor = (prefix: string): Record<string, string> => {
     const sectionErrors: Record<string, string> = {};
     for (const key in stepErrors.value) {
@@ -119,19 +125,24 @@ const handleSubmit = async () => {
         };
 
         for (const [key, label] of Object.entries(rootRequiredFields)) {
-            const val =
-                key === 'jenisKekerasan'
-                    ? form.jenisKekerasan || form.pelapor.jenisKekerasan
-                    : form[key];
+            const val = form[key];
             if (checkIsEmpty(val)) {
                 stepErrors.value[key] = `${label} wajib diisi.`;
             }
         }
 
+        const showJurusanKorban = ['mahasiswa', 'dosen'].includes(
+            form.korban.civitas,
+        );
+        const showProdiKorban = form.korban.civitas === 'mahasiswa';
+
         for (const [key, label] of Object.entries(pelaporRequiredFields)) {
-            const val = form.pelapor[key as keyof typeof form.pelapor];
+            if (key === 'jurusan' && !showJurusanKorban) continue;
+            if (key === 'prodi' && !showProdiKorban) continue;
+
+            const val = form.korban[key as keyof typeof form.korban];
             if (checkIsEmpty(val)) {
-                stepErrors.value[`pelapor.${key}`] = `${label} wajib diisi.`;
+                stepErrors.value[`korban.${key}`] = `${label} wajib diisi.`;
             }
         }
 
@@ -183,16 +194,13 @@ watch(
         };
 
         for (const key of Object.keys(rootRequiredFields)) {
-            const val =
-                key === 'jenisKekerasan'
-                    ? newValue.jenisKekerasan || newValue.pelapor.jenisKekerasan
-                    : newValue[key];
+            const val = newValue[key];
             if (checkIsValid(val)) delete stepErrors.value[key];
         }
 
         for (const key of Object.keys(pelaporRequiredFields)) {
-            const val = newValue.pelapor[key as keyof typeof newValue.pelapor];
-            if (checkIsValid(val)) delete stepErrors.value[`pelapor.${key}`];
+            const val = newValue.korban[key as keyof typeof newValue.korban];
+            if (checkIsValid(val)) delete stepErrors.value[`korban.${key}`];
         }
     },
     { deep: true },
@@ -203,7 +211,7 @@ watch(
     <BaseModal
         :open="open"
         title="Formulir Pemeriksaan Pelapor"
-        description="Dokumentasikan hasil sesi klarifikasi awal dengan pelapor. Sesuaikan informasi pelapor jika yang melapor bukan korban."
+        description="Dokumentasikan hasil pemeriksaan terhadap pelapor, termasuk identitas korban dan terlapor."
         @close="$emit('close')"
     >
         <ReportInformationSection
@@ -216,20 +224,25 @@ watch(
         />
 
         <IdentitySection
-            v-model:form="form.pelapor"
-            :step-errors="pelaporErrors"
+            v-model:form="form.korban"
+            :step-errors="korbanErrors"
             :is-additional="true"
+            :is-gender="true"
+            :show-nomor-identitas="true"
+            :show-angkatan="true"
             :step="2"
-            subject="Pelapor"
+            subject="Korban"
         />
 
         <IdentitySection
             v-model:form="form.terlapor"
             :step-errors="terlaporErrors"
             :show-whatsapp="false"
+            :is-gender="true"
             :step="3"
             subject="Terlapor"
             :is-optional="true"
+            :civitas-options="statusTerlaporOptions"
         />
 
         <section>

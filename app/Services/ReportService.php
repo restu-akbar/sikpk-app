@@ -135,7 +135,7 @@ class ReportService
             'anggota' => ['required', 'array'],
             'anggota.*' => ['uuid'],
 
-            'edek_updates' => ['required', 'array'],
+            'edek_updates' => ['array'],
             'edek_updates.*.evidence_id' => ['required', 'uuid'],
             'edek_updates.*.edeks' => ['required', 'array'],
         ]);

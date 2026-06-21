@@ -5,13 +5,16 @@ namespace App\Http\Controllers;
 use Illuminate\Validation\ValidationException;
 use App\Helpers\Toast;
 use App\Models\Report;
+use App\Services\ReportSubjectService;
 use App\Services\FileService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class ReportDocumentController extends Controller
 {
     public function __construct(
-        protected FileService $fileService
+        protected FileService $fileService,
+        protected ReportSubjectService $reportSubjectService
     ) {
     }
 
@@ -51,12 +54,21 @@ class ReportDocumentController extends Controller
             )->validate();
 
             $report = Report::findOrFail($report);
+            $subtype = $validated['document'][0]['subtype'] ?? null;
 
-            $this->fileService->store(
-                $validated['document'] ?? [],
-                $report->reportDocuments(),
-                'documents',
-            );
+            DB::transaction(function () use ($request, $report, $subtype, $validated) {
+                $this->reportSubjectService->syncFromHandlingForm(
+                    $report,
+                    $request->all(),
+                    $subtype
+                );
+
+                $this->fileService->store(
+                    $validated['document'] ?? [],
+                    $report->reportDocuments(),
+                    'documents',
+                );
+            });
 
             return back()->with(
                 'toast',

@@ -30,7 +30,7 @@ const jenisKekerasan = defineModel<string>('jenisKekerasan');
             <FieldReadonly label="Tanggal Melapor" :value="reportDate" />
 
             <FieldReadonly
-                label="Tanggal Klarifikasi (Hari Ini)"
+                label="Tanggal Klarifikasi"
                 :value="clarificationDate"
             />
         </div>

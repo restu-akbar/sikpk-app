@@ -10,7 +10,21 @@ import DataTable from '@/components/table/DataTable.vue';
 import CryptoUnlockDialog from '@/components/CryptoUnlockDialog.vue';
 import { useCryptoUnlock } from '@/composables/useCryptoUnlock';
 import { getReportLabel } from '@/lib/mapping/reportTypeLabelMap';
-import { ArrowRight, Ban, ChevronRight, Eye, Play, Pause, Mic, X } from 'lucide-vue-next';
+import {
+    ArrowRight,
+    Ban,
+    ChevronRight,
+    Eye,
+    Play,
+    Pause,
+    Mic,
+    X,
+    FileText,
+    FileAudio,
+    FileVideo,
+    Image as ImageIcon,
+    File as FileIcon,
+} from 'lucide-vue-next';
 import { getAvatarColor, getInitials } from '@/composables/useInitials';
 import { satgasApi } from '@/lib/axios';
 import { useCryptoStore } from '@/lib/crypto/store';
@@ -194,6 +208,23 @@ const handleStepClick = (step: (typeof steps.value)[number]) => {
 
     selectedStep.value = step.title;
 };
+
+function stepCardClass(step: (typeof steps.value)[number]): string {
+    const isSelected = step.title === selectedStep.value;
+
+    const statusClass =
+        step.status === 'SELESAI'
+            ? 'border-[#2E8B57] bg-[#E6F2EB]'
+            : step.status === 'BERJALAN'
+              ? 'border-[#E5DEC1] bg-[#F9EFE3]'
+              : 'border-dashed border-[#E5DEC1] bg-[#F6F2EE] opacity-80';
+
+    if (!isSelected) {
+        return statusClass;
+    }
+
+    return `${statusClass} !border-[#1A5BA6] shadow-[0_4px_12px_rgba(26,91,166,0.1)] ring-1 ring-[#1A5BA6]`;
+}
 const isVoiceReport = computed(() => {
     return (props.report.audio_recordings?.length ?? 0) > 0;
 });
@@ -536,7 +567,7 @@ const dialogConfig = computed(() => {
         description: 'Apakah Anda yakin?',
         actionLabel: 'Lanjutkan',
         actionIcon: 'check',
-        actionVariant: 'success',
+        actionVariant: 'primary',
         showSelect: false,
         showTextarea: false,
     };
@@ -594,6 +625,35 @@ watch(
 );
 const activeViewDocMenuId = ref<string | number | null>(null);
 const eyeMenuPosition = ref({ top: '0px', left: '0px' });
+const eyeMenuPopupRef = ref<HTMLElement | null>(null);
+
+onClickOutside(
+    eyeMenuPopupRef,
+    () => {
+        activeViewDocMenuId.value = null;
+    },
+    { ignore: ['.eye-menu-btn'] },
+);
+
+function getAttachmentIconMeta(mimeType?: string | null) {
+    if (mimeType?.startsWith('audio/')) {
+        return {
+            icon: FileAudio,
+            bg: 'bg-[#F1E9FB]',
+            color: 'text-purple-600',
+        };
+    }
+    if (mimeType?.startsWith('video/')) {
+        return { icon: FileVideo, bg: 'bg-[#FCE9EC]', color: 'text-pink-600' };
+    }
+    if (mimeType?.startsWith('image/')) {
+        return { icon: ImageIcon, bg: 'bg-[#E8F5EA]', color: 'text-green-600' };
+    }
+    if (mimeType === 'application/pdf') {
+        return { icon: FileText, bg: 'bg-[#FBEEE3]', color: 'text-orange-600' };
+    }
+    return { icon: FileIcon, bg: 'bg-[#F1EFEA]', color: 'text-gray-500' };
+}
 
 async function toggleViewDocMenu(event: MouseEvent, row: any) {
     if (activeViewDocMenuId.value === row.id) {
@@ -720,12 +780,7 @@ function isRowComplete(row: any): boolean {
                             @click="handleStepClick(step)"
                             :class="[
                                 'relative flex cursor-pointer items-center justify-between rounded-xl border p-5 transition-all duration-200 select-none',
-
-                                step.status === 'BERJALAN'
-                                    ? 'border-[#104887] bg-[#F9EFE3] shadow-[0_4px_12px_rgba(16,72,135,0.1)] ring-1 ring-[#104887]'
-                                    : step.status === 'SELESAI'
-                                      ? 'border-[#22C55E] bg-[#F0FDF4]'
-                                      : 'border-dashed border-[#E5DEC1] bg-[#F6F2EE] opacity-80',
+                                stepCardClass(step),
                             ]"
                         >
                             <div class="flex items-center space-x-4">
@@ -736,7 +791,7 @@ function isRowComplete(row: any): boolean {
                                         step.status === 'BERJALAN'
                                             ? 'bg-[#E36D13] text-white'
                                             : step.status === 'SELESAI'
-                                              ? 'bg-[#22C55E] text-white'
+                                              ? 'bg-[#2E8B57] text-white'
                                               : 'border border-[#DDD7CD] bg-white text-[#8C8C8C]',
                                     ]"
                                 >
@@ -767,7 +822,7 @@ function isRowComplete(row: any): boolean {
                                     step.status === 'BERJALAN'
                                         ? 'border border-[#F5D5BA] bg-white text-[#E36D13]'
                                         : step.status === 'SELESAI'
-                                          ? 'border border-[#BBF7D0] bg-white text-[#16A34A]'
+                                          ? 'border border-[#BFE3CC] bg-white text-[#2E8B57]'
                                           : 'border border-[#E0DBCF] bg-[#EFEBE3] text-[#8C8C8C]',
                                 ]"
                             >
@@ -1097,24 +1152,23 @@ function isRowComplete(row: any): boolean {
 
                         <div
                             v-if="isReviewMode"
-                            class="mt-3 flex items-center justify-between rounded-lg border border-blue-200 bg-blue-50 px-4 py-3"
+                            class="mt-3 flex items-center gap-3 rounded-xl border border-nav-stroke bg-white p-4"
                         >
-                            <div>
-                                <p class="font-medium text-blue-800">
+                            <div
+                                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#E7EEF7]"
+                            >
+                                <Eye class="h-4 w-4 text-[#1A5BA6]" />
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <p class="font-medium text-[#3B3A37]">
                                     Mode Tinjau Dokumen
                                 </p>
-                                <p class="text-sm text-blue-700">
+                                <p class="text-sm text-[#6B6862]">
                                     Sedang melihat dokumen tahap
                                     <strong>{{ selectedStep }}</strong
                                     >.
                                 </p>
                             </div>
-
-                            <span
-                                class="shrink-0 rounded-full bg-white px-3 py-1 text-xs font-medium text-blue-700"
-                            >
-                                {{ selectedStep }}
-                            </span>
                         </div>
                     </div>
                 </template>
@@ -1168,7 +1222,8 @@ function isRowComplete(row: any): boolean {
                         <Transition name="fade-scale">
                             <div
                                 v-if="activeViewDocMenuId === row.id"
-                                class="eye-menu-popup fixed z-[100] w-56 overflow-hidden rounded-xl border border-border bg-white shadow-xl ring-1 ring-black/5"
+                                ref="eyeMenuPopupRef"
+                                class="eye-menu-popup fixed z-[100] w-64 overflow-hidden rounded-xl border bg-white shadow-xl ring-1 ring-black/5"
                                 :style="{
                                     top: eyeMenuPosition.top,
                                     left: eyeMenuPosition.left,
@@ -1176,7 +1231,7 @@ function isRowComplete(row: any): boolean {
                                 @click.stop
                             >
                                 <div
-                                    class="border-b bg-gray-50 px-3 py-2 text-xs font-semibold text-gray-500"
+                                    class="border-b bg-gray-50 px-3 py-2 text-xs font-semibold tracking-wider text-gray-500 uppercase"
                                 >
                                     Buka Berkas Kasus
                                 </div>
@@ -1194,22 +1249,27 @@ function isRowComplete(row: any): boolean {
                                             "
                                             type="button"
                                             @click.stop="viewFile(att)"
-                                            class="flex w-full items-center px-4 py-2.5 text-left text-sm text-gray-700 transition hover:bg-gray-100"
+                                            class="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition hover:bg-gray-100"
                                         >
-                                            <svg
-                                                class="mr-2.5 h-4 w-4 shrink-0 text-blue-500"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                viewBox="0 0 24 24"
+                                            <div
+                                                class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#E7EEF7]"
                                             >
-                                                <path
-                                                    stroke-linecap="round"
-                                                    stroke-linejoin="round"
-                                                    stroke-width="2"
-                                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                                                />
-                                            </svg>
-                                            <span class="truncate"
+                                                <svg
+                                                    class="h-4 w-4 text-[#1A5BA6]"
+                                                    fill="none"
+                                                    stroke="currentColor"
+                                                    stroke-width="1.5"
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <path
+                                                        stroke-linecap="round"
+                                                        stroke-linejoin="round"
+                                                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                                    />
+                                                </svg>
+                                            </div>
+                                            <span
+                                                class="truncate font-medium text-[#1B1A18]"
                                                 >PDF Berita Acara Utama</span
                                             >
                                         </button>
@@ -1227,23 +1287,32 @@ function isRowComplete(row: any): boolean {
                                             "
                                             type="button"
                                             @click.stop="viewFile(att)"
-                                            class="flex w-full items-center border-t border-gray-100 px-4 py-2.5 text-left text-sm text-gray-700 transition hover:bg-gray-100"
+                                            class="flex w-full items-center gap-3 border-t border-gray-100 px-4 py-2.5 text-left text-sm transition hover:bg-gray-100"
                                         >
-                                            <svg
-                                                class="mr-2.5 h-4 w-4 shrink-0 text-orange-500"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                viewBox="0 0 24 24"
+                                            <div
+                                                class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+                                                :class="
+                                                    getAttachmentIconMeta(
+                                                        att.mime_type,
+                                                    ).bg
+                                                "
                                             >
-                                                <path
-                                                    stroke-linecap="round"
-                                                    stroke-linejoin="round"
-                                                    stroke-width="2"
-                                                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                                <component
+                                                    :is="
+                                                        getAttachmentIconMeta(
+                                                            att.mime_type,
+                                                        ).icon
+                                                    "
+                                                    class="h-4 w-4"
+                                                    :class="
+                                                        getAttachmentIconMeta(
+                                                            att.mime_type,
+                                                        ).color
+                                                    "
                                                 />
-                                            </svg>
+                                            </div>
                                             <span
-                                                class="truncate"
+                                                class="truncate font-medium text-[#1B1A18]"
                                                 :title="att.original_filename"
                                             >
                                                 {{

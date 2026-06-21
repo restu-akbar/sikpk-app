@@ -30,9 +30,14 @@ class ReportHandlingController extends Controller
     {
         $report = $this->reportService->show(
             $id,
-            ['reportLogs', 'reporter', 'handlers', 'reportDocuments.attachments', 'reportEvidences', 'audioRecordings'],
+            ['reportLogs', 'reporter', 'handlers', 'reportDocuments.attachments', 'reportEvidences', 'audioRecordings', 'korbans', 'terlapors'],
             true
         );
+
+        $report->has_notulensi = $report->reportDocuments->contains('subtype', 'notulensi');
+        $report->korban = $report->korbans->first();
+        $report->terlapor = $report->terlapors->first();
+        unset($report->korbans, $report->terlapors);
 
         $orderedIds = DB::table('report_handlers')
             ->where('report_id', $id)

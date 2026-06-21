@@ -64,6 +64,20 @@ class Report extends Model
         return $this->hasMany(ReportDocument::class);
     }
 
+    public function reportSubjects(): HasMany
+    {
+        return $this->hasMany(ReportSubject::class);
+    }
+
+    public function korbans(): HasMany
+    {
+        return $this->hasMany(ReportSubject::class)->where('jenis', 'korban');
+    }
+
+    public function terlapors(): HasMany
+    {
+        return $this->hasMany(ReportSubject::class)->where('jenis', 'terlapor');
+    }
 
     public function audioRecordings(): HasMany
     {

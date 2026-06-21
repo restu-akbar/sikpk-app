@@ -1,5 +1,7 @@
 import jsPDF from 'jspdf';
 import { formatDate, today } from '@/lib/formatDate';
+import { getLabel } from '@/lib/getLabel';
+import { jenisKekerasanOptions } from '@/constants/jenisKekerasanOptions';
 
 export const generateWitnessReport = (report: any, form: any) => {
     const pdf = new jsPDF({
@@ -102,7 +104,10 @@ export const generateWitnessReport = (report: any, form: any) => {
     y += 3;
 
     drawSectionTitle('III. KLASIFIKASI DUGAAN KEKERASAN');
-    drawDataRow('Jenis Kekerasan', form.jenisKekerasan);
+    drawDataRow(
+        'Jenis Kekerasan',
+        getLabel(jenisKekerasanOptions, form.jenisKekerasan),
+    );
 
     y += 3;
 

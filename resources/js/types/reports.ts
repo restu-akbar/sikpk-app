@@ -19,6 +19,21 @@ export type AudioRecording = {
     updated_at: string;
 };
 
+export type ReportSubject = {
+    id: string;
+    report_id: string;
+    jenis: 'korban' | 'terlapor';
+    nama: string | null;
+    nomor_identitas: string | null;
+    nomor_wa: string | null;
+    jenis_kelamin: string | null;
+    peran_akademik: string | null;
+    jurusan: string | null;
+    prodi: string | null;
+    angkatan: string | null;
+    disabilitas: boolean;
+};
+
 export type Report = {
     id: string;
 
@@ -29,6 +44,10 @@ export type Report = {
     team_number: string;
     statusTerlapor: string;
     progress: string;
+
+    status_pelapor: string;
+    nama_terlapor: string;
+    status_terlapor: string;
 
     jenis_kekerasan: string;
     tempat_kejadian: string;
@@ -43,6 +62,10 @@ export type Report = {
     members: User[];
     bukti: string[];
     audio_recordings?: AudioRecording[];
+
+    has_notulensi?: boolean;
+    korban?: ReportSubject | null;
+    terlapor?: ReportSubject | null;
 
     agreed: boolean;
 

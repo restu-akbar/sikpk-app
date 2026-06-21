@@ -4,7 +4,7 @@ export const statusCivitasOptions = [
     { value: 'tendik', label: 'Tenaga Kependidikan' },
 ];
 
-export const statusTerlaporrOptions = [
+export const statusTerlaporOptions = [
     { value: 'mahasiswa', label: 'Mahasiswa' },
     { value: 'dosen', label: 'Dosen' },
     { value: 'tendik', label: 'Tenaga Kependidikan' },
