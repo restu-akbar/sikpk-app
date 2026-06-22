@@ -45,7 +45,7 @@ jobs:
           az containerapp exec \
             --name sikpk-app \
             --resource-group kota301 \
-            --command "php artisan migrate --force"
+            --command "php artisan migrate --force" </dev/null
 
       - name: Check Revisions
         run: |
