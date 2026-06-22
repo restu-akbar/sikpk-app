@@ -1,6 +1,6 @@
 import '../css/app.css';
 
-import { createInertiaApp } from '@inertiajs/vue3';
+import { createInertiaApp, router } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import { createPinia } from 'pinia';
 import { createApp, h } from 'vue';
@@ -12,6 +12,7 @@ import PublicLayout from '@/layouts/PublicLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
 import RootLayout from './RootLayout.vue';
 import { vReveal } from '@/directives/vReveal';
+import { useCryptoStore } from './lib/crypto/store';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -79,6 +80,17 @@ createInertiaApp({
 
         if (typeof window !== 'undefined') {
             app.mount(el);
+            const cryptoStore = useCryptoStore();
+
+            router.on('success', () => {
+                cryptoStore.extendSession();
+            });
+
+            const handleUserActivity = () => {
+                cryptoStore.extendSession();
+            };
+            window.addEventListener('click', handleUserActivity);
+            window.addEventListener('keydown', handleUserActivity);
         }
 
         return app;

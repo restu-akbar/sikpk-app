@@ -21,7 +21,7 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction \
 RUN chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 
-COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY docker/azure/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 EXPOSE 8000
