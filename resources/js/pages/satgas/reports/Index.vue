@@ -89,7 +89,7 @@ const rejectOptions = computed(() => {
 });
 
 const form = useForm({
-    progress: '',
+    type: '',
     reason: '',
     note: '',
 });
@@ -97,7 +97,7 @@ const form = useForm({
 async function submitReject() {
     if (!selectedReport.value) return;
 
-    form.progress = 'reject';
+    form.type = 'reject';
     form.reason = rejectReason.value;
     form.note = rejectNote.value;
 

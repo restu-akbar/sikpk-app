@@ -20,6 +20,7 @@ import {
     statusOptions,
 } from '@/constants/statusCivitasOptions';
 import { disabilityOptions } from '@/constants/disability';
+import { nomorIdentitasRules } from '@/constants/nomorIdentitasRules';
 import { getInitials, getAvatarColor } from '@/composables/useInitials';
 import { useCryptoStore } from '@/lib/crypto/store';
 import { decryptFile } from '@/lib/mediaCrypto';
@@ -173,8 +174,53 @@ function formatDuration(seconds: number) {
     return `${m}:${s.toString().padStart(2, '0')}`;
 }
 
+function nomorIdentitasLabel(peranAkademik?: string | null): string {
+    return nomorIdentitasRules[peranAkademik ?? '']?.label ?? 'Nomor Identitas';
+}
+
+function withoutEmpty(fields: { label: string; value: any }[]) {
+    return fields.filter(
+        (field) => field.value !== null && field.value !== undefined && field.value !== '',
+    );
+}
+
+function formatDisabilitasBoolean(value: any): string {
+    return value ? 'Ya' : 'Tidak';
+}
+
 function identitasFields(report: any) {
-    const fields = [
+    const statusPelaporField = {
+        label: 'Status Pelapor',
+        value: getLabel(statusOptions, report.status_pelapor),
+    };
+
+    const korban = report.korban;
+
+    if (korban) {
+        return withoutEmpty([
+            { label: 'Nama', value: korban.nama },
+            {
+                label: 'Peran',
+                value: getLabel(statusCivitasOptions, korban.peran_akademik),
+            },
+            {
+                label: nomorIdentitasLabel(korban.peran_akademik),
+                value: korban.nomor_identitas,
+            },
+            statusPelaporField,
+            { label: 'Jurusan', value: korban.jurusan },
+            { label: 'Program Studi', value: korban.prodi },
+            { label: 'Angkatan', value: korban.angkatan },
+            { label: 'Gender', value: korban.jenis_kelamin },
+            {
+                label: 'Disabilitas',
+                value: formatDisabilitasBoolean(korban.disabilitas),
+            },
+            { label: 'No Whatsapp', value: korban.nomor_wa },
+        ]);
+    }
+
+    return withoutEmpty([
         { label: 'Nama', value: report.reporter?.name },
         {
             label: 'Peran',
@@ -183,10 +229,7 @@ function identitasFields(report: any) {
                 report.reporter?.status_civitas,
             ),
         },
-        {
-            label: 'Status Pelapor',
-            value: getLabel(statusOptions, report.status_pelapor),
-        },
+        statusPelaporField,
         { label: 'Jurusan', value: report.reporter?.jurusan },
         { label: 'Program Studi', value: report.reporter?.prodi },
         {
@@ -195,16 +238,7 @@ function identitasFields(report: any) {
         },
         { label: 'Email', value: report.reporter?.email },
         { label: 'Telepon', value: report.reporter?.whatsapp },
-    ];
-
-    if (!isLaporanBaru.value) {
-        fields.splice(5, 0, {
-            label: 'Angkatan',
-            value: report.reporter?.angkatan,
-        });
-    }
-
-    return fields;
+    ]);
 }
 
 function formatDisabilitas(value: any): string {

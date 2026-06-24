@@ -79,6 +79,7 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
             Route::prefix('reports')->name('reports.')->group(function () {
                 Route::post('assign/{id}', [ReportController::class, 'assign'])->name('assign');
                 Route::put('reject/{id}', [ReportController::class, 'reject'])->name('reject');
+                Route::put('{report}/archive-edeks', [ReportController::class, 'archiveEdeks'])->name('archiveEdeks');
 
                 Route::prefix('handling')->name('handling.')->group(function () {
                     Route::get('', [ReportHandlingController::class, 'index'])->name('index');
@@ -91,6 +92,7 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
             });
 
             Route::resource('reports', ReportController::class);
+            Route::get('archive', [ReportController::class, 'archive'])->name('archive');
             Route::get('crypto', [KeyController::class, 'show'])->name('crypto');
             Route::get('audio-recordings/{audioRecording}', [AudioRecordingController::class, 'show'])->name('audio-recordings.show');
 

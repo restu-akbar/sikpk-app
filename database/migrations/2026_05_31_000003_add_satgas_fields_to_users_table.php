@@ -27,7 +27,6 @@ return new class extends Migration
                 ->after('department');
         });
 
-        // Expand role enum — PostgreSQL stores it as VARCHAR with CHECK constraint
         DB::statement('ALTER TABLE users DROP CONSTRAINT IF EXISTS users_role_check');
         DB::statement("
             ALTER TABLE users

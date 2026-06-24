@@ -33,21 +33,18 @@ const form = useForm({
     document: [] as File[][],
 });
 
-const stepErrors = ref<Record<number, string>>({});
+const generalError = ref('');
 const { getTeamPublicKeys, encryptToPayload } = useDocumentEncryption();
 const handleSubmit = async () => {
     try {
-        stepErrors.value = {};
+        generalError.value = '';
 
-        props.attachmentFields.forEach((_, index) => {
-            const files = form.document[index] ?? [];
+        const hasAnyFile = props.attachmentFields.some(
+            (_, index) => (form.document[index] ?? []).length > 0,
+        );
 
-            if (!files.length) {
-                stepErrors.value[index] = 'Berkas wajib diunggah';
-            }
-        });
-
-        if (Object.keys(stepErrors.value).length > 0) {
+        if (!hasAnyFile) {
+            generalError.value = 'Pilih minimal satu berkas untuk diunggah.';
             return;
         }
 
@@ -91,7 +88,7 @@ const handleSubmit = async () => {
         });
     } catch (error) {
         console.error(error);
-        stepErrors.value.general =
+        generalError.value =
             error instanceof Error
                 ? error.message
                 : 'Terjadi kesalahan tidak terduga.';
@@ -126,7 +123,11 @@ function getAcceptHint(accept: string) {
         description="Unggah berkas pendukung untuk melengkapi dokumen penanganan."
         @close="$emit('close')"
     >
-        <FormSectionTitle title="Berkas yang harus diunggah" size="md" />
+        <FormSectionTitle title="Berkas yang masih perlu diunggah" size="md" />
+        <p class="mb-3 text-sm text-muted-foreground">
+            Isi salah satu atau beberapa berkas di bawah, sisanya boleh
+            dilengkapi nanti.
+        </p>
 
         <section
             v-for="(field, index) in attachmentFields"
@@ -140,10 +141,12 @@ function getAcceptHint(accept: string) {
                 :label="field.description"
                 :hint="getAcceptHint(field.accept)"
                 :accept="field.accept"
-                :required="true"
-                :error="stepErrors[index]"
             />
         </section>
+
+        <p v-if="generalError" class="mt-2 text-sm text-red-600">
+            {{ generalError }}
+        </p>
 
         <template #footer>
             <DialogFooter

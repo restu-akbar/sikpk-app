@@ -16,12 +16,41 @@ use Illuminate\Validation\ValidationException;
 
 class ReportService
 {
-    protected function query(array $with = [], bool $handler = false): Builder
-    {
+    private const PROGRESS_FLOW = [
+        'Laporan Baru', 'Klarifikasi', 'Pemeriksaan', 'Kesimpulan', 'Pasca', 'Selesai',
+    ];
+
+    private const REQUIRED_DOCUMENTS = [
+        'Klarifikasi' => [
+            'notulensi' => ['document' => 1, 'documentation' => 2],
+        ],
+        'Pemeriksaan' => [
+            'periksa_pelapor' => ['document' => 1, 'documentation' => 3],
+            'periksa_terlapor' => ['document' => 1, 'documentation' => 3],
+        ],
+        'Kesimpulan' => [
+            'kesimpulan_rekomendasi' => ['document' => 1, 'documentation' => 2],
+        ],
+    ];
+
+    protected function query(
+        array $with = [],
+        bool $handler = false,
+        array $progressIn = [],
+        array $progressNotIn = [],
+    ): Builder {
         $query = Report::query();
 
         if (! empty($with)) {
             $query->with($with);
+        }
+
+        if (! empty($progressIn)) {
+            $query->whereIn('progress', $progressIn);
+        }
+
+        if (! empty($progressNotIn)) {
+            $query->whereNotIn('progress', $progressNotIn);
         }
 
         if (auth('google')->check()) {
@@ -43,9 +72,14 @@ class ReportService
         return $query;
     }
 
-    public function index(bool $paginate = true, array $with = [], bool $handler = false)
-    {
-        $query = $this->query($with, $handler)->latest();
+    public function index(
+        bool $paginate = true,
+        array $with = [],
+        bool $handler = false,
+        array $progressIn = [],
+        array $progressNotIn = [],
+    ) {
+        $query = $this->query($with, $handler, $progressIn, $progressNotIn)->latest();
 
         return $paginate
             ? $query->paginate(10)
@@ -175,6 +209,7 @@ class ReportService
         $request->validate([
             'type' => ['required', Rule::in(['stop', 'reject'])],
             'reason' => ['required', 'string'],
+            'note' => ['sometimes', 'string', 'nullable'],
         ]);
 
         $report = Report::findOrFail($id);
@@ -183,7 +218,8 @@ class ReportService
             'progress' => $request->type === 'stop'
                 ? 'Laporan Dihentikan'
                 : 'Laporan Ditolak',
-            'reject_reason' => $request->reason,
+            'rejected_reason' => $request->reason,
+            'note_reason' => $request->note,
         ]);
     }
 
@@ -191,9 +227,79 @@ class ReportService
     {
         $validated = $this->validate($data);
 
+        if (array_key_exists('progress', $validated)) {
+            $this->assertCanTransitionProgress($report, $validated['progress']);
+        }
+
         $report->update($validated);
 
         return $report->fresh();
+    }
+
+    private function assertCanTransitionProgress(Report $report, string $newProgress): void
+    {
+        $current = $report->progress;
+
+        if (in_array($current, Report::ARCHIVED_PROGRESS, true)) {
+            throw ValidationException::withMessages([
+                'progress' => 'Laporan ini sudah final dan tidak dapat diubah lagi.',
+            ]);
+        }
+
+        if ($newProgress === $current) {
+            return;
+        }
+
+        $isExitTransition = in_array($newProgress, ['Laporan Dihentikan', 'Laporan Ditolak'], true);
+
+        if (! $isExitTransition) {
+            $currentIndex = array_search($current, self::PROGRESS_FLOW, true);
+            $nextIndex = array_search($newProgress, self::PROGRESS_FLOW, true);
+
+            if ($currentIndex === false || $nextIndex === false || $nextIndex !== $currentIndex + 1) {
+                throw ValidationException::withMessages([
+                    'progress' => 'Tahapan penanganan tidak valid.',
+                ]);
+            }
+        }
+
+        $this->assertDocumentsComplete($report, $current);
+    }
+
+    private function assertDocumentsComplete(Report $report, string $progress): void
+    {
+        foreach ($this->requiredDocumentsFor($progress) as $subtype => $rules) {
+            $docs = $report->reportDocuments()
+                ->where('type', $progress)
+                ->where('subtype', $subtype)
+                ->with('attachments')
+                ->get();
+
+            if ($docs->count() < ($rules['document'] ?? 0)) {
+                throw ValidationException::withMessages([
+                    'progress' => "Dokumen wajib pada tahap {$progress} belum lengkap.",
+                ]);
+            }
+
+            $minDocumentation = $rules['documentation'] ?? 0;
+
+            foreach ($docs as $doc) {
+                $count = $doc->attachments
+                    ->where('attachment_type', 'documentation')
+                    ->count();
+
+                if ($count < $minDocumentation) {
+                    throw ValidationException::withMessages([
+                        'progress' => "Dokumentasi pada tahap {$progress} belum lengkap.",
+                    ]);
+                }
+            }
+        }
+    }
+
+    private function requiredDocumentsFor(string $progress): array
+    {
+        return self::REQUIRED_DOCUMENTS[$progress] ?? [];
     }
 
     public function isKetuaTim(Report $report, string $userId): bool

@@ -14,6 +14,12 @@ class Report extends Model
 {
     use HasUuids;
 
+    public const ARCHIVED_PROGRESS = [
+        'Selesai',
+        'Laporan Dihentikan',
+        'Laporan Ditolak',
+    ];
+
     protected $fillable = [
         'reporter_id',
         'case_number',

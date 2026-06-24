@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Module;
 
 use App\Helpers\Toast;
 use App\Http\Controllers\Controller;
+use App\Models\Report;
 use App\Models\User;
 use App\Services\ReportService;
 use Inertia\Inertia;
@@ -65,7 +66,7 @@ class ReportHandlingController extends Controller
 
     public function index()
     {
-        $reports = $this->reportService->index(false, ['handlers', 'reporter'], true);
+        $reports = $this->reportService->index(false, ['handlers', 'reporter'], true, [], Report::ARCHIVED_PROGRESS);
 
         $reports = $reports->map(function ($report) {
 

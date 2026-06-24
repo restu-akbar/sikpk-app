@@ -8,6 +8,7 @@ import { Report } from '@/types/reports';
 
 defineProps<{
     report: Report;
+    closedAt?: string | null;
 }>();
 
 defineEmits<{
@@ -26,6 +27,9 @@ defineEmits<{
         <p class="mt-0.5 text-xs text-muted-foreground">
             {{ getLabel(jenisKekerasanOptions, report.jenis_kekerasan) }}
             - Dilaporkan {{ formatDate(report.created_at, false) }}
+            <template v-if="closedAt">
+                · Ditutup {{ formatDate(closedAt, false) }}
+            </template>
         </p>
         <button
             class="absolute top-5 right-5 flex h-7 w-7 items-center justify-center rounded-lg hover:bg-muted"

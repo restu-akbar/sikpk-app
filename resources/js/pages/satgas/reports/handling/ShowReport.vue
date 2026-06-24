@@ -26,8 +26,12 @@ import {
     File as FileIcon,
 } from 'lucide-vue-next';
 import { getAvatarColor, getInitials } from '@/composables/useInitials';
+import axios from 'axios';
 import { satgasApi } from '@/lib/axios';
 import { useCryptoStore } from '@/lib/crypto/store';
+import { getPublicKeys } from '@/lib/crypto/getPublicKeys';
+import { base64ToBuffer, bufferToBase64 } from '@/lib/crypto/base64';
+import { rsaDecrypt, rsaEncrypt } from '@/lib/crypto/rsa-oaep';
 import { decryptFile } from '@/lib/mediaCrypto';
 import {
     DEFAULT_REJECTED_REASONS,
@@ -38,6 +42,8 @@ import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import { useForm } from '@inertiajs/vue3';
 import { handleEdit } from '@/lib/handleRequest';
 import { update } from '@/routes/satgas/reports';
+import { dashboard } from '@/routes';
+import { router } from '@inertiajs/vue3';
 import { onClickOutside } from '@vueuse/core';
 import ClarifyModal from '@/components/ClarifyModal.vue';
 import DocumentationModal from '@/components/DocumentationModal.vue';
@@ -46,8 +52,6 @@ import ReporterInspectionModal from '@/components/ReporterInspectionModal.vue';
 import SuspectInspectionModal from '@/components/SuspectInspectionModal.vue';
 import { toast } from 'vue-sonner';
 import ConclusionModal from '@/components/ConclusionModal.vue';
-import BapResultModal from '@/components/BapResultModal.vue';
-import SuspectStatementModal from '@/components/SuspectStatementModal.vue';
 import VictimRecoveryModal from '@/components/VictimRecoveryModal.vue';
 import VindicationModal from '@/components/VindicationModal.vue';
 
@@ -58,8 +62,6 @@ const dialogRegistry: Record<string, any> = {
     periksa_pelapor: ReporterInspectionModal,
     periksa_terlapor: SuspectInspectionModal,
     kesimpulan_rekomendasi: ConclusionModal,
-    penyampaian_hasil: BapResultModal,
-    pernyataan_pelaku: SuspectStatementModal,
     pemulihan_korban: VictimRecoveryModal,
     pemulihan_nama_baik: VindicationModal,
 };
@@ -196,6 +198,39 @@ const documentationFieldsMap = {
             accept: '.pdf',
         },
     ],
+
+    Kesimpulan: [
+        {
+            label: 'Berita Acara Penyampaian Hasil',
+            description:
+                'Hasil scan dokumen BAP Penyampaian hasil yang sudah ditandatangani',
+            accept: '.pdf',
+        },
+        {
+            label: 'Video Penandatanganan Penyampaian Hasil',
+            description: 'File video sesi penandatanganan oleh korban',
+            accept: 'video/*',
+        },
+        {
+            label: 'Surat Pernyataan Pelaku',
+            description: 'Hasil scan dokumen Pernyataan Pelaku yang sudah ditandatangani',
+            accept: '.pdf',
+        },
+        {
+            label: 'Video Penandatanganan Pernyataan Pelaku',
+            description: 'File video sesi penandatanganan oleh terlapor',
+            accept: 'video/*',
+        },
+    ],
+
+    Pasca: [
+        {
+            label: 'Berita Acara Pasca Penanganan',
+            description:
+                'Hasil scan dokumen yang sudah ditandatangani',
+            accept: '.pdf',
+        },
+    ],
 };
 
 const documentationFields = computed(() => {
@@ -325,22 +360,28 @@ function audioProgress(audioId: string): number {
     return (current / duration) * 100;
 }
 
-const documentOptionsMap = {
-    Klarifikasi: ['notulensi'],
-    Pemeriksaan: ['periksa_saksi', 'periksa_pelapor', 'periksa_terlapor'],
-    Kesimpulan: [
-        'kesimpulan_rekomendasi',
-        'penyampaian_hasil',
-        'pernyataan_pelaku',
+const documentOptionsMap: Record<
+    string,
+    { subtype: string; required: boolean }[]
+> = {
+    Klarifikasi: [{ subtype: 'notulensi', required: true }],
+    Pemeriksaan: [
+        { subtype: 'periksa_saksi', required: false },
+        { subtype: 'periksa_pelapor', required: true },
+        { subtype: 'periksa_terlapor', required: true },
     ],
-    Pasca: ['pemulihan_korban', 'pemulihan_nama_baik'],
+    Kesimpulan: [{ subtype: 'kesimpulan_rekomendasi', required: true }],
+    Pasca: [
+        { subtype: 'pemulihan_korban', required: false },
+        { subtype: 'pemulihan_nama_baik', required: false },
+    ],
 };
 
 const availableDocumentOptions = computed(() => {
     const progress = props.report.progress;
     const options = documentOptionsMap[progress] ?? [];
 
-    return options.map((subtype) => ({
+    return options.map(({ subtype }) => ({
         subtype,
         label: getReportLabel(progress, subtype),
     }));
@@ -358,19 +399,19 @@ const validationRulesMap: Record<
         periksa_terlapor: { document: 1, documentation: 3 },
     },
     Kesimpulan: {
-        kesimpulan_rekomendasi: { document: 1 },
-        penyampaian_hasil: { document: 1 },
-        pernyataan_pelaku: { document: 1 },
+        kesimpulan_rekomendasi: { document: 1, documentation: 2 },
     },
     Pasca: {
-        pemulihan_korban: { document: 1 },
-        pemulihan_nama_baik: { document: 1 },
+        pemulihan_korban: { document: 1, documentation: 1 },
+        pemulihan_nama_baik: { document: 1, documentation: 1},
     },
 };
 
 const isAllDocumentsComplete = computed(() => {
-    const progress = selectedStep.value as keyof typeof documentOptionsMap;
-    const requiredSubtypes = documentOptionsMap[progress] ?? [];
+    const progress = selectedStep.value;
+    const requiredSubtypes = (documentOptionsMap[progress] ?? [])
+        .filter((opt) => opt.required)
+        .map((opt) => opt.subtype);
 
     const currentDocs =
         props.report.report_documents?.filter(
@@ -384,9 +425,12 @@ const isAllDocumentsComplete = computed(() => {
     if (!hasAllRequiredDocs) return false;
 
     const stepRules = validationRulesMap[progress];
-    if (!stepRules || Object.keys(stepRules).length === 0) return true;
+    if (!stepRules) return true;
 
-    return Object.entries(stepRules).every(([subtype, targetTypes]) => {
+    return requiredSubtypes.every((subtype) => {
+        const targetTypes = stepRules[subtype];
+        if (!targetTypes) return true;
+
         const docsOfSubtype = currentDocs.filter((d) => d.subtype === subtype);
 
         const minDocRequired = targetTypes.document ?? 0;
@@ -427,10 +471,6 @@ const columns = [
 
 function isRowClickable(row: any): boolean {
     if (isReviewMode.value) return false;
-    const isProgressValid = ['Klarifikasi', 'Pemeriksaan'].includes(
-        props.report.progress,
-    );
-    if (!isProgressValid) return false;
 
     const attachments = row.attachments || [];
     const documentationRows = attachments.filter(
@@ -441,7 +481,7 @@ function isRowClickable(row: any): boolean {
         validationRulesMap[selectedStep.value]?.[row.subtype] ?? {};
     const requiredDocPerFile = stepRules.documentation ?? 0;
 
-    return documentationRows.length < requiredDocPerFile;
+    return requiredDocPerFile > 0 && documentationRows.length < requiredDocPerFile;
 }
 
 function onRowClick(row: any) {
@@ -453,11 +493,15 @@ function onRowClick(row: any) {
 function handleRowClick(row: any) {
     if (!row || isReviewMode.value) return;
 
+    const existingCount = (row.attachments || []).filter(
+        (a: any) => a.attachment_type === 'documentation',
+    ).length;
+
     openDialog('documentation', {
         report: props.report,
         subtype: row.subtype,
         documentId: row.id,
-        attachmentFields: documentationFields.value,
+        attachmentFields: documentationFields.value.slice(existingCount),
     });
 }
 
@@ -587,9 +631,17 @@ function handleConfirm() {
 
     closeConfirmDialog();
 }
+const FINAL_PROGRESS = ['Selesai', 'Laporan Dihentikan', 'Laporan Ditolak'];
+
 function stopHandling() {
     form.progress = 'Laporan Dihentikan';
-    handleEdit(form, update(props.report.id));
+    handleEdit(form, update(props.report.id), {
+        onSuccess: () => {
+            if (FINAL_PROGRESS.includes(form.progress)) {
+                archiveTeamEdeks();
+            }
+        },
+    });
 }
 
 const progressFlow = [
@@ -610,7 +662,58 @@ function continueHandling() {
 
     form.progress = progressFlow[currentIndex + 1];
 
-    handleEdit(form, update(props.report.id));
+    handleEdit(form, update(props.report.id), {
+        onSuccess: () => {
+            if (FINAL_PROGRESS.includes(form.progress)) {
+                archiveTeamEdeks();
+            }
+
+            if (form.progress === 'Selesai') {
+                router.visit(dashboard.url());
+            }
+        },
+    });
+}
+
+async function archiveTeamEdeks() {
+    try {
+        if (!cryptoStore.privateKey) return;
+
+        const ketuaPublicKeys = await getPublicKeys();
+
+        const documentAttachments = (props.report.report_documents ?? [])
+            .flatMap((doc: any) => doc.attachments ?? []);
+
+        const attachments: { id: string; edeks: Record<string, string> }[] =
+            [];
+
+        for (const attachment of documentAttachments) {
+            const myEdek = attachment.edeks?.[cryptoStore.userId];
+            if (!myEdek) continue;
+
+            const dekRaw = await rsaDecrypt(
+                cryptoStore.privateKey,
+                base64ToBuffer(myEdek),
+            );
+
+            const newEdeks: Record<string, string> = {};
+            for (const [userId, publicKey] of Object.entries(
+                ketuaPublicKeys,
+            )) {
+                newEdeks[userId] = bufferToBase64(
+                    await rsaEncrypt(publicKey, dekRaw),
+                );
+            }
+
+            attachments.push({ id: attachment.id, edeks: newEdeks });
+        }
+
+        await axios.put(`/satgas/reports/${props.report.id}/archive-edeks`, {
+            attachments,
+        });
+    } catch (error) {
+        console.error('Gagal mempersempit edeks arsip:', error);
+    }
 }
 
 watch(

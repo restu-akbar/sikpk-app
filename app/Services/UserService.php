@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Mail\AccountCreatedMail;
+use App\Models\Report;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
@@ -31,7 +32,10 @@ class UserService extends BaseService
     {
         return $this->query()
             ->where('must_change_password', false)
-            ->withCount('handledReports')
+            ->withCount(['handledReports' => fn (Builder $query) => $query->whereNotIn(
+                'progress',
+                Report::ARCHIVED_PROGRESS
+            )])
             ->latest()
             ->paginate($perPage);
     }

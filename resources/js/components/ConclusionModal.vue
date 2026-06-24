@@ -29,7 +29,7 @@ const emit = defineEmits<{
 }>();
 
 const form = useForm({
-    jenisKekerasan: '',
+    jenisKekerasan: props.report.jenis_kekerasan ?? '',
     status: '',
     hasil: '',
     rekomendasiSanksi: '',

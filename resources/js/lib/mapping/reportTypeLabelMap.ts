@@ -28,12 +28,6 @@ const reportTypeLabelMap: Record<
         kesimpulan_rekomendasi: {
             document: 'Formulir Kesimpulan dan Rekomendasi',
         },
-        penyampaian_hasil: {
-            document: 'Surat BAP Penyampaian Hasil',
-        },
-        pernyataan_pelaku: {
-            document: 'Surat Pernyataan Pelaku',
-        },
     },
 
     Pasca: {

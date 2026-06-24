@@ -22,9 +22,9 @@ const props = defineProps<{
                 class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
             >
                 <h2
-                    class="text-lg font-bold text-gray-900 sm:text-[22px]"
+                    class="font-mono text-lg font-bold text-gray-900 sm:text-[22px]"
                 >
-                    {{ getLabel(jenisKekerasanOptions, report.title) }}
+                    {{ report.caseNumber }}
                 </h2>
                 <ProgressBadge :status="report.progress" size="large" />
             </div>
@@ -61,10 +61,10 @@ const props = defineProps<{
                     <p
                         class="mb-1 text-xs font-bold tracking-widest text-gray-500 uppercase"
                     >
-                        Nomor Laporan
+                        Jenis Kekerasan
                     </p>
-                    <p class="font-mono text-sm font-medium text-gray-900 sm:text-base">
-                        {{ report.caseNumber }}
+                    <p class="text-sm font-medium text-gray-900 sm:text-base">
+                        {{ getLabel(jenisKekerasanOptions, report.title) }}
                     </p>
                 </div>
 
