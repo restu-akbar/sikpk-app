@@ -13,6 +13,6 @@ export const statusTerlaporOptions = [
 ];
 
 export const statusOptions = [
-    { label: 'Korban langsung', value: 'korban' },
+    { label: 'Korban', value: 'korban' },
     { label: 'Saksi', value: 'saksi' },
 ];

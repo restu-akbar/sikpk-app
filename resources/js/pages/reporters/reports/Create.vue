@@ -168,6 +168,7 @@ const step1Fields = computed(() => {
 const stepValidatorsForm = computed(() => ({
     1: step1Fields.value,
     2: [
+        ['namaTerlapor', 'Nama terlapor wajib diisi'],
         ['jenisKekerasan', 'Jenis kekerasan wajib dipilih'],
         ['tempatKejadian', 'Tempat kejadian wajib diisi'],
         ['waktuKejadian', 'Waktu kejadian wajib diisi'],
@@ -577,7 +578,7 @@ const handleSubmit = async () => {
                     </div>
                 </div>
 
-                <!-- Form Card -->
+               <!-- Form Card -->
                 <form @submit.prevent="handleSubmit">
                     <div class="bg-white p-4 sm:p-8">
                         <!-- STEP 1 -->
@@ -585,16 +586,18 @@ const handleSubmit = async () => {
                             <h2 class="mb-1 text-xl font-bold text-gray-900">
                                 Data Pelapor
                             </h2>
-                            <p class="mb-8 text-sm leading-relaxed text-gray-500">
-                                Mohon mengisi identitas dengan benar dan sesuai
-                                data diri yang sebenarnya. Setiap laporan akan
-                                melalui proses verifikasi dan validasi.
-                                Kerahasiaan identitas Anda tetap terjaga dan
-                                hanya dapat diakses oleh Ketua Satgas. Nomor
-                                WhatsApp yang dicantumkan akan digunakan untuk
-                                keperluan komunikasi dan tindak lanjut terkait
-                                laporan yang disampaikan.
-                            </p>
+
+                            <!-- Info Notice -->
+                            <div class="mb-8 flex gap-3 rounded-lg border border-blue-100 bg-blue-50 p-4">
+                                <div class="shrink-0 text-blue-500">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="size-5 mt-0.5" viewBox="0 0 24 24" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm8.706-1.442c1.146-.573 2.437.463 2.126 1.706l-.709 2.836.042-.02a.75.75 0 01.67 1.34l-.04.022c-1.147.573-2.438-.463-2.127-1.706l.71-2.836-.042.02a.75.75 0 11-.671-1.34l.041-.022zM12 9a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd" />
+                                    </svg>
+                                </div>
+                                <p class="text-sm leading-relaxed text-blue-700">
+                                    Mohon mengisi identitas dengan benar dan sesuai data diri yang sebenarnya. Setiap laporan akan melalui proses verifikasi dan validasi. <span class="font-semibold">Kerahasiaan identitas Anda tetap terjaga</span> dan hanya dapat diakses oleh Anggota Satgas. Nomor WhatsApp yang dicantumkan akan digunakan untuk keperluan komunikasi dan tindak lanjut terkait laporan yang disampaikan.
+                                </p>
+                            </div>
 
                             <FormCardSection>
                                 <FormSectionTitle title="Identitas Anda" />
@@ -721,9 +724,10 @@ const handleSubmit = async () => {
                                         name="namaTerlapor"
                                         v-model="form.namaTerlapor"
                                         label="Nama dugaan terlapor"
+                                        required
                                         :error="stepErrors.namaTerlapor"
                                         placeholder="Nama / inisial pihak terlapor"
-                                        hint="Anda dapat mengosongkan nama dugaan terlapor jika belum tahu/yakin."
+                                        hint="Anda dapat mengisi 'Tidak Diketahui' jika belum mengetahui atau belum yakin identitas terlapor"
                                     />
                                     <DropdownField
                                         name="statusTerlapor"
