@@ -44,7 +44,6 @@ class HandleInertiaRequests extends Middleware
                     $satgas   = $request->user();
 
                     if ($reporter) {
-                        // Reporter: hanya field yang relevan, tanpa data kripto Satgas
                         return [
                             'id'             => $reporter->id,
                             'name'           => $reporter->name,
@@ -62,7 +61,6 @@ class HandleInertiaRequests extends Middleware
                     }
 
                     if ($satgas) {
-                        // Satgas: semua field termasuk data kripto
                         return [
                             'id'    => $satgas->id,
                             'name'  => $satgas->name,

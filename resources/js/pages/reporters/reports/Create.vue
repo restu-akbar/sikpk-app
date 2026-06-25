@@ -388,12 +388,20 @@ const summaryItems = computed(() => {
     return base;
 });
 
+const isSubmitting = ref(false);
+
 const handleSubmit = async () => {
+    if (isSubmitting.value) {
+        return;
+    }
+
     stepErrors.value = {};
 
     if (!validateStep(3)) {
         return;
     }
+
+    isSubmitting.value = true;
 
     try {
         const publicKeys = await getPublicKeys();
@@ -468,8 +476,12 @@ const handleSubmit = async () => {
                 audioRecordings.value = [];
             },
             onError: () => {},
+            onFinish: () => {
+                isSubmitting.value = false;
+            },
         });
     } catch (error) {
+        isSubmitting.value = false;
         console.error(error);
     }
 };
@@ -970,9 +982,10 @@ const handleSubmit = async () => {
                             <button
                                 v-else
                                 type="submit"
-                                class="flex items-center gap-2 rounded-lg bg-[#F97316] px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-orange-600"
+                                :disabled="isSubmitting"
+                                class="flex items-center gap-2 rounded-lg bg-[#F97316] px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
                             >
-                                Kirim Laporan
+                                {{ isSubmitting ? 'Mengirim...' : 'Kirim Laporan' }}
                                 <svg
                                     class="h-4 w-4"
                                     fill="none"

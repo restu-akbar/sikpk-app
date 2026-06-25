@@ -35,15 +35,19 @@ class UserController extends Controller
             'name'             => ['required', 'string', 'max:255'],
             'email'            => ['required', 'email', 'unique:users,email'],
             'role'          => ['required', Rule::in(['ketua', 'wakil_ketua', 'sekretaris', 'anggota'])],
-            'academic_role' => ['required', Rule::in(['dosen', 'mahasiswa'])],
+            'academic_role' => ['required', Rule::in(['dosen', 'mahasiswa', 'tendik'])],
             'entry_year'    => ['nullable', 'integer', 'min:1900', 'max:' . date('Y')],
             'department'    => ['nullable', 'string', 'max:255'],
             'study_program' => ['nullable', 'string', 'max:255'],
         ]);
 
-        $this->userService->createAnggota($validated);
+        try {
+            $this->userService->createAnggota($validated);
 
-        return back()->with('success', 'Anggota berhasil ditambahkan.');
+            return back()->with('success', 'Anggota berhasil ditambahkan.');
+        } catch (\Exception $e) {
+            return back()->with('toast', Toast::error($e->getMessage()));
+        }
     }
 
     public function update(Request $request, User $user)
@@ -52,15 +56,19 @@ class UserController extends Controller
             'name'             => ['required', 'string', 'max:255'],
             'email'            => ['required', 'email', Rule::unique('users')->ignore($user->id)],
             'role'          => ['required', Rule::in(['ketua', 'wakil_ketua', 'sekretaris', 'anggota'])],
-            'academic_role' => ['required', Rule::in(['dosen', 'mahasiswa'])],
+            'academic_role' => ['required', Rule::in(['dosen', 'mahasiswa', 'tendik'])],
             'entry_year'    => ['nullable', 'integer', 'min:1900', 'max:' . date('Y')],
             'department'    => ['nullable', 'string', 'max:255'],
             'study_program' => ['nullable', 'string', 'max:255'],
         ]);
 
-        $this->userService->updateAnggota($user, $validated);
+        try {
+            $this->userService->updateAnggota($user, $validated);
 
-        return back()->with('success', 'Anggota berhasil diperbarui.');
+            return back()->with('success', 'Anggota berhasil diperbarui.');
+        } catch (\Exception $e) {
+            return back()->with('toast', Toast::error($e->getMessage()));
+        }
     }
 
     public function destroy(User $user)

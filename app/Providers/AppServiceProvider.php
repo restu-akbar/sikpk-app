@@ -36,7 +36,6 @@ class AppServiceProvider extends ServiceProvider
         }
         $this->configureDefaults();
 
-        // Google reporter yang sudah login diarahkan ke /landing, bukan /dashboard
         RedirectIfAuthenticated::redirectUsing(function ($request) {
             if (auth('google')->check()) {
                 return route('landing');

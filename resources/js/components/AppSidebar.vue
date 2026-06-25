@@ -56,11 +56,6 @@ const ketuaNavItems: NavItem[] = [
     penangananKasusNavItem,
     { title: 'Arsip Kasus', href: '/satgas/archive', icon: Archive },
     { title: 'Manajemen Anggota', href: '/satgas/master/users', icon: Users },
-    {
-        title: 'Grafik Demografi',
-        href: '/satgas/demographics',
-        icon: BarChart3,
-    },
 ];
 
 const anggotaNavItems: NavItem[] = [

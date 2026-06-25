@@ -44,6 +44,7 @@ const form = useForm({
     jurusan: shouldPrefillPelapor ? (props.report.reporter?.jurusan ?? '') : '',
     prodi: shouldPrefillPelapor ? (props.report.reporter?.prodi ?? '') : '',
     angkatan: '',
+    jenisKelamin: '',
     catatanKlarifikasi: '',
 
     document: [
@@ -68,12 +69,14 @@ const handleSubmit = async () => {
 
         const showJurusan = ['mahasiswa', 'dosen'].includes(form.civitas);
         const showProdi = form.civitas === 'mahasiswa';
+        const showJenisKelamin = form.status === 'korban';
 
         for (const [key, label] of Object.entries(clarifyRequiredFields)) {
             const formKey = key as RequiredFormKeys;
 
             if (formKey === 'jurusan' && !showJurusan) continue;
             if (formKey === 'prodi' && !showProdi) continue;
+            if (formKey === 'jenisKelamin' && !showJenisKelamin) continue;
 
             if (!form[formKey].trim()) {
                 stepErrors.value[formKey] = `${label} wajib diisi.`;
@@ -160,6 +163,7 @@ watch(
             :step="2"
             :show-nomor-identitas="true"
             :show-angkatan="true"
+            :show-jenis-kelamin-for-korban="true"
         />
 
         <section>

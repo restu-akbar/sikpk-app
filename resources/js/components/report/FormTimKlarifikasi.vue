@@ -130,7 +130,27 @@ const tabOptions = [
     { label: 'Semua', value: '' },
     { label: 'Dosen', value: 'dosen' },
     { label: 'Mahasiswa', value: 'mahasiswa' },
+    { label: 'Tenaga Kependidikan', value: 'tendik' },
 ];
+
+const unsurLabels: Record<string, string> = {
+    dosen: 'Dosen',
+    mahasiswa: 'Mahasiswa',
+    tendik: 'Tenaga Kependidikan',
+};
+
+const unsurBadgeClass: Record<string, string> = {
+    dosen: 'bg-blue-500/10 text-blue-600',
+    mahasiswa: 'bg-orange-500/10 text-orange-600',
+    tendik: 'bg-emerald-500/10 text-emerald-600',
+};
+
+const roleLabels: Record<string, string> = {
+    ketua: 'Ketua',
+    wakil_ketua: 'Wakil Ketua',
+    sekretaris: 'Sekretaris',
+    anggota: 'Anggota',
+};
 
 const filteredSatgas = computed(() => {
     const data = props.satgasMembers?.data || [];
@@ -364,12 +384,11 @@ function handleBack() {
                                                     class="truncate text-[10px] text-[#6B6862]"
                                                 >
                                                     {{
-                                                        getMember(
-                                                            selected[i - 1],
-                                                        )?.academic_role ===
-                                                        'dosen'
-                                                            ? 'Dosen'
-                                                            : 'Mahasiswa'
+                                                        unsurLabels[
+                                                            getMember(
+                                                                selected[i - 1],
+                                                            )?.academic_role
+                                                        ] ?? '—'
                                                     }}
                                                 </p>
                                             </div>
@@ -481,12 +500,12 @@ function handleBack() {
                                             <th
                                                 class="px-4 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase"
                                             >
-                                                Jurusan
+                                                Jabatan
                                             </th>
                                             <th
                                                 class="px-4 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase"
                                             >
-                                                Angkatan
+                                                Jurusan / Unit
                                             </th>
                                             <th
                                                 class="px-4 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase"
@@ -525,29 +544,11 @@ function handleBack() {
                                                             )
                                                         }}
                                                     </div>
-                                                    <div>
-                                                        <p
-                                                            class="font-medium text-[#1B1A18]"
-                                                        >
-                                                            {{ member.name }}
-                                                        </p>
-                                                        <p
-                                                            class="text-xs text-[#6B6862]"
-                                                        >
-                                                            {{
-                                                                member.role ===
-                                                                'ketua'
-                                                                    ? 'Ketua'
-                                                                    : member.role ===
-                                                                        'wakil_ketua'
-                                                                      ? 'Wakil Ketua'
-                                                                      : member.role ===
-                                                                          'sekretaris'
-                                                                        ? 'Sekretaris'
-                                                                        : 'Anggota'
-                                                            }}
-                                                        </p>
-                                                    </div>
+                                                    <p
+                                                        class="font-medium text-[#1B1A18]"
+                                                    >
+                                                        {{ member.name }}
+                                                    </p>
                                                 </div>
                                             </td>
 
@@ -556,19 +557,28 @@ function handleBack() {
                                                 <span
                                                     class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium"
                                                     :class="
-                                                        member.academic_role ===
-                                                        'dosen'
-                                                            ? 'bg-blue-500/10 text-blue-600'
-                                                            : 'bg-orange-500/10 text-orange-600'
+                                                        unsurBadgeClass[
+                                                            member.academic_role
+                                                        ] ??
+                                                        'bg-muted text-muted-foreground'
                                                     "
                                                 >
                                                     {{
-                                                        member.academic_role ===
-                                                        'dosen'
-                                                            ? 'Dosen'
-                                                            : 'Mahasiswa'
+                                                        unsurLabels[
+                                                            member.academic_role
+                                                        ] ?? '—'
                                                     }}
                                                 </span>
+                                            </td>
+
+                                            <!-- Jabatan -->
+                                            <td
+                                                class="px-4 py-3 text-[#1B1A18]"
+                                            >
+                                                {{
+                                                    roleLabels[member.role] ??
+                                                    '—'
+                                                }}
                                             </td>
 
                                             <!-- Jurusan -->
@@ -577,15 +587,6 @@ function handleBack() {
                                             >
                                                 {{
                                                     member.department || '—'
-                                                }}
-                                            </td>
-
-                                            <!-- Angkatan -->
-                                            <td
-                                                class="px-4 py-3 text-[#1B1A18]"
-                                            >
-                                                {{
-                                                    member.entry_year || '—'
                                                 }}
                                             </td>
 

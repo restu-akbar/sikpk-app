@@ -112,7 +112,6 @@ class ReportService
                         'disabilitas'    => $data['disabilitas'] ?? null,
                     ]);
                 } else {
-                    // Hanya whatsapp dan disabilitas yang boleh diubah
                     $reporter->update([
                         'whatsapp'    => $data['whatsapp'],
                         'disabilitas' => $data['disabilitas'] ?? null,
@@ -121,7 +120,13 @@ class ReportService
             }
 
             $year = now()->year;
-            $sequence = Report::whereYear('created_at', $year)->count() + 1;
+            $lastSequence = Report::whereYear('created_at', $year)
+                ->where('case_number', 'like', '#%/PPK/' . $year)
+                ->lockForUpdate()
+                ->pluck('case_number')
+                ->map(fn ($caseNumber) => (int) substr($caseNumber, 1, 3))
+                ->max();
+            $sequence = ($lastSequence ?? 0) + 1;
             $caseNumber = '#' . str_pad($sequence, 3, '0', STR_PAD_LEFT) . '/PPK/' . $year;
 
             $report = Report::create([

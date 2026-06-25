@@ -3,6 +3,7 @@
 use App\Http\Controllers\Auth\ChangePasswordController;
 use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\AudioRecordingController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\KeyController;
 use App\Http\Controllers\Master\UserController;
 use App\Http\Controllers\Module\ReportController;
@@ -50,7 +51,7 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
     Route::prefix('satgas')
         ->name('satgas.')
         ->group(function () {
-            Route::inertia('/dashboard', 'dashboard/Dashboard')->name('dashboard');
+            Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
             Route::prefix('getting-started')
                 ->name('getting-started.')

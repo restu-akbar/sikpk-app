@@ -42,6 +42,10 @@ class UserService extends BaseService
 
     public function createAnggota(array $data): void
     {
+        if (($data['role'] ?? null) === 'ketua') {
+            throw new \Exception('Jabatan Ketua tidak dapat ditetapkan melalui form ini.');
+        }
+
         $plainPassword = Str::password();
 
         $user = $this->query()->create([
@@ -67,6 +71,16 @@ class UserService extends BaseService
 
     public function updateAnggota(User $user, array $data): User
     {
+        $role = $data['role'] ?? $user->role;
+
+        if ($role === 'ketua' && $user->role !== 'ketua') {
+            throw new \Exception('Jabatan Ketua tidak dapat ditetapkan melalui form ini.');
+        }
+
+        if ($user->role === 'ketua' && $role !== 'ketua') {
+            throw new \Exception('Jabatan Ketua tidak dapat diubah.');
+        }
+
         $user->update([
             'name'            => $data['name'],
             'email'           => $data['email'],

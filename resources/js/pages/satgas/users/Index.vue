@@ -20,14 +20,21 @@ const unsurOptions = [
     { label: 'Semua', value: '' },
     { label: 'Dosen', value: 'dosen' },
     { label: 'Mahasiswa', value: 'mahasiswa' },
+    { label: 'Tenaga Kependidikan', value: 'tendik' },
 ];
+
+const unsurLabels: Record<string, string> = {
+    dosen: 'Dosen',
+    mahasiswa: 'Mahasiswa',
+    tendik: 'Tenaga Kependidikan',
+};
 
 const columns = [
     { key: 'name', label: 'Nama', sortable: true },
     { key: 'email', label: 'Email', sortable: true },
     { key: 'academic_role', label: 'Unsur', sortable: true },
     { key: 'role', label: 'Jabatan', sortable: true },
-    { key: 'department', label: 'Jurusan', sortable: false },
+    { key: 'department', label: 'Jurusan/Unit', sortable: false },
 ];
 
 const roleLabels: Record<string, string> = {
@@ -64,6 +71,7 @@ const formSchema = [
         options: [
             { label: 'Dosen', value: 'dosen' },
             { label: 'Mahasiswa', value: 'mahasiswa' },
+            { label: 'Tenaga Kependidikan', value: 'tendik' },
         ],
     },
     {
@@ -73,7 +81,9 @@ const formSchema = [
         span: 'half',
         required: true,
         placeholder: 'Pilih jabatan...',
-        options: [
+        disabled: (form: Record<string, any>) => form.role === 'ketua',
+        options: (form: Record<string, any>) => [
+            ...(form.role === 'ketua' ? [{ label: 'Ketua', value: 'ketua' }] : []),
             { label: 'Anggota', value: 'anggota' },
             { label: 'Sekretaris', value: 'sekretaris' },
             { label: 'Wakil Ketua', value: 'wakil_ketua' },
@@ -81,11 +91,17 @@ const formSchema = [
     },
     {
         key: 'department',
-        label: 'Jurusan',
-        type: 'select',
+        label: (form: Record<string, any>) =>
+            form.academic_role === 'tendik' ? 'Unit' : 'Jurusan',
+        type: (form: Record<string, any>) =>
+            form.academic_role === 'tendik' ? 'text' : 'select',
         span: 'half',
         required: true,
-        placeholder: 'Pilih jurusan...',
+        resetOn: ['academic_role'],
+        placeholder: (form: Record<string, any>) =>
+            form.academic_role === 'tendik'
+                ? 'Tuliskan unit...'
+                : 'Pilih jurusan...',
         options: jurusanList.map((j) => ({ label: j.name, value: j.name })),
     },
     {
@@ -96,6 +112,7 @@ const formSchema = [
         required: false,
         placeholder: 'Pilih program studi...',
         filteredBy: 'department',
+        hidden: (form: Record<string, any>) => form.academic_role !== 'mahasiswa',
         options: prodiList.map((p) => ({
             label: `${p.degreeLevel} ${p.name}`,
             value: `${p.degreeLevel} ${p.name}`,
@@ -109,6 +126,7 @@ const formSchema = [
         span: 'half',
         required: false,
         placeholder: new Date().getFullYear().toString(),
+        hidden: (form: Record<string, any>) => form.academic_role !== 'mahasiswa',
     },
 ];
 
@@ -217,13 +235,13 @@ function submitDelete() {
                 <span
                     v-if="row.academic_role"
                     class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium"
-                    :class="
-                        row.academic_role === 'dosen'
-                            ? 'bg-blue-500/10 text-blue-600'
-                            : 'bg-orange-500/10 text-orange-600'
-                    "
+                    :class="{
+                        'bg-blue-500/10 text-blue-600': row.academic_role === 'dosen',
+                        'bg-orange-500/10 text-orange-600': row.academic_role === 'mahasiswa',
+                        'bg-emerald-500/10 text-emerald-600': row.academic_role === 'tendik',
+                    }"
                 >
-                    {{ row.academic_role === 'dosen' ? 'Dosen' : 'Mahasiswa' }}
+                    {{ unsurLabels[row.academic_role] ?? row.academic_role }}
                 </span>
                 <span v-else class="text-muted-foreground">—</span>
             </template>

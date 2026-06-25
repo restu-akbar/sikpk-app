@@ -36,13 +36,16 @@ class ReportSubjectService
             ->where('subtype', 'notulensi')
             ->doesntExist();
 
-        if ($report->status_pelapor !== 'korban' || !$isFirstNotulensi) {
+        if (($input['status'] ?? null) !== 'korban' || !$isFirstNotulensi) {
             return;
         }
 
         ReportSubject::updateOrCreate(
             ['report_id' => $report->id, 'jenis' => 'korban'],
-            $this->mapIdentity($input, hasGender: false)
+            [
+                ...$this->mapIdentity($input, hasGender: false),
+                'jenis_kelamin' => $input['jenisKelamin'] ?? null,
+            ]
         );
     }
 
@@ -76,8 +79,6 @@ class ReportSubjectService
             'nama' => $data['nama'] ?? null,
             'nomor_identitas' => $data['nomorIdentitas'] ?? null,
             'nomor_wa' => $data['whatsapp'] ?? null,
-            // IdentitySection.vue stores gender in `status` when its `isGender` prop is true
-            // (the same field means "korban/saksi" for pelapor sections where isGender is false).
             'jenis_kelamin' => $hasGender ? ($data['status'] ?? null) : null,
             'peran_akademik' => $data['civitas'] ?? null,
             'jurusan' => $data['jurusan'] ?? null,

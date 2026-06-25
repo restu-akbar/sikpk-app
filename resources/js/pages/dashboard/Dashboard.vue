@@ -3,8 +3,15 @@ import { Head, usePage } from '@inertiajs/vue3';
 
 import SatgasDashboard from './SatgasDashboard.vue';
 import ReporterDashboard from './ReporterDashboard.vue';
+import type { DashboardAnalytics } from './types';
 
 import { dashboard } from '@/routes/satgas';
+
+interface Props {
+    analytics?: DashboardAnalytics;
+}
+
+defineProps<Props>();
 
 defineOptions({
     layout: {
@@ -42,7 +49,7 @@ const user = page.props.auth.user;
             </p>
         </div>
 
-        <SatgasDashboard v-if="user.role" />
+        <SatgasDashboard v-if="user.role" :analytics="analytics!" />
         <ReporterDashboard v-else />
     </div>
 </template>

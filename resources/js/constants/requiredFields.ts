@@ -12,6 +12,7 @@ export const requiredFields = {
     alasan: 'Alasan pengaduan',
     domisili: 'Domisili',
     kontakLain: 'Kontak Pihak Lain',
+    jenisKelamin: 'Jenis kelamin',
 } as const;
 
 export const rootRequiredFields = {
@@ -41,5 +42,6 @@ export const clarifyRequiredFields = {
     jurusan: 'Jurusan',
     prodi: 'Program studi',
     catatanKlarifikasi: 'Catatan klarifikasi',
+    jenisKelamin: 'Jenis kelamin',
 } as const;
 export type RequiredFormKeys = keyof typeof requiredFields;

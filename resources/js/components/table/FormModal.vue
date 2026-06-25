@@ -40,25 +40,53 @@ function initializeForm() {
     nextTick(() => { isInitializing.value = false; });
 }
 
-// Kembalikan opsi yang sudah difilter berdasarkan field lain (cascading select)
+function resolve(value: any) {
+    return typeof value === 'function' ? value(form) : value;
+}
+
+function resolveLabel(field: any) {
+    return resolve(field.label);
+}
+
+function resolveType(field: any) {
+    return resolve(field.type);
+}
+
+function resolvePlaceholder(field: any) {
+    return resolve(field.placeholder);
+}
+
+function isFieldHidden(field: any) {
+    return !!resolve(field.hidden);
+}
+
+function isFieldDisabled(field: any) {
+    return !!resolve(field.disabled);
+}
+
 function getOptions(field: any) {
+    const options = resolve(field.options) ?? [];
     if (!field.filteredBy || !form[field.filteredBy]) {
-        return field.options ?? [];
+        return options;
     }
-    return (field.options ?? []).filter(
+    return options.filter(
         (opt: any) => opt[field.filteredBy] == form[field.filteredBy],
     );
 }
 
-// Reset field dependen saat parent berubah — dinamis berdasarkan schema filteredBy
 watch(form, (_, oldForm) => {
     if (isInitializing.value) return;
 
     props.schema.forEach((field) => {
-        if (field.filteredBy && form[field.filteredBy] !== oldForm[field.filteredBy]) {
-            form[field.key] = '';
+        const dependsOn = [field.filteredBy, ...(field.resetOn ?? [])].filter(Boolean);
+        const dependencyChanged = dependsOn.some(
+            (dep) => form[dep] !== oldForm[dep],
+        );
+
+        if (dependencyChanged || (isFieldHidden(field) && form[field.key])) {
+            form[field.key] = resolveType(field) === 'checkbox' ? false : '';
         }
-        // Hapus error saat field diisi
+
         if (errors[field.key] && form[field.key]) {
             delete errors[field.key];
         }
@@ -69,10 +97,10 @@ function validate(): boolean {
     Object.keys(errors).forEach((key) => delete errors[key]);
 
     props.schema.forEach((field) => {
-        if (!field.required) return;
+        if (!field.required || isFieldHidden(field)) return;
         const value = form[field.key];
         if (value === '' || value === null || value === undefined) {
-            errors[field.key] = `${field.label} wajib diisi`;
+            errors[field.key] = `${resolveLabel(field)} wajib diisi`;
         }
     });
 
@@ -119,43 +147,47 @@ watch(
             <div class="grid grid-cols-2 gap-x-4 gap-y-5 p-6">
                 <div
                     v-for="field in schema"
+                    v-show="!isFieldHidden(field)"
                     :key="field.key"
                     :class="field.span === 'half' ? 'col-span-1' : 'col-span-2'"
                 >
                     <!-- SELECT -->
                     <DropdownField
-                        v-if="field.type === 'select'"
-                        :label="field.label"
+                        v-if="resolveType(field) === 'select'"
+                        :label="resolveLabel(field)"
                         :required="field.required"
                         :options="getOptions(field)"
                         :model-value="form[field.key]"
-                        :placeholder="field.placeholder"
+                        :placeholder="resolvePlaceholder(field)"
                         :error="errors[field.key]"
+                        :disabled="isFieldDisabled(field)"
                         @update:model-value="form[field.key] = $event"
                     />
 
                     <!-- CHECKBOX -->
                     <label
-                        v-else-if="field.type === 'checkbox'"
+                        v-else-if="resolveType(field) === 'checkbox'"
                         class="flex items-center gap-3 text-sm text-foreground"
                     >
                         <input
                             v-model="form[field.key]"
                             type="checkbox"
                             class="h-4 w-4 rounded border-nav-stroke"
+                            :disabled="isFieldDisabled(field)"
                         />
-                        <span>{{ field.label }}</span>
+                        <span>{{ resolveLabel(field) }}</span>
                     </label>
 
                     <!-- TEXT / EMAIL / NUMBER / dll -->
                     <FormField
                         v-else
-                        :label="field.label"
+                        :label="resolveLabel(field)"
                         :required="field.required"
                         :model-value="form[field.key]"
-                        :type="field.type"
-                        :placeholder="field.placeholder ?? ''"
+                        :type="resolveType(field)"
+                        :placeholder="resolvePlaceholder(field) ?? ''"
                         :error="errors[field.key]"
+                        :disabled="isFieldDisabled(field)"
                         @update:model-value="form[field.key] = $event"
                     />
                 </div>

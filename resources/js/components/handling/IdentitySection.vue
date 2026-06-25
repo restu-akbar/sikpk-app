@@ -32,6 +32,7 @@ const props = withDefaults(
         disabled?: boolean;
         showNomorIdentitas?: boolean;
         showAngkatan?: boolean;
+        showJenisKelaminForKorban?: boolean;
         civitasOptions?: { value: string; label: string }[];
     }>(),
     {
@@ -42,9 +43,12 @@ const props = withDefaults(
         disabled: false,
         showNomorIdentitas: false,
         showAngkatan: false,
+        showJenisKelaminForKorban: false,
         civitasOptions: () => statusCivitasOptions,
     },
 );
+
+const showJenisKelamin = computed(() => props.showJenisKelaminForKorban);
 
 const title = computed(
     () =>
@@ -124,13 +128,17 @@ watch(
         form.value.prodi = '';
     },
 );
+
 </script>
 
 <template>
     <section>
         <FormSectionTitle :title="title" />
 
-        <div class="mb-4 grid grid-cols-2 gap-4">
+        <div
+            class="mb-4 grid gap-4"
+            :class="showJenisKelamin ? 'grid-cols-3' : 'grid-cols-2'"
+        >
             <FormField
                 name="nama"
                 v-model="form.nama"
@@ -196,6 +204,39 @@ watch(
                     </template>
                 </div>
                 <ErrorField :error="props.stepErrors.status" />
+            </div>
+
+            <div v-if="showJenisKelamin">
+                <FieldLabel :required="required && form.status === 'korban'">
+                    Jenis Kelamin {{ props.subject }}
+                </FieldLabel>
+
+                <div
+                    class="mt-2 flex h-10 items-center gap-6 rounded-md"
+                    :class="{ 'opacity-60': props.disabled }"
+                >
+                    <label class="flex cursor-pointer items-center gap-2">
+                        <input
+                            v-model="form.jenisKelamin"
+                            type="radio"
+                            value="laki-laki"
+                            class="h-4 w-4"
+                            :disabled="props.disabled"
+                        />
+                        <span class="text-sm">Laki-laki</span>
+                    </label>
+                    <label class="flex cursor-pointer items-center gap-2">
+                        <input
+                            v-model="form.jenisKelamin"
+                            type="radio"
+                            value="perempuan"
+                            class="h-4 w-4"
+                            :disabled="props.disabled"
+                        />
+                        <span class="text-sm">Perempuan</span>
+                    </label>
+                </div>
+                <ErrorField :error="props.stepErrors.jenisKelamin" />
             </div>
         </div>
 
