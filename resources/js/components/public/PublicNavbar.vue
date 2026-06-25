@@ -82,7 +82,7 @@ function avatarColor(name: string): string {
                 >
                     <Phone class="size-3.5 shrink-0" />
                     <span class="hidden sm:inline">Satpam Polban:</span>
-                    <strong class="ml-0.5 font-bold">(022) 2013789</strong>
+                    <strong class="ml-0.5 font-bold">+62 859-2436-2219</strong>
                 </span>
 
                 <span class="h-3 w-px bg-white/25" aria-hidden="true" />
@@ -143,7 +143,7 @@ function avatarColor(name: string): string {
                 <div class="hidden shrink-0 items-center gap-3 md:flex">
                     <template v-if="!user">
                         <Button as-child variant="brand-accent" size="default">
-                            <Link :href="loginGoogle()">Buat Laporan</Link>
+                            <Link :href="loginGoogle()">Masuk</Link>
                         </Button>
                     </template>
 

@@ -35,3 +35,4 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
             Route::redirect('settings', '/settings/profile');
         });
 });
+ 
