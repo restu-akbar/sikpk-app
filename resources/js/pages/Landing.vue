@@ -449,7 +449,7 @@ onUnmounted(() => {
                         <div>
                             <p class="text-sm font-semibold text-foreground">Email Satgas</p>
                             <a href="mailto:satgas.ppkpt@polban.ac.id" class="text-sm font-medium text-brand hover:underline">
-                                satgas.ppkpt@polban.ac.id
+                                ppks@polban.ac.id
                             </a>
                         </div>
                     </div>
