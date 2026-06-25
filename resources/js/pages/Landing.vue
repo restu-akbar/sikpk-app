@@ -1,16 +1,27 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { Head, Link, usePage } from '@inertiajs/vue3';
-import { ChevronLeft, ChevronRight, Lock, EyeOff, ShieldCheck, MapPin, Phone, Mail, Clock, ArrowRight } from 'lucide-vue-next';
+import { ChevronLeft, ChevronRight, Lock, EyeOff, ShieldCheck, MapPin, Phone, Mail, Clock, ArrowRight, CheckCircle } from 'lucide-vue-next';
 import { Button } from '@/components/ui/button';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+} from '@/components/ui/dialog';
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
-import { create } from '@/routes/reports';
+import { create, track } from '@/routes/reports';
 import { login as loginGoogle } from '@/routes/google';
 import type { Auth } from '@/types';
 
-const page = usePage<{ auth: Auth }>();
+const page = usePage<{ auth: Auth; flash: { toast?: any; reportSubmitted?: boolean } }>();
 const user = computed(() => page.props.auth?.user ?? null);
 const buatLaporanUrl = computed(() => user.value ? create().url : loginGoogle());
+
+// ─── Report Submitted Dialog ──────────────────────────────────────────────────
+
+const showSuccessDialog = ref(page.props.flash?.reportSubmitted === true);
 
 // ─── Hero Slider ─────────────────────────────────────────────────────────────
 
@@ -70,6 +81,42 @@ onUnmounted(() => {
 
 <template>
     <Head title="Beranda" />
+
+    <!-- ─── Report Submitted Success Dialog ─────────────────────────────────── -->
+    <Dialog :open="showSuccessDialog" @update:open="showSuccessDialog = $event">
+        <DialogContent class="sm:max-w-md">
+            <DialogHeader>
+                <div class="mb-3 flex justify-center">
+                    <div class="flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100">
+                        <CheckCircle class="size-8 text-emerald-600" />
+                    </div>
+                </div>
+                <DialogTitle class="text-center text-lg font-bold">
+                    Laporan berhasil dikirim
+                </DialogTitle>
+                <DialogDescription class="text-center text-sm text-muted-foreground">
+                    Terima kasih telah melapor. Tim Satgas PPK Polban akan segera menindaklanjuti laporan Anda.
+                    Anda dapat memantau perkembangan kasus melalui halaman pelacakan laporan.
+                </DialogDescription>
+            </DialogHeader>
+
+            <div class="mt-2 flex flex-col gap-2 sm:flex-row sm:justify-center">
+                <Button as-child variant="brand-accent" class="w-full font-semibold sm:w-auto">
+                    <Link :href="track().url">
+                        Lacak Laporan Saya
+                        <ArrowRight class="ml-1 size-4" />
+                    </Link>
+                </Button>
+                <Button
+                    variant="outline"
+                    class="w-full font-semibold sm:w-auto"
+                    @click="showSuccessDialog = false"
+                >
+                    Tutup
+                </Button>
+            </div>
+        </DialogContent>
+    </Dialog>
 
     <!-- Info banner + Hero Section 1 -->
     <section style="scroll-snap-align: start;">

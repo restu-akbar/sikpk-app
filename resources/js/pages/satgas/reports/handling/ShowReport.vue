@@ -170,7 +170,7 @@ const documentationFieldsMap = {
         {
             label: 'Dokumentasi BAP',
             description:
-                'Foto / scan dokumen BAP klarifikasi. Bisa unggah beberapa gambar.',
+                'Foto dokumentasi BAP klarifikasi. Bisa unggah beberapa gambar.',
             accept: 'image/*',
         },
         {
@@ -184,7 +184,7 @@ const documentationFieldsMap = {
         {
             label: 'Dokumentasi Pemeriksaan',
             description:
-                'Foto / scan dokumen BAP pemeriksaan. Bisa unggah beberapa gambar.',
+                'Foto dokumentasi BAP pemeriksaan. Bisa unggah beberapa gambar.',
             accept: 'image/*',
         },
         {

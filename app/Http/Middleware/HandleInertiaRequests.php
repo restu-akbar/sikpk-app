@@ -78,6 +78,7 @@ class HandleInertiaRequests extends Middleware
             ],
             'flash' => [
                 'toast' => fn() => $request->session()->get('toast'),
+                'reportSubmitted' => fn() => $request->session()->get('reportSubmitted'),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];

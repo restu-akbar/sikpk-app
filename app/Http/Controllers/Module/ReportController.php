@@ -245,7 +245,7 @@ class ReportController extends Controller
         return redirect()->route('landing')->with('toast', [
             'type' => 'success',
             'message' => 'Laporan Anda berhasil disimpan. Terima kasih telah melapor.',
-        ]);
+        ])->with('reportSubmitted', true);
     }
 
     public function update(
