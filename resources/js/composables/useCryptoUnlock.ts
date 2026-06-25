@@ -38,7 +38,7 @@ export function useCryptoUnlock() {
 
             showUnlockDialog.value = false;
         } catch (error) {
-            unlockError.value = 'Password salah';
+            unlockError.value = 'Kata sandi salah';
         } finally {
             unlockLoading.value = false;
         }

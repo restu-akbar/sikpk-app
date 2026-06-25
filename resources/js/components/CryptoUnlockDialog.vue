@@ -57,11 +57,11 @@ const actionLabel = computed(() =>
 
                             <div>
                                 <h2 class="text-lg font-semibold">
-                                    Buka Kunci Enkripsi
+                                    Kata Sandi
                                 </h2>
 
                                 <p class="mt-1 text-sm text-muted-foreground">
-                                    Masukkan password untuk memuat kunci.
+                                    Masukkan kata sandi untuk memuat kunci enkripsi.
                                 </p>
                             </div>
                         </div>
@@ -80,7 +80,7 @@ const actionLabel = computed(() =>
                             v-model="password"
                             type="password"
                             autocomplete="current-password"
-                            placeholder="Masukkan password"
+                            placeholder="Masukkan kata sandi"
                             class="h-10 w-full rounded-lg border border-input bg-background px-3 text-sm"
                             autofocus
                             @keyup.enter="handleSubmit"
