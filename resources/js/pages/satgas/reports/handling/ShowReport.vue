@@ -4,6 +4,7 @@ import { usePage } from '@inertiajs/vue3';
 import { useGoBack } from '@/composables/useGoBack';
 import Button from '@/components/Button.vue';
 import { jenisKekerasanOptions } from '@/constants/jenisKekerasanOptions';
+import { statusCivitasOptions } from '@/constants/statusCivitasOptions';
 import { formatDate } from '@/lib/formatDate';
 import { getLabel } from '@/lib/getLabel';
 import DataTable from '@/components/table/DataTable.vue';
@@ -42,7 +43,7 @@ import ConfirmDialog from '@/components/ConfirmDialog.vue';
 import { useForm } from '@inertiajs/vue3';
 import { handleEdit } from '@/lib/handleRequest';
 import { update } from '@/routes/satgas/reports';
-import { dashboard } from '@/routes';
+import { dashboard } from '@/routes/satgas';
 import { router } from '@inertiajs/vue3';
 import { onClickOutside } from '@vueuse/core';
 import ClarifyModal from '@/components/ClarifyModal.vue';
@@ -293,8 +294,14 @@ const reportSections = computed(() => {
             title: 'Data Pelapor',
             items: [
                 { label: 'Nama', value: props.report.reporter.name },
-                { label: 'NIM', value: props.report.reporter.nim },
-                { label: 'Jurusan', value: props.report.reporter.jurusan },
+                {
+                    label: 'Unsur Akademik',
+                    value: getLabel(
+                        statusCivitasOptions,
+                        props.report.reporter.status_civitas,
+                    ),
+                },
+                { label: 'Jurusan/Unit', value: props.report.reporter.jurusan },
                 { label: 'Program Studi', value: props.report.reporter.prodi },
                 { label: 'WhatsApp', value: props.report.reporter.whatsapp },
             ],
@@ -368,7 +375,7 @@ const documentOptionsMap: Record<
     Pemeriksaan: [
         { subtype: 'periksa_saksi', required: false },
         { subtype: 'periksa_pelapor', required: true },
-        { subtype: 'periksa_terlapor', required: true },
+        { subtype: 'periksa_terlapor', required: false },
     ],
     Kesimpulan: [{ subtype: 'kesimpulan_rekomendasi', required: true }],
     Pasca: [

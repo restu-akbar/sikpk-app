@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { watch, ref } from 'vue';
+import { watch, ref, computed } from 'vue';
 import { today, formatDate } from '@/lib/formatDate';
 import FormSectionTitle from '@/components/form/FormSectionTitle.vue';
 import TextareaField from '@/components/form/TextareaField.vue';
@@ -51,15 +51,25 @@ const form = useForm({
     ],
 });
 
-const requiredFields = {
-    jenisKekerasan: 'Jenis kekerasan',
-    status: 'Status kasus',
-    hasil: 'Hasil pemeriksaan',
-    rekomendasiSanksi: 'Rekomendasi Sanksi',
-    pemulihanKorban: 'Pemulihan korban',
-    pemulihanNamaBaik: 'Pemulihan nama baik',
-    pencegahanKeberulangan: 'Pencegahan keberulangan',
-};
+const isTerbukti = computed(() => form.status === 'terbukti');
+
+const requiredFields = computed(() => {
+    const fields: Record<string, string> = {
+        jenisKekerasan: 'Jenis kekerasan',
+        status: 'Status kasus',
+        hasil: 'Hasil pemeriksaan',
+    };
+
+    if (isTerbukti.value) {
+        fields.rekomendasiSanksi = 'Rekomendasi Sanksi';
+        fields.pemulihanKorban = 'Pemulihan korban';
+        fields.pencegahanKeberulangan = 'Pencegahan keberulangan';
+    } else {
+        fields.pemulihanNamaBaik = 'Pemulihan nama baik';
+    }
+
+    return fields;
+});
 
 const stepErrors = ref<Record<string, string>>({});
 const { getTeamPublicKeys, encryptToPayload } = useDocumentEncryption();
@@ -67,7 +77,7 @@ const handleSubmit = async () => {
     try {
         stepErrors.value = {};
 
-        for (const [key, label] of Object.entries(requiredFields)) {
+        for (const [key, label] of Object.entries(requiredFields.value)) {
             const formKey = key as RequiredFormKeys;
 
             if (!form[formKey].trim()) {
@@ -76,6 +86,14 @@ const handleSubmit = async () => {
         }
 
         if (Object.keys(stepErrors.value).length > 0) return;
+
+        if (isTerbukti.value) {
+            form.pemulihanNamaBaik = '';
+        } else {
+            form.rekomendasiSanksi = '';
+            form.pemulihanKorban = '';
+            form.pencegahanKeberulangan = '';
+        }
 
         const cryptoStore = useCryptoStore();
         if (!cryptoStore.privateKey) {
@@ -121,7 +139,7 @@ const handleSubmit = async () => {
 watch(
     form,
     (newValue) => {
-        for (const key in requiredFields) {
+        for (const key in requiredFields.value) {
             const formKey = key as RequiredFormKeys;
 
             if (newValue[formKey] && newValue[formKey].trim()) {
@@ -186,7 +204,7 @@ watch(
             />
         </section>
 
-        <section>
+        <section v-if="isTerbukti">
             <FormSectionTitle title="4. REKOMENDASI SANKSI" />
             <TextareaField
                 name="rekomendasiSanksi"
@@ -198,7 +216,7 @@ watch(
                 required
             />
         </section>
-        <section>
+        <section v-if="isTerbukti">
             <FormSectionTitle title="5. REKOMENDASI TINDAKLANJUT" />
             <div class="mt-4 space-y-6">
                 <TextareaField
@@ -206,15 +224,7 @@ watch(
                     v-model="form.pemulihanKorban"
                     label="Pemulihan Korban"
                     rows="5"
-                    :error="stepErrors.hasil"
-                    required
-                />
-                <TextareaField
-                    name="pemulihanNamaBaik"
-                    v-model="form.pemulihanNamaBaik"
-                    label="Pemulihan Nama Baik Terlapor"
-                    rows="5"
-                    :error="stepErrors.pemulihanNamaBaik"
+                    :error="stepErrors.pemulihanKorban"
                     required
                 />
                 <TextareaField
@@ -226,6 +236,17 @@ watch(
                     required
                 />
             </div>
+        </section>
+        <section v-else>
+            <FormSectionTitle title="4. PEMULIHAN NAMA BAIK" />
+            <TextareaField
+                name="pemulihanNamaBaik"
+                v-model="form.pemulihanNamaBaik"
+                label="Pemulihan Nama Baik Terlapor"
+                rows="5"
+                :error="stepErrors.pemulihanNamaBaik"
+                required
+            />
         </section>
         <HandlingTeamSection
             :team-number="props.report.team_number"

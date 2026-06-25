@@ -122,24 +122,30 @@ export const generateConclusion = (report: Report | any, form: any) => {
     drawMultiLineText(form.hasil);
     y += 6;
 
-    drawSectionTitle('IV. REKOMENDASI SANKSI');
-    drawMultiLineText(form.rekomendasiSanksi);
-    y += 6;
+    const isTerbukti = form.status === 'terbukti';
 
-    drawSectionTitle('V. REKOMENDASI TINDAKLANJUT');
-    drawDataRow('A. Pemulihan Korban', '', 65);
-    drawMultiLineText(form.pemulihanKorban);
-    y += 3;
+    if (isTerbukti) {
+        drawSectionTitle('IV. REKOMENDASI SANKSI');
+        drawMultiLineText(form.rekomendasiSanksi);
+        y += 6;
 
-    drawDataRow('B. Pemulihan Nama Baik', '', 65);
-    drawMultiLineText(form.pemulihanNamaBaik);
-    y += 3;
+        drawSectionTitle('V. REKOMENDASI TINDAKLANJUT');
+        drawDataRow('A. Pemulihan Korban', '', 65);
+        drawMultiLineText(form.pemulihanKorban);
+        y += 3;
 
-    drawDataRow('C. Pencegahan Keberulangan', '', 65);
-    drawMultiLineText(form.pencegahanKeberulangan);
-    y += 6;
+        drawDataRow('B. Pencegahan Keberulangan', '', 65);
+        drawMultiLineText(form.pencegahanKeberulangan);
+        y += 6;
+    } else {
+        drawSectionTitle('IV. PEMULIHAN NAMA BAIK');
+        drawMultiLineText(form.pemulihanNamaBaik);
+        y += 6;
+    }
 
-    drawSectionTitle('VI. TIM PENANGANAN KASUS');
+    drawSectionTitle(
+        isTerbukti ? 'VI. TIM PENANGANAN KASUS' : 'V. TIM PENANGANAN KASUS',
+    );
     drawDataRow(
         'Nomor Tim Penyelidik',
         `Tim Kelompok Kerja Ke-${report.team_number || '-'}`,

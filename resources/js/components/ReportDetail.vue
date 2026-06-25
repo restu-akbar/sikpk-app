@@ -7,6 +7,8 @@ import {
     MapPin,
     Eye,
     ShieldCheck,
+    ShieldAlert,
+    User,
     Play,
     Pause,
     Mic,
@@ -18,6 +20,7 @@ import { getLabel } from '@/lib/getLabel';
 import {
     statusCivitasOptions,
     statusOptions,
+    statusTerlaporOptions,
 } from '@/constants/statusCivitasOptions';
 import { disabilityOptions } from '@/constants/disability';
 import { nomorIdentitasRules } from '@/constants/nomorIdentitasRules';
@@ -425,7 +428,7 @@ function fileIconType(name: string) {
                                         <p
                                             class="mb-3 text-sm font-bold text-[#3B3A37]"
                                         >
-                                            TEMPAT & WAKTU KEJADIAN
+                                            DETAIL KEJADIAN
                                         </p>
                                         <div
                                             class="flex border-b border-dashed border-nav-stroke py-2"
@@ -442,7 +445,9 @@ function fileIconType(name: string) {
                                                 {{ report.tempat_kejadian }}
                                             </span>
                                         </div>
-                                        <div class="flex py-2">
+                                        <div
+                                            class="flex border-b border-dashed border-nav-stroke py-2"
+                                        >
                                             <span
                                                 class="flex w-36 shrink-0 items-center gap-2 text-sm text-[#6B6862]"
                                             >
@@ -457,6 +462,39 @@ function fileIconType(name: string) {
                                                         report.waktu_kejadian,
                                                     )
                                                 }}
+                                            </span>
+                                        </div>
+                                        <div
+                                            class="flex border-b border-dashed border-nav-stroke py-2"
+                                        >
+                                            <span
+                                                class="flex w-36 shrink-0 items-center gap-2 text-sm text-[#6B6862]"
+                                            >
+                                                <User class="h-3.5 w-3.5" />
+                                                Nama Terlapor
+                                            </span>
+                                            <span
+                                                class="text-sm text-[#1B1A18]"
+                                            >
+                                                {{ report.nama_terlapor }}
+                                            </span>
+                                        </div>
+                                        <div class="flex py-2">
+                                            <span
+                                                class="flex w-36 shrink-0 items-center gap-2 text-sm text-[#6B6862]"
+                                            >
+                                                <ShieldAlert class="h-3.5 w-3.5" />
+                                                Status Terlapor
+                                            </span>
+                                            <span
+                                                class="text-sm text-[#1B1A18]"
+                                            >
+                                                {{ report.status_terlapor
+                                                    ? getLabel(
+                                                          statusTerlaporOptions,
+                                                          report.status_terlapor,
+                                                      )
+                                                    : '—' }}
                                             </span>
                                         </div>
                                     </div>
