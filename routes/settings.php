@@ -25,7 +25,7 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
                     Route::prefix('security')
                         ->name('security.')
                         ->group(function () {
-                            Route::put('', [ChangePasswordController::class, 'update'])->name('');
+                            Route::put('', [ChangePasswordController::class, 'update'])->name('update');
                             Route::get('', [SecurityController::class, 'edit'])->name('edit');
                         });
                     Route::patch('profile', [ProfileController::class, 'update'])->name('profile.update');
