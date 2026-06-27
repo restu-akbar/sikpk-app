@@ -214,7 +214,8 @@ const documentationFieldsMap = {
         },
         {
             label: 'Surat Pernyataan Pelaku',
-            description: 'Hasil scan dokumen Pernyataan Pelaku yang sudah ditandatangani',
+            description:
+                'Hasil scan dokumen Pernyataan Pelaku yang sudah ditandatangani',
             accept: '.pdf',
         },
         {
@@ -227,8 +228,7 @@ const documentationFieldsMap = {
     Pasca: [
         {
             label: 'Berita Acara Pasca Penanganan',
-            description:
-                'Hasil scan dokumen yang sudah ditandatangani',
+            description: 'Hasil scan dokumen yang sudah ditandatangani',
             accept: '.pdf',
         },
     ],
@@ -284,7 +284,10 @@ const reportSections = computed(() => {
     if (!isVoiceReport.value) {
         ringkasanItems.push(
             { label: 'Tempat Kejadian', value: props.report.tempat_kejadian },
-            { label: 'Waktu Kejadian', value: formatDate(props.report.waktu_kejadian) },
+            {
+                label: 'Waktu Kejadian',
+                value: formatDate(props.report.waktu_kejadian),
+            },
         );
     }
 
@@ -328,7 +331,9 @@ function toggleAudio(audioId: string) {
         playingAudioId.value = null;
     } else {
         if (playingAudioId.value) {
-            const prev = document.getElementById(`audio-${playingAudioId.value}`) as HTMLAudioElement;
+            const prev = document.getElementById(
+                `audio-${playingAudioId.value}`,
+            ) as HTMLAudioElement;
             prev?.pause();
         }
         el.play();
@@ -374,7 +379,7 @@ const documentOptionsMap: Record<
     Klarifikasi: [{ subtype: 'notulensi', required: true }],
     Pemeriksaan: [
         { subtype: 'periksa_saksi', required: false },
-        { subtype: 'periksa_pelapor', required: true },
+        { subtype: 'periksa_pelapor', required: false },
         { subtype: 'periksa_terlapor', required: false },
     ],
     Kesimpulan: [{ subtype: 'kesimpulan_rekomendasi', required: true }],
@@ -410,20 +415,43 @@ const validationRulesMap: Record<
     },
     Pasca: {
         pemulihan_korban: { document: 1, documentation: 1 },
-        pemulihan_nama_baik: { document: 1, documentation: 1},
+        pemulihan_nama_baik: { document: 1, documentation: 1 },
     },
 };
 
 const isAllDocumentsComplete = computed(() => {
     const progress = selectedStep.value;
-    const requiredSubtypes = (documentOptionsMap[progress] ?? [])
-        .filter((opt) => opt.required)
-        .map((opt) => opt.subtype);
-
     const currentDocs =
         props.report.report_documents?.filter(
             (doc) => doc?.type === progress,
         ) ?? [];
+
+    if (progress === 'Pemeriksaan') {
+        if (currentDocs.length === 0) return false;
+
+        const stepRules = validationRulesMap[progress];
+        if (!stepRules) return true;
+
+        return currentDocs.some((doc) => {
+            const targetTypes = stepRules[doc.subtype];
+            if (!targetTypes) return true;
+
+            return Object.entries(targetTypes).every(([attType, minCount]) => {
+                if (attType === 'document') return true;
+
+                const count =
+                    doc.attachments?.filter(
+                        (a) => a.attachment_type === attType,
+                    ).length ?? 0;
+
+                return count >= minCount;
+            });
+        });
+    }
+
+    const requiredSubtypes = (documentOptionsMap[progress] ?? [])
+        .filter((opt) => opt.required)
+        .map((opt) => opt.subtype);
 
     const hasAllRequiredDocs = requiredSubtypes.every((subtype) =>
         currentDocs.some((doc) => doc.subtype === subtype),
@@ -488,7 +516,9 @@ function isRowClickable(row: any): boolean {
         validationRulesMap[selectedStep.value]?.[row.subtype] ?? {};
     const requiredDocPerFile = stepRules.documentation ?? 0;
 
-    return requiredDocPerFile > 0 && documentationRows.length < requiredDocPerFile;
+    return (
+        requiredDocPerFile > 0 && documentationRows.length < requiredDocPerFile
+    );
 }
 
 function onRowClick(row: any) {
@@ -514,7 +544,8 @@ function handleRowClick(row: any) {
 
 const audioPreview = ref<{ url: string; filename: string } | null>(null);
 
-const AUDIO_EXTENSIONS = /\.(mp3|wav|ogg|m4a|aac|flac|wma|mpga|opus)(\.[a-z0-9]+)?$/i;
+const AUDIO_EXTENSIONS =
+    /\.(mp3|wav|ogg|m4a|aac|flac|wma|mpga|opus)(\.[a-z0-9]+)?$/i;
 
 function isAudioFile(decryptedFile: File): boolean {
     return (
@@ -585,10 +616,10 @@ function openConfirmDialog(mode: 'continue' | 'stop') {
         return;
     }
 
-    if (!isAllDocumentsComplete.value) {
+    if (mode === 'continue' && !isAllDocumentsComplete.value) {
         toast.error('Dokumen Belum Lengkap', {
             description:
-                'Harap lengkapi semua dokumen wajib dan lampirannya sesuai aturan pada tahap ini sebelum melanjutkan atau menghentikan penanganan.',
+                'Harap lengkapi semua dokumen wajib dan lampirannya sesuai aturan pada tahap ini sebelum melanjutkan penanganan.',
         });
         return;
     }
@@ -688,11 +719,11 @@ async function archiveTeamEdeks() {
 
         const ketuaPublicKeys = await getPublicKeys();
 
-        const documentAttachments = (props.report.report_documents ?? [])
-            .flatMap((doc: any) => doc.attachments ?? []);
+        const documentAttachments = (
+            props.report.report_documents ?? []
+        ).flatMap((doc: any) => doc.attachments ?? []);
 
-        const attachments: { id: string; edeks: Record<string, string> }[] =
-            [];
+        const attachments: { id: string; edeks: Record<string, string> }[] = [];
 
         for (const attachment of documentAttachments) {
             const myEdek = attachment.edeks?.[cryptoStore.userId];
@@ -704,9 +735,7 @@ async function archiveTeamEdeks() {
             );
 
             const newEdeks: Record<string, string> = {};
-            for (const [userId, publicKey] of Object.entries(
-                ketuaPublicKeys,
-            )) {
+            for (const [userId, publicKey] of Object.entries(ketuaPublicKeys)) {
                 newEdeks[userId] = bufferToBase64(
                     await rsaEncrypt(publicKey, dekRaw),
                 );
@@ -872,9 +901,7 @@ function isRowComplete(row: any): boolean {
             >
                 <div class="border-b border-[#EBE5DA] bg-[#FBF9F5] px-6 py-6">
                     <div>
-                        <h2 class="mb-1.5 text-xl font-bold">
-                            Progress Kasus
-                        </h2>
+                        <h2 class="mb-1.5 text-xl font-bold">Progress Kasus</h2>
                         <p class="text-sm leading-tight text-[#595959]">
                             Tekan tahap untuk melihat dokumen pada tahap
                             tersebut. Tahap yang sudah selesai dapat diakses
@@ -1002,7 +1029,9 @@ function isRowComplete(row: any): boolean {
                                         class="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition hover:bg-gray-100"
                                         @click="handleSelectOption(opt)"
                                     >
-                                        <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#E7EEF7]">
+                                        <div
+                                            class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#E7EEF7]"
+                                        >
                                             <svg
                                                 class="h-4 w-4 text-[#1A5BA6]"
                                                 fill="none"
@@ -1010,11 +1039,16 @@ function isRowComplete(row: any): boolean {
                                                 stroke-width="1.5"
                                                 viewBox="0 0 24 24"
                                             >
-                                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" />
+                                                <path
+                                                    d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"
+                                                />
                                                 <path d="M14 2v6h6" />
                                             </svg>
                                         </div>
-                                        <span class="font-medium text-[#1B1A18]">{{ opt.label }}</span>
+                                        <span
+                                            class="font-medium text-[#1B1A18]"
+                                            >{{ opt.label }}</span
+                                        >
                                     </button>
                                 </div>
 
@@ -1036,7 +1070,9 @@ function isRowComplete(row: any): boolean {
                         <div class="w-1/2 px-6">
                             <!-- Ringkasan Laporan -->
                             <div class="border-b border-nav-stroke py-5">
-                                <p class="mb-3 text-sm font-bold text-[#3B3A37]">
+                                <p
+                                    class="mb-3 text-sm font-bold text-[#3B3A37]"
+                                >
                                     RINGKASAN LAPORAN
                                 </p>
                                 <div
@@ -1044,7 +1080,9 @@ function isRowComplete(row: any): boolean {
                                     :key="item.label"
                                     class="flex border-b border-dashed border-nav-stroke py-2 last:border-0"
                                 >
-                                    <span class="w-36 shrink-0 text-sm text-[#6B6862]">
+                                    <span
+                                        class="w-36 shrink-0 text-sm text-[#6B6862]"
+                                    >
                                         {{ item.label }}
                                     </span>
                                     <span class="text-sm text-[#1B1A18]">
@@ -1055,7 +1093,9 @@ function isRowComplete(row: any): boolean {
 
                             <!-- Data Pelapor -->
                             <div class="py-5">
-                                <p class="mb-3 text-sm font-bold text-[#3B3A37]">
+                                <p
+                                    class="mb-3 text-sm font-bold text-[#3B3A37]"
+                                >
                                     DATA PELAPOR
                                 </p>
                                 <div
@@ -1063,7 +1103,9 @@ function isRowComplete(row: any): boolean {
                                     :key="item.label"
                                     class="flex border-b border-dashed border-nav-stroke py-2 last:border-0"
                                 >
-                                    <span class="w-36 shrink-0 text-sm text-[#6B6862]">
+                                    <span
+                                        class="w-36 shrink-0 text-sm text-[#6B6862]"
+                                    >
                                         {{ item.label }}
                                     </span>
                                     <span class="text-sm text-[#1B1A18]">
@@ -1079,53 +1121,115 @@ function isRowComplete(row: any): boolean {
                                 <!-- Rekaman Suara (voice report) -->
                                 <template v-if="isVoiceReport">
                                     <div>
-                                        <p class="mb-3 text-sm font-bold text-[#3B3A37]">
+                                        <p
+                                            class="mb-3 text-sm font-bold text-[#3B3A37]"
+                                        >
                                             REKAMAN SUARA
                                         </p>
                                         <div class="flex flex-col gap-2">
                                             <div
-                                                v-for="(audio, index) in props.report.audio_recordings"
+                                                v-for="(audio, index) in props
+                                                    .report.audio_recordings"
                                                 :key="audio.id"
                                                 class="rounded-lg bg-[#F6F2EE] p-3"
                                             >
-                                                <div class="flex items-center gap-3">
+                                                <div
+                                                    class="flex items-center gap-3"
+                                                >
                                                     <button
                                                         class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#F5821F] text-white transition-colors hover:bg-[#e0741a]"
-                                                        @click="toggleAudio(audio.id)"
+                                                        @click="
+                                                            toggleAudio(
+                                                                audio.id,
+                                                            )
+                                                        "
                                                     >
-                                                        <Pause v-if="playingAudioId === audio.id" class="h-4 w-4" />
-                                                        <Play v-else class="h-4 w-4" />
+                                                        <Pause
+                                                            v-if="
+                                                                playingAudioId ===
+                                                                audio.id
+                                                            "
+                                                            class="h-4 w-4"
+                                                        />
+                                                        <Play
+                                                            v-else
+                                                            class="h-4 w-4"
+                                                        />
                                                     </button>
                                                     <div class="min-w-0 flex-1">
-                                                        <div class="flex items-center justify-between">
-                                                            <p class="text-sm font-medium text-[#3B3A37]">
-                                                                Rekaman {{ index + 1 }}
+                                                        <div
+                                                            class="flex items-center justify-between"
+                                                        >
+                                                            <p
+                                                                class="text-sm font-medium text-[#3B3A37]"
+                                                            >
+                                                                Rekaman
+                                                                {{ index + 1 }}
                                                             </p>
-                                                            <p class="text-xs text-[#6B6862]">
-                                                                {{ formatDuration(audioCurrentTime[audio.id] ?? 0) }}
+                                                            <p
+                                                                class="text-xs text-[#6B6862]"
+                                                            >
+                                                                {{
+                                                                    formatDuration(
+                                                                        audioCurrentTime[
+                                                                            audio
+                                                                                .id
+                                                                        ] ?? 0,
+                                                                    )
+                                                                }}
                                                                 /
-                                                                {{ audio.duration ? formatDuration(audio.duration) : '—' }}
+                                                                {{
+                                                                    audio.duration
+                                                                        ? formatDuration(
+                                                                              audio.duration,
+                                                                          )
+                                                                        : '—'
+                                                                }}
                                                             </p>
                                                         </div>
                                                         <div
                                                             class="mt-1.5 h-1.5 w-full cursor-pointer rounded-full bg-[#DDD7CD]"
-                                                            @click="seekAudio(audio.id, $event)"
+                                                            @click="
+                                                                seekAudio(
+                                                                    audio.id,
+                                                                    $event,
+                                                                )
+                                                            "
                                                         >
                                                             <div
                                                                 class="h-full rounded-full bg-[#F5821F] transition-all duration-150"
-                                                                :style="{ width: audioProgress(audio.id) + '%' }"
+                                                                :style="{
+                                                                    width:
+                                                                        audioProgress(
+                                                                            audio.id,
+                                                                        ) + '%',
+                                                                }"
                                                             />
                                                         </div>
                                                     </div>
-                                                    <Mic class="h-4 w-4 shrink-0 text-[#908C84]" />
+                                                    <Mic
+                                                        class="h-4 w-4 shrink-0 text-[#908C84]"
+                                                    />
                                                 </div>
                                                 <audio
                                                     :id="`audio-${audio.id}`"
                                                     :src="`/satgas/audio-recordings/${audio.id}`"
                                                     preload="none"
-                                                    @ended="onAudioEnded(audio.id)"
-                                                    @timeupdate="onTimeUpdate(audio.id, $event)"
-                                                    @loadedmetadata="onLoadedMetadata(audio.id, $event)"
+                                                    @ended="
+                                                        onAudioEnded(audio.id)
+                                                    "
+                                                    @timeupdate="
+                                                        onTimeUpdate(
+                                                            audio.id,
+                                                            $event,
+                                                        )
+                                                    "
+                                                    @loadedmetadata="
+                                                        onLoadedMetadata(
+                                                            audio.id,
+                                                            $event,
+                                                        )
+                                                    "
                                                 />
                                             </div>
                                         </div>
@@ -1135,10 +1239,14 @@ function isRowComplete(row: any): boolean {
                                 <!-- Kronologi (form report) -->
                                 <template v-else>
                                     <div>
-                                        <p class="mb-3 text-sm font-bold text-[#3B3A37]">
+                                        <p
+                                            class="mb-3 text-sm font-bold text-[#3B3A37]"
+                                        >
                                             KRONOLOGI KEJADIAN
                                         </p>
-                                        <div class="rounded-lg bg-[#F6F2EE] p-4 text-sm leading-relaxed text-[#3B3A37]">
+                                        <div
+                                            class="rounded-lg bg-[#F6F2EE] p-4 text-sm leading-relaxed text-[#3B3A37]"
+                                        >
                                             {{ props.report.kronologi }}
                                         </div>
                                     </div>
@@ -1146,24 +1254,34 @@ function isRowComplete(row: any): boolean {
 
                                 <!-- Tim Penanganan -->
                                 <div>
-                                    <p class="mb-3 text-sm font-bold text-[#3B3A37]">
-                                        TIM PENANGANAN - {{ props.report.team_number }}
+                                    <p
+                                        class="mb-3 text-sm font-bold text-[#3B3A37]"
+                                    >
+                                        TIM PENANGANAN -
+                                        {{ props.report.team_number }}
                                     </p>
                                     <div class="flex flex-col gap-3">
                                         <div
-                                            v-for="(anggota, index) in props.report.members"
+                                            v-for="(anggota, index) in props
+                                                .report.members"
                                             :key="anggota.id"
                                             class="flex items-center gap-3"
                                         >
                                             <div
                                                 class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-bold"
-                                                :class="getAvatarColor(anggota.name)"
+                                                :class="
+                                                    getAvatarColor(anggota.name)
+                                                "
                                             >
                                                 {{ getInitials(anggota.name) }}
                                             </div>
                                             <div class="min-w-0 flex-1">
-                                                <div class="flex items-center gap-2">
-                                                    <p class="text-sm font-medium text-[#1B1A18]">
+                                                <div
+                                                    class="flex items-center gap-2"
+                                                >
+                                                    <p
+                                                        class="text-sm font-medium text-[#1B1A18]"
+                                                    >
                                                         {{ anggota.name }}
                                                     </p>
                                                     <span
@@ -1173,8 +1291,16 @@ function isRowComplete(row: any): boolean {
                                                         Ketua Tim
                                                     </span>
                                                 </div>
-                                                <p class="text-xs text-[#6B6862]">
-                                                    {{ anggota.academic_role === 'dosen' ? 'Dosen' : 'Mahasiswa' }} · {{ anggota.department }}
+                                                <p
+                                                    class="text-xs text-[#6B6862]"
+                                                >
+                                                    {{
+                                                        anggota.academic_role ===
+                                                        'dosen'
+                                                            ? 'Dosen'
+                                                            : 'Mahasiswa'
+                                                    }}
+                                                    · {{ anggota.department }}
                                                 </p>
                                             </div>
                                         </div>
@@ -1182,17 +1308,27 @@ function isRowComplete(row: any): boolean {
                                 </div>
 
                                 <!-- Bukti Digital -->
-                                <div class="rounded-xl border border-nav-stroke bg-white p-4">
-                                    <p class="mb-3 text-sm font-bold text-[#3B3A37]">
-                                        BUKTI DIGITAL ({{ props.report.report_evidences?.length ?? 0 }})
+                                <div
+                                    class="rounded-xl border border-nav-stroke bg-white p-4"
+                                >
+                                    <p
+                                        class="mb-3 text-sm font-bold text-[#3B3A37]"
+                                    >
+                                        BUKTI DIGITAL ({{
+                                            props.report.report_evidences
+                                                ?.length ?? 0
+                                        }})
                                     </p>
                                     <div class="flex flex-col gap-2">
                                         <div
-                                            v-for="file in props.report.report_evidences"
+                                            v-for="file in props.report
+                                                .report_evidences"
                                             :key="file.id"
                                             class="flex items-center gap-3 rounded-lg border border-nav-stroke p-3"
                                         >
-                                            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#E7EEF7]">
+                                            <div
+                                                class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#E7EEF7]"
+                                            >
                                                 <svg
                                                     class="h-4 w-4 text-[#1A5BA6]"
                                                     fill="none"
@@ -1200,27 +1336,46 @@ function isRowComplete(row: any): boolean {
                                                     stroke-width="1.5"
                                                     viewBox="0 0 24 24"
                                                 >
-                                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" />
+                                                    <path
+                                                        d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"
+                                                    />
                                                     <path d="M14 2v6h6" />
                                                 </svg>
                                             </div>
                                             <div class="min-w-0 flex-1">
-                                                <p class="truncate text-sm font-medium text-[#1B1A18]">
+                                                <p
+                                                    class="truncate text-sm font-medium text-[#1B1A18]"
+                                                >
                                                     {{ file.original_filename }}
                                                 </p>
-                                                <p class="text-xs text-[#6B6862]">
-                                                    {{ file.size ? formatFileSize(file.size) : '—' }}
+                                                <p
+                                                    class="text-xs text-[#6B6862]"
+                                                >
+                                                    {{
+                                                        file.size
+                                                            ? formatFileSize(
+                                                                  file.size,
+                                                              )
+                                                            : '—'
+                                                    }}
                                                 </p>
                                             </div>
                                             <button
                                                 class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-nav-stroke transition-colors hover:bg-surface"
                                                 @click="viewEvidence(file)"
                                             >
-                                                <Eye class="h-4 w-4 text-[#6B6862]" />
+                                                <Eye
+                                                    class="h-4 w-4 text-[#6B6862]"
+                                                />
                                             </button>
                                         </div>
                                         <div
-                                            v-if="!props.report.report_evidences || props.report.report_evidences.length === 0"
+                                            v-if="
+                                                !props.report
+                                                    .report_evidences ||
+                                                props.report.report_evidences
+                                                    .length === 0
+                                            "
                                             class="py-3 text-center text-sm text-[#908C84] italic"
                                         >
                                             Tidak ada bukti digital
@@ -1380,8 +1535,22 @@ function isRowComplete(row: any): boolean {
                                             </div>
                                             <span
                                                 class="truncate font-medium text-[#1B1A18]"
-                                                >PDF Berita Acara Utama</span
+                                                :title="
+                                                    getReportLabel(
+                                                        row.type,
+                                                        row.subtype,
+                                                        'document',
+                                                    )
+                                                "
                                             >
+                                                {{
+                                                    getReportLabel(
+                                                        row.type,
+                                                        row.subtype,
+                                                        'document',
+                                                    )
+                                                }}
+                                            </span>
                                         </button>
                                     </template>
 
@@ -1471,8 +1640,7 @@ function isRowComplete(row: any): boolean {
                     "
                     variant="secondary"
                     :class="{
-                        'cursor-not-allowed opacity-50':
-                            !isAllDocumentsComplete || isReviewMode,
+                        'cursor-not-allowed opacity-50': isReviewMode,
                     }"
                     @click="openConfirmDialog('stop')"
                 >

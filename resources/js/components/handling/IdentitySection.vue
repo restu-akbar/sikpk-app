@@ -12,9 +12,7 @@ import {
     prodiList,
     getProdiByJurusan,
 } from '@/constants/jurusanProdi';
-import {
-    nomorIdentitasRules,
-} from '@/constants/nomorIdentitasRules';
+import { nomorIdentitasRules } from '@/constants/nomorIdentitasRules';
 
 const form = defineModel<any>('form', {
     required: true,
@@ -128,7 +126,6 @@ watch(
         form.value.prodi = '';
     },
 );
-
 </script>
 
 <template>
@@ -244,7 +241,12 @@ watch(
             class="mb-4 grid gap-4"
             :class="props.showNomorIdentitas ? 'grid-cols-3' : 'grid-cols-2'"
         >
-            <div :class="{ 'col-span-2': !props.showWhatsapp && !props.showNomorIdentitas }">
+            <div
+                :class="{
+                    'col-span-2':
+                        !props.showWhatsapp && !props.showNomorIdentitas,
+                }"
+            >
                 <DropdownField
                     name="civitas"
                     v-model="form.civitas"
@@ -346,6 +348,7 @@ watch(
                 :error="props.stepErrors.kontakLain"
                 :required="required"
                 :disabled="props.disabled"
+                hint="Jika tidak ada dapat isi dengan '-' "
             />
         </div>
     </section>

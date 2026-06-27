@@ -279,7 +279,7 @@ class ReportController extends Controller
     public function assign(Request $request, $id)
     {
         $this->reportService->assignHandlers($request, $id);
-        return back()->with('toast', Toast::success('Berhasil assign anggota'));
+        return back()->with('toast', Toast::success('Tim Penanganan Berhasil Dibentuk'));
     }
 
     public function reject(Request $request, $id)

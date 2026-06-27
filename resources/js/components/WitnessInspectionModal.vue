@@ -165,7 +165,7 @@ watch(
                 >
                     <!-- Header -->
                     <ModalHeaderSection
-                        title="Notulensi Klarifikasi Pelapor"
+                        title="Notulensi Klarifikasi Saksi"
                         description="Dokumentasikan hasil sesi klarifikasi awal dengan pelapor. Sesuaikan informasi pelapor jika yang melapor bukan korban."
                         @close="emit('close')"
                     />

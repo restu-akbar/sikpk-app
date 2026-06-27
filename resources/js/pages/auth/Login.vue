@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { toast } from 'vue-sonner';
 import { Head, Link, router } from '@inertiajs/vue3';
 import axios from 'axios';
 import { reactive, ref } from 'vue';
@@ -6,15 +7,12 @@ import { reactive, ref } from 'vue';
 import PasswordInput from '@/components/PasswordInput.vue';
 import FormField from '@/components/form/FormField.vue';
 import FieldLabel from '@/components/form/FieldLabel.vue';
-import ErrorField from '@/components/form/ErrorField.vue';
 
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 
 import { generateDecryption } from '@/lib/crypto';
 import { useCryptoStore } from '@/lib/crypto/store';
-import { useFieldErrorClass } from '@/composables/useFieldErrorClass';
-import { toRef } from 'vue';
 
 defineProps<{
     status?: string;
@@ -24,24 +22,15 @@ defineProps<{
 
 const processing = ref(false);
 
-const errors = reactive<{
-    email?: string;
-    password?: string;
-}>({});
-
 const form = reactive({
     email: '',
     password: '',
     remember: false,
 });
 
-const passwordInputClass = useFieldErrorClass(toRef(errors, 'password'), 'input');
-
 async function submit() {
     const cryptoStore = useCryptoStore();
     processing.value = true;
-    errors.email = undefined;
-    errors.password = undefined;
 
     try {
         const response = await axios.post('/satgas/login', form);
@@ -65,13 +54,13 @@ async function submit() {
         router.visit('/satgas/dashboard');
     } catch (error: any) {
         if (error.response?.status === 422) {
-            const raw = error.response.data.errors;
-            Object.keys(raw).forEach((key) => {
-                (errors as any)[key] = Array.isArray(raw[key])
-                    ? raw[key][0]
-                    : raw[key];
-            });
+            toast.error(
+                error.response.data.message ?? 'Email atau kata sandi salah.',
+            );
+            return;
         }
+
+        toast.error('Terjadi kesalahan. Silakan coba lagi.');
     } finally {
         processing.value = false;
     }
@@ -103,14 +92,11 @@ async function submit() {
         </div>
 
         <!-- Login form: gap-6 = 24px antar field -->
-       <form @submit.prevent="submit" novalidate class="flex flex-col gap-6">
-
+        <form @submit.prevent="submit" novalidate class="flex flex-col gap-6">
             <!-- Email field -->
             <FormField
                 v-model="form.email"
                 label="Email Polban"
-                :error="errors.email"
-                :validator="(v) => v && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? 'Format email tidak valid' : undefined"
                 required
                 id="email"
                 type="email"
@@ -133,9 +119,8 @@ async function submit() {
                     :tabindex="2"
                     autocomplete="current-password"
                     placeholder="Kata sandi"
-                    :class="[passwordInputClass, 'h-12 text-base']"
+                    :class="['h-12 text-base']"
                 />
-                <ErrorField :error="errors.password" />
             </div>
 
             <!-- Submit button: h-14 = 56px (4px * 14) -->

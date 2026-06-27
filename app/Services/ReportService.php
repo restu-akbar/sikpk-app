@@ -2,9 +2,11 @@
 
 namespace App\Services;
 
+use App\Mail\TeamAssignedMail;
 use App\Models\AudioRecording;
 use App\Models\Report;
 use App\Models\ReportEvidence;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -16,6 +18,11 @@ use Illuminate\Validation\ValidationException;
 
 class ReportService
 {
+    public function __construct(
+        protected MailService $mailService
+    ) {
+    }
+
     private const PROGRESS_FLOW = [
         'Laporan Baru', 'Klarifikasi', 'Pemeriksaan', 'Kesimpulan', 'Pasca', 'Selesai',
     ];
@@ -207,6 +214,19 @@ class ReportService
                 ),
             ]);
         }
+        $users = User::whereIn('id', $request->anggota)->get();
+
+        foreach ($users as $user) {
+            $this->mailService->send(
+                $user->email,
+                new TeamAssignedMail(
+                    name: $user->name,
+                    teamNumber: $report->team_number,
+                    reportTitle: $report->jenis_kekerasan,
+                )
+            );
+        }
+
     }
 
     public function rejectReport(Request $request, string $id): void

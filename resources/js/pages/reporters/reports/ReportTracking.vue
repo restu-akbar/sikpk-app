@@ -10,10 +10,11 @@ import ProgressBadge from '@/components/ProgressBadge.vue';
 import { getLabel } from '@/lib/getLabel';
 import { formatDate } from '@/lib/formatDate';
 
-const jenisKekerasanMap = Object.fromEntries(
-    jenisKekerasanOptions.map((item) => [item.value, item.label]),
-);
-
+const rejectedReasonMap: Record<string, string> = {
+    ranah_satgas: 'Tidak masuk dalam Ranah Satgas',
+    unit_lain: 'Ditangani oleh Unit Lain',
+    tidak_berkenan: 'Pelapor tidak berkenan melanjutkan',
+};
 const currentStatus = computed(() => {
     return (
         progressStatusMap[selectedReport.value?.progress] ??
@@ -157,7 +158,9 @@ const timelineItems = computed(() => {
         <main class="mx-auto w-full max-w-4xl flex-1 px-4 py-6 sm:py-10">
             <!-- Page Header -->
             <div v-reveal class="mb-6 text-center">
-                <h1 class="mb-2 text-2xl font-bold sm:text-3xl">Cek Status Laporan</h1>
+                <h1 class="mb-2 text-2xl font-bold sm:text-3xl">
+                    Cek Status Laporan
+                </h1>
                 <p class="mx-auto max-w-md text-sm leading-relaxed">
                     <span class="font-bold text-gray-900">
                         Pantau perkembangan laporan Anda.
@@ -207,7 +210,9 @@ const timelineItems = computed(() => {
                                 </svg>
                             </div>
                             <div>
-                                <h2 class="text-lg font-bold text-white sm:text-xl">
+                                <h2
+                                    class="text-lg font-bold text-white sm:text-xl"
+                                >
                                     Pernyataan Kerahasiaan
                                 </h2>
                                 <p
@@ -226,7 +231,9 @@ const timelineItems = computed(() => {
                     <!-- Content -->
                     <div class="p-4 sm:p-6">
                         <!-- Declaration Card -->
-                        <div class="mb-6 rounded-xl border border-gray-200 bg-[#FDFCFB] p-4 sm:p-6">
+                        <div
+                            class="mb-6 rounded-xl border border-gray-200 bg-[#FDFCFB] p-4 sm:p-6"
+                        >
                             <p class="mb-4 font-bold text-gray-800">
                                 Saya menyatakan bahwa:
                             </p>
@@ -302,14 +309,6 @@ const timelineItems = computed(() => {
                             description=" Pernyataan Kerahasiaan SIKPK di atas. Saya bersedia menjaga seluruh informasi progres kasus yang akan ditampilkan."
                         />
 
-                        <!-- Error message -->
-                        <p
-                            v-if="agreeError"
-                            class="mt-1.5 text-xs text-red-500"
-                        >
-                            {{ agreeError }}
-                        </p>
-
                         <!-- Action -->
                         <div class="mt-6 flex justify-end">
                             <button
@@ -353,9 +352,11 @@ const timelineItems = computed(() => {
                             <p
                                 class="max-w-2xl text-sm leading-relaxed text-gray-600"
                             >
-                                Daftar berikut menampilkan laporan yang Anda kirim dari perangkat ini. 
-                                <br>
-                                Pilih satu kasus untuk melihat progres penanganannya.
+                                Daftar berikut menampilkan laporan yang Anda
+                                kirim dari perangkat ini.
+                                <br />
+                                Pilih satu kasus untuk melihat progres
+                                penanganannya.
                             </p>
                         </div>
                         <div class="space-y-4">
@@ -371,16 +372,22 @@ const timelineItems = computed(() => {
                                 "
                                 @click="selectReport(report)"
                             >
-                                <div class="flex items-center justify-between gap-3">
+                                <div
+                                    class="flex items-center justify-between gap-3"
+                                >
                                     <div class="min-w-0 flex-1">
-                                        <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+                                        <div
+                                            class="flex flex-wrap items-center gap-2 sm:gap-3"
+                                        >
                                             <span
                                                 class="font-mono text-xs font-semibold text-[#1A5BA6] sm:text-sm"
                                             >
                                                 {{ report.case_number }}
                                             </span>
 
-                                            <ProgressBadge :status="report.progress" />
+                                            <ProgressBadge
+                                                :status="report.progress"
+                                            />
                                         </div>
 
                                         <h3
@@ -457,7 +464,9 @@ const timelineItems = computed(() => {
                                     {{ selectedReport.case_number }}
                                 </p>
 
-                                <h2 class="text-xl font-bold text-gray-900 sm:text-2xl">
+                                <h2
+                                    class="text-xl font-bold text-gray-900 sm:text-2xl"
+                                >
                                     {{
                                         getLabel(
                                             jenisKekerasanOptions,
@@ -496,11 +505,15 @@ const timelineItems = computed(() => {
                             </div>
 
                             <!-- Kanan -->
-                            <ProgressBadge :status="selectedReport.progress" size="large" />
+                            <ProgressBadge
+                                :status="selectedReport.progress"
+                                size="large"
+                            />
                         </div>
 
                         <!-- Status Banner -->
                         <div
+                            v-if="selectedReport.progress !== 'Laporan Ditolak'"
                             class="mb-6 flex items-start gap-3 rounded-xl border px-3 py-3 sm:px-4 sm:py-4"
                             :class="currentStatusColor.container"
                         >
@@ -531,6 +544,48 @@ const timelineItems = computed(() => {
                                     class="mt-0.5 text-sm leading-relaxed text-gray-600"
                                 >
                                     {{ currentStatus.description }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div
+                            v-else
+                            class="mb-6 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 px-3 py-3 sm:px-4 sm:py-4"
+                        >
+                            <svg
+                                class="mt-0.5 h-5 w-5 shrink-0 text-red-600"
+                                fill="none"
+                                stroke="currentColor"
+                                stroke-width="1.5"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                                />
+                            </svg>
+
+                            <div>
+                                <p class="text-sm font-bold text-red-800">
+                                    Laporan Ditolak
+                                </p>
+                                <p
+                                    v-if="selectedReport.rejected_reason"
+                                    class="mt-0.5 text-sm font-semibold text-red-700"
+                                >
+                                    {{
+                                        rejectedReasonMap[
+                                            selectedReport.rejected_reason
+                                        ] ?? selectedReport.rejected_reason
+                                    }}
+                                </p>
+                                <p
+                                    v-if="selectedReport.note_reason"
+                                    class="mt-1 text-sm leading-relaxed text-red-700"
+                                >
+                                    <span class="font-semibold">Catatan:</span>
+                                    {{ selectedReport.note_reason }}
                                 </p>
                             </div>
                         </div>

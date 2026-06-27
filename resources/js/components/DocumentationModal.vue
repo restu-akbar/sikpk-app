@@ -125,8 +125,7 @@ function getAcceptHint(accept: string) {
     >
         <FormSectionTitle title="Berkas yang masih perlu diunggah" size="md" />
         <p class="mb-3 text-sm text-muted-foreground">
-            Isi salah satu atau beberapa berkas di bawah, sisanya boleh
-            dilengkapi nanti.
+            Lengkapi Dokumen Pemeriksaan Untuk melanjutkan Ke Tahap Berikutnya
         </p>
 
         <section

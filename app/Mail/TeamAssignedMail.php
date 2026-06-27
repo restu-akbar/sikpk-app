@@ -8,46 +8,37 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class AccountCreatedMail extends Mailable
+class TeamAssignedMail extends Mailable
 {
     use Queueable;
     use SerializesModels;
 
     public function __construct(
         public string $name,
-        public string $email,
-        public string $password,
+        public string $teamNumber,
+        public string $reportTitle,
     ) {
     }
 
-    /**
-     * Get the message envelope.
-     */
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Akun Anda Berhasil Dibuat',
+            subject: 'Penugasan Tim Penanganan',
         );
     }
 
-    /**
-     * Get the message content definition.
-     */
     public function content(): Content
     {
         return new Content(
-            view: 'emails.account-created',
+            view: 'emails.team-assigned',
             with: [
                 'name' => $this->name,
-                'email' => $this->email,
-                'password' => $this->password,
+                'teamNumber' => $this->teamNumber,
+                'reportTitle' => $this->reportTitle,
             ],
         );
     }
 
-    /**
-     * Get the attachments for the message.
-     */
     public function attachments(): array
     {
         return [];
