@@ -128,6 +128,7 @@ const showJurusan = computed(() =>
     ['mahasiswa', 'dosen'].includes(form.statusCivitas),
 );
 const showProdi = computed(() => form.statusCivitas === 'mahasiswa');
+const showUnit = computed(() => form.statusCivitas === 'tendik');
 
 const filteredProdi = computed(() =>
     form.jurusan ? getProdiByJurusan(form.jurusan) : prodiList,
@@ -158,6 +159,9 @@ const step1Fields = computed(() => {
     }
     if (isFirstReport.value && showJurusan.value) {
         fields.push(['jurusan', 'Jurusan wajib dipilih']);
+    }
+    if (isFirstReport.value && showUnit.value) {
+        fields.push(['jurusan', 'Unit wajib diisi']);
     }
     if (isFirstReport.value && showProdi.value) {
         fields.push(['prodi', 'Program studi wajib dipilih']);
@@ -272,10 +276,10 @@ const watchedFields = [
 watch(
     () => form.statusCivitas,
     (val) => {
-        if (!['mahasiswa', 'dosen'].includes(val)) {
+        if (!['mahasiswa', 'dosen', 'tendik'].includes(val)) {
             form.jurusan = '';
             form.prodi = '';
-        } else if (val === 'dosen') {
+        } else if (val === 'dosen' || val === 'tendik') {
             form.prodi = '';
         }
     },
@@ -496,7 +500,9 @@ const handleSubmit = async () => {
         <main class="mx-auto w-full max-w-4xl flex-1 px-4 py-6 sm:py-10">
             <!-- Page Header -->
             <div v-reveal class="mb-6 text-center">
-                <h1 class="mb-2 text-2xl font-bold sm:text-3xl">Buat Laporan</h1>
+                <h1 class="mb-2 text-2xl font-bold sm:text-3xl">
+                    Buat Laporan
+                </h1>
                 <p class="mx-auto max-w-md text-sm leading-relaxed">
                     <span class="font-bold text-gray-900"
                         >Pilih metode pelaporan yang paling nyaman.</span
@@ -524,7 +530,9 @@ const handleSubmit = async () => {
                 class="my-6 overflow-hidden rounded-2xl border border-gray-200 bg-[#ECE8E2] shadow-sm"
             >
                 <!-- STEP INDICATOR -->
-                <div class="border-b border-gray-200 bg-white px-4 py-4 sm:px-10 sm:py-5">
+                <div
+                    class="border-b border-gray-200 bg-white px-4 py-4 sm:px-10 sm:py-5"
+                >
                     <div class="flex items-start">
                         <template v-for="(step, index) in steps" :key="index">
                             <div
@@ -590,7 +598,7 @@ const handleSubmit = async () => {
                     </div>
                 </div>
 
-               <!-- Form Card -->
+                <!-- Form Card -->
                 <form @submit.prevent="handleSubmit">
                     <div class="bg-white p-4 sm:p-8">
                         <!-- STEP 1 -->
@@ -600,14 +608,39 @@ const handleSubmit = async () => {
                             </h2>
 
                             <!-- Info Notice -->
-                            <div class="mb-8 flex gap-3 rounded-lg border border-blue-100 bg-blue-50 p-4">
+                            <div
+                                class="mb-8 flex gap-3 rounded-lg border border-blue-100 bg-blue-50 p-4"
+                            >
                                 <div class="shrink-0 text-blue-500">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="size-5 mt-0.5" viewBox="0 0 24 24" fill="currentColor">
-                                        <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm8.706-1.442c1.146-.573 2.437.463 2.126 1.706l-.709 2.836.042-.02a.75.75 0 01.67 1.34l-.04.022c-1.147.573-2.438-.463-2.127-1.706l.71-2.836-.042.02a.75.75 0 11-.671-1.34l.041-.022zM12 9a.75.75 0 100-1.5.75.75 0 000 1.5z" clip-rule="evenodd" />
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        class="mt-0.5 size-5"
+                                        viewBox="0 0 24 24"
+                                        fill="currentColor"
+                                    >
+                                        <path
+                                            fill-rule="evenodd"
+                                            d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12zm8.706-1.442c1.146-.573 2.437.463 2.126 1.706l-.709 2.836.042-.02a.75.75 0 01.67 1.34l-.04.022c-1.147.573-2.438-.463-2.127-1.706l.71-2.836-.042.02a.75.75 0 11-.671-1.34l.041-.022zM12 9a.75.75 0 100-1.5.75.75 0 000 1.5z"
+                                            clip-rule="evenodd"
+                                        />
                                     </svg>
                                 </div>
-                                <p class="text-sm leading-relaxed text-blue-700">
-                                    Mohon mengisi identitas dengan benar dan sesuai data diri yang sebenarnya. Setiap laporan akan melalui proses verifikasi dan validasi. <span class="font-semibold">Kerahasiaan identitas Anda tetap terjaga</span> dan hanya dapat diakses oleh Anggota Satgas. Nomor WhatsApp yang dicantumkan akan digunakan untuk keperluan komunikasi dan tindak lanjut terkait laporan yang disampaikan.
+                                <p
+                                    class="text-sm leading-relaxed text-blue-700"
+                                >
+                                    Mohon mengisi identitas dengan benar dan
+                                    sesuai data diri yang sebenarnya. Setiap
+                                    laporan akan melalui proses verifikasi dan
+                                    validasi.
+                                    <span class="font-semibold"
+                                        >Kerahasiaan identitas Anda tetap
+                                        terjaga</span
+                                    >
+                                    dan hanya dapat diakses oleh Anggota Satgas.
+                                    Nomor WhatsApp yang dicantumkan akan
+                                    digunakan untuk keperluan komunikasi dan
+                                    tindak lanjut terkait laporan yang
+                                    disampaikan.
                                 </p>
                             </div>
 
@@ -694,6 +727,20 @@ const handleSubmit = async () => {
                                             }))
                                         "
                                         :error="stepErrors.prodi"
+                                        :required="isFirstReport"
+                                        :disabled="!isFirstReport"
+                                    />
+                                </div>
+                                <div
+                                    v-if="showUnit"
+                                    class="mt-5 grid grid-cols-1 gap-5 md:grid-cols-2"
+                                >
+                                    <FormField
+                                        name="jurusan"
+                                        v-model="form.jurusan"
+                                        label="Unit / Bagian"
+                                        placeholder="Mis. UPT TIK"
+                                        :error="stepErrors.jurusan"
                                         :required="isFirstReport"
                                         :disabled="!isFirstReport"
                                     />
@@ -985,7 +1032,11 @@ const handleSubmit = async () => {
                                 :disabled="isSubmitting"
                                 class="flex items-center gap-2 rounded-lg bg-[#F97316] px-6 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-orange-600 disabled:cursor-not-allowed disabled:opacity-60"
                             >
-                                {{ isSubmitting ? 'Mengirim...' : 'Kirim Laporan' }}
+                                {{
+                                    isSubmitting
+                                        ? 'Mengirim...'
+                                        : 'Kirim Laporan'
+                                }}
                                 <svg
                                     class="h-4 w-4"
                                     fill="none"

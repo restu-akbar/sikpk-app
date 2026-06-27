@@ -17,9 +17,10 @@ import { pelaporRequiredFields } from '@/constants/requiredFields';
 import BaseModal from './handling/BaseModal.vue';
 import { Report } from '@/types/reports';
 import IdentitySection from './handling/IdentitySection.vue';
-import { generateReporterInspection } from '@/lib/pdf/generateReporterInspection';
 import { generateSuspectInspection } from '@/lib/pdf/generateSuspectInspection';
 import { statusTerlaporOptions } from '@/constants/statusCivitasOptions';
+import EvidenceSection from './EvidenceSection.vue';
+import { useReportSubmission } from '@/composables/useReportSubmission';
 
 const props = defineProps<{
     open: boolean;
@@ -38,7 +39,10 @@ const form = useForm({
         jenisKekerasan: props.report.jenis_kekerasan ?? '',
         nama: existingTerlapor?.nama ?? props.report.nama_terlapor ?? '',
         status: existingTerlapor?.jenis_kelamin ?? '',
-        civitas: existingTerlapor?.peran_akademik ?? props.report.status_terlapor ?? '',
+        civitas:
+            existingTerlapor?.peran_akademik ??
+            props.report.status_terlapor ??
+            '',
         nomorIdentitas: existingTerlapor?.nomor_identitas ?? '',
         whatsapp: existingTerlapor?.nomor_wa ?? '',
         jurusan: existingTerlapor?.jurusan ?? '',
@@ -64,6 +68,12 @@ const form = useForm({
         },
     ],
 });
+const bukti = ref<File[]>([]);
+const { processAndUploadFiles } = useReportSubmission(
+    props.report.id,
+    props.report.members,
+);
+
 const terlaporErrors = computed(() => getErrorsFor('terlapor.'));
 const stepErrors = ref<Record<string, string>>({});
 
@@ -129,7 +139,16 @@ const handleSubmit = async () => {
         console.log(form);
 
         handleCreate(form, store(props.report.id), {
-            onSuccess: () => emit('success'),
+            onSuccess: async () => {
+                if (bukti.value.length > 0) {
+                    await processAndUploadFiles(
+                        bukti.value,
+                        'periksa_terlapor',
+                    );
+                }
+
+                emit('success');
+            },
             onError: () => console.error('error'),
         });
     } catch (error) {
@@ -222,7 +241,9 @@ watch(
                 required
             />
         </section>
-
+        <section>
+            <EvidenceSection v-model="bukti" />
+        </section>
         <HandlingTeamSection
             :team-number="props.report.team_number"
             :members="props.report.members"

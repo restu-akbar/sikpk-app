@@ -20,6 +20,8 @@ import FormField from './form/FormField.vue';
 import ErrorField from './form/ErrorField.vue';
 import FieldLabel from './form/FieldLabel.vue';
 import { Report } from '@/types/reports';
+import EvidenceSection from './EvidenceSection.vue';
+import { useReportSubmission } from '@/composables/useReportSubmission';
 
 const props = defineProps<{
     open: boolean;
@@ -51,6 +53,11 @@ const form = useForm({
         },
     ],
 });
+const bukti = ref<File[]>([]);
+const { processAndUploadFiles } = useReportSubmission(
+    props.report.id,
+    props.report.members,
+);
 const stepErrors = ref<Record<string, string>>({});
 const handleSubmit = async () => {
     try {
@@ -116,6 +123,13 @@ const handleSubmit = async () => {
 
         handleCreate(form, store(props.report.id), {
             onSuccess: async () => {
+                if (bukti.value.length > 0) {
+                    await processAndUploadFiles(
+                        bukti.value,
+                        'periksa_saksi',
+                    );
+                }
+
                 emit('success');
             },
             onError: () => {
@@ -261,6 +275,9 @@ watch(
                                 :error="stepErrors.catatanKlarifikasi"
                                 required
                             />
+                        </section>
+                        <section>
+                            <EvidenceSection v-model="bukti" />
                         </section>
 
                         <!-- Tim Penanganan -->

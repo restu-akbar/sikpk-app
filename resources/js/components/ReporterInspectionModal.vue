@@ -23,6 +23,8 @@ import { Report } from '@/types/reports';
 import IdentitySection from './handling/IdentitySection.vue';
 import { generateReporterInspection } from '@/lib/pdf/generateReporterInspection';
 import { statusTerlaporOptions } from '@/constants/statusCivitasOptions';
+import EvidenceSection from './EvidenceSection.vue';
+import { useReportSubmission } from '@/composables/useReportSubmission';
 
 const props = defineProps<{
     open: boolean;
@@ -43,7 +45,10 @@ const form = useForm({
     terlapor: {
         nama: existingTerlapor?.nama ?? props.report.nama_terlapor ?? '',
         status: existingTerlapor?.jenis_kelamin ?? '',
-        civitas: existingTerlapor?.peran_akademik ?? props.report.status_terlapor ?? '',
+        civitas:
+            existingTerlapor?.peran_akademik ??
+            props.report.status_terlapor ??
+            '',
         jurusan: existingTerlapor?.jurusan ?? '',
         prodi: existingTerlapor?.prodi ?? '',
     },
@@ -82,6 +87,11 @@ const form = useForm({
         },
     ],
 });
+const bukti = ref<File[]>([]);
+const { processAndUploadFiles } = useReportSubmission(
+    props.report.id,
+    props.report.members,
+);
 const terlaporErrors = computed(() => getErrorsFor('terlapor.'));
 const alasanOptions = [
     { label: 'Mencari keadilan', value: 'keadilan' },
@@ -172,7 +182,16 @@ const handleSubmit = async () => {
         console.log(form);
 
         handleCreate(form, store(props.report.id), {
-            onSuccess: () => emit('success'),
+            onSuccess: async () => {
+                if (bukti.value.length > 0) {
+                    await processAndUploadFiles(
+                        bukti.value,
+                        'periksa_pelapor',
+                    );
+                }
+
+                emit('success');
+            },
             onError: () => console.error('error'),
         });
     } catch (error) {
@@ -293,7 +312,9 @@ watch(
                 otherInputLabel="Tuliskan kebutuhan korban lainnya"
             />
         </section>
-
+        <section>
+            <EvidenceSection v-model="bukti" />
+        </section>
         <HandlingTeamSection
             :team-number="props.report.team_number"
             :members="props.report.members"

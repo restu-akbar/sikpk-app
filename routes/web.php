@@ -106,6 +106,7 @@ Route::middleware(['auth', 'password.changed'])->group(function () {
                         ->name('files.')
                         ->group(function () {
                             Route::get('{file}', [FileController::class, 'show']);
+                            Route::post('{report}', [FileController::class, 'store'])->name('store');
                         });
 
                 });

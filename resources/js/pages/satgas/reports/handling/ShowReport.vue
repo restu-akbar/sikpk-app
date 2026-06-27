@@ -81,7 +81,10 @@ function openDialog(name: string, props: any = {}) {
     activeDialog.value = { name, props };
 }
 
-function closeDialog() {
+function closeDialog(success: boolean = false) {
+    if (success) {
+        router.reload({ only: ['report'] });
+    }
     activeDialog.value = null;
 }
 
@@ -1668,8 +1671,8 @@ function isRowComplete(row: any): boolean {
             v-if="activeDialogComponent"
             v-bind="activeDialog?.props"
             :open="true"
-            @close="closeDialog"
-            @success="closeDialog"
+            @close="closeDialog(false)"
+            @success="closeDialog(true)"
         />
         <CryptoUnlockDialog
             :open="showUnlockDialog"
