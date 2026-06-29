@@ -16,7 +16,9 @@ class HandleAppearance
      */
     public function handle(Request $request, Closure $next): Response
     {
-        View::share('appearance', $request->cookie('appearance') ?? 'system');
+        $isSatgas = $request->routeIs('satgas.*');
+
+        View::share('appearance', $isSatgas ? ($request->cookie('appearance') ?? 'system') : 'light');
 
         return $next($request);
     }

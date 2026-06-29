@@ -107,4 +107,8 @@ createInertiaApp({
 |--------------------------------------------------------------------------
 */
 
-initializeTheme();
+if (typeof window !== 'undefined' && window.location.pathname.startsWith('/satgas')) {
+    initializeTheme();
+} else if (typeof document !== 'undefined') {
+    document.documentElement.classList.remove('dark');
+}
