@@ -79,7 +79,7 @@ async function submit() {
                 Masuk Satgas
             </h2>
             <p class="text-base leading-relaxed text-muted-foreground">
-                Hanya untuk anggota Satuan Tugas Polban yang telah ditugaskan.
+                Hanya untuk anggota Satgas PPK POLBAN yang telah terdaftar.
             </p>
         </div>
 
@@ -104,7 +104,7 @@ async function submit() {
                 autofocus
                 :tabindex="1"
                 autocomplete="email"
-                placeholder="r.satgas@polban.ac.id"
+                placeholder="anggota.satgas@polban.ac.id"
                 class="h-12 text-base"
             />
 

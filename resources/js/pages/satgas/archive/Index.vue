@@ -45,7 +45,7 @@ function openDetail(row: any) {
     <div class="space-y-6 p-4 md:p-6">
         <DataTable
             title="Arsip Kasus"
-            description="Daftar laporan yang penanganannya sudah final — selesai, dihentikan, atau ditolak."
+            description="Arsip Penanganan Kekerasan yang telah selesai, dihentikan, atau ditolak."
             :columns="columns"
             :rows="rows"
             :searchable="true"

@@ -65,7 +65,7 @@ const anggotaNavItems: NavItem[] = [
 const navItems = user.role === 'ketua' ? ketuaNavItems : anggotaNavItems;
 
 const panelLabel =
-    user.role === 'ketua' ? 'PANEL KETUA SATGAS' : 'PANEL ANGGOTA SATGAS';
+    user.role === 'ketua' ? 'Dashboard KETUA SATGAS' : 'Dashboard ANGGOTA SATGAS';
 
 const handleLogout = () => {
     const url = user.role ? logout().url : '/logout';

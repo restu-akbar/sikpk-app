@@ -707,7 +707,7 @@ const timelineItems = computed(() => {
                             target="_blank"
                             class="flex items-center justify-center gap-2 rounded-lg bg-orange-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-orange-600 active:scale-[0.98]"
                         >
-                            Hubungi Sekretariat Satgas
+                            Hubungi Hotline Satgas
                         </a>
                     </div>
                 </div>

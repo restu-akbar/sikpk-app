@@ -14,9 +14,7 @@ defineProps<{
                     Penanganan Kasus
                 </h2>
                 <p class="text-sm text-muted-foreground">
-                    Kasus aktif yang sedang ditangani oleh tim Satgas. Tekan kasus untuk membuka detail
-                    <br />
-                    penanganan, mengisi dokumen, dan memantau progress di setiap tahapan.
+                    Kasus Aktif yang sedang anda tangani, klik untuk melakukan penanganan kasus
                 </p>
             </div>
 
@@ -32,7 +30,38 @@ defineProps<{
             </div>
         </div>
 
-        <div class="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6">
+        <!-- Empty state -->
+        <div
+            v-if="reports.length === 0"
+            class="flex flex-col items-center justify-center rounded-lg border border-dashed border-border py-16 text-center"
+        >
+            <div class="mb-4 rounded-full bg-muted p-4">
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-8 w-8 text-muted-foreground"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="1.5"
+                        d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
+                </svg>
+            </div>
+            <h3 class="text-sm font-semibold text-foreground">Tidak ada kasus aktif</h3>
+            <p class="mt-1 text-xs text-muted-foreground">
+                Saat ini tidak ada kasus yang perlu ditangani.
+            </p>
+        </div>
+
+        <!-- Report grid -->
+        <div
+            v-else
+            class="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6"
+        >
             <ReportCard
                 v-for="report in reports"
                 :key="report.id"

@@ -28,18 +28,17 @@ import { home } from '@/routes';
             <!-- App title: text-4xl = 36px, natural word-wrap -->
             <div>
                 <h1 class="font-display text-4xl font-extrabold leading-tight text-white">
-                    Aplikasi Pengelolaan dan Pelaporan Kekerasan Politeknik Negeri Bandung
+                    Aplikasi Pengelolaan Penanganan Kekerasan Politeknik Negeri Bandung
                 </h1>
             </div>
 
             <!-- Pakta Integritas quote block -->
             <div class="rounded-r-lg border-l-4 border-brand-accent bg-white/10 px-5 py-4">
                 <p class="font-display text-base italic leading-relaxed text-white/90">
-                    "Kerahasiaan adalah komitmen utama. Setiap data
-                    yang Anda akses tunduk pada Pakta Integritas Satgas."
+                    "Kerahasiaan adalah prioritas. Gunakan informasi penanganan hanya untuk kepentingan tugas dan jaga kerahasiaannya sesuai Kode Etik Satgas PPK POLBAN."
                 </p>
                 <p class="mt-3 font-display text-[11px] font-semibold uppercase tracking-widest text-white/55">
-                    Pakta Integritas &middot; Satgas SIKPK
+                    Kode Etik &middot; Satgas PPK POLBAN
                 </p>
             </div>
 
