@@ -2,7 +2,6 @@
 import { Link, usePage, useForm } from '@inertiajs/vue3';
 import {
     Archive,
-    BarChart3,
     Briefcase,
     FileText,
     ChevronsUpDown,
@@ -30,6 +29,7 @@ import { getInitials, getAvatarColor } from '@/composables/useInitials';
 import { generateEncryption } from '@/lib/crypto';
 import { setTemporaryError } from '@/lib/utils';
 import { update } from '@/routes/satgas/settings/security';
+import { validateNewPassword } from '@/lib/validations';
 
 const page = usePage();
 const user = page.props.auth.user;
@@ -106,34 +106,15 @@ const submitChangePassword = async () => {
             );
             return;
         }
-        if (!passwordForm.password) {
-            setTemporaryError(
-                passwordForm,
-                'password',
-                'Kata sandi baru wajib diisi.',
-            );
-            return;
-        }
-        if (!passwordForm.password_confirmation) {
-            setTemporaryError(
-                passwordForm,
-                'password_confirmation',
-                'Konfirmasi kata sandi wajib diisi.',
-            );
-            return;
-        }
-        if (passwordForm.current_password === passwordForm.password) {
-            passwordForm.setError(
-                'password',
-                'Kata sandi baru tidak boleh sama dengan kata sandi lama.',
-            );
-            return;
-        }
-        if (passwordForm.password !== passwordForm.password_confirmation) {
-            passwordForm.setError(
-                'password_confirmation',
-                'Konfirmasi kata sandi harus sama dengan kata sandi baru.',
-            );
+
+        const validationError = validateNewPassword(
+            passwordForm.password,
+            passwordForm.password_confirmation,
+            passwordForm.current_password,
+        );
+
+        if (validationError) {
+            setTemporaryError(passwordForm, 'password', validationError);
             return;
         }
 
@@ -144,7 +125,6 @@ const submitChangePassword = async () => {
             emek_password: user.emek_password,
             emek_password_salt: user.emek_password_salt,
         });
-        console.log(encryption);
 
         passwordForm.emek_password = encryption.emek_password;
         passwordForm.emek_password_salt = encryption.emek_password_salt;

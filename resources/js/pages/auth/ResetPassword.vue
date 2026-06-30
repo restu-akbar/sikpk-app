@@ -9,6 +9,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { update } from '@/routes/password';
 import { generateEncryption } from '@/lib/crypto';
 import { readRecoveryFile } from '@/lib/crypto/readRecoveryFile';
+import { validateNewPassword } from '@/lib/validations';
 
 const props = defineProps<{
     token: string;
@@ -70,13 +71,13 @@ async function handleFileChange(e: Event) {
 async function handleSubmit() {
     passwordError.value = '';
 
-    if (newPassword.value.length < 8) {
-        passwordError.value = 'Password minimal 8 karakter.';
-        return;
-    }
+    const validationError = validateNewPassword(
+        newPassword.value,
+        confirmPassword.value,
+    );
 
-    if (newPassword.value !== confirmPassword.value) {
-        passwordError.value = 'Konfirmasi password tidak cocok.';
+    if (validationError) {
+        passwordError.value = validationError;
         return;
     }
 
@@ -98,10 +99,8 @@ async function handleSubmit() {
             {
                 token: props.token,
                 email: props.email,
-
                 password: newPassword.value,
                 password_confirmation: newPassword.value,
-
                 emek_password: encrypted.emek_password,
                 emek_password_salt: encrypted.emek_password_salt,
             },
