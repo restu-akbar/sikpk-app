@@ -189,7 +189,6 @@ class ReportService
         $request->validate([
             'anggota' => ['required', 'array'],
             'anggota.*' => ['uuid'],
-
             'edek_updates' => ['array'],
             'edek_updates.*.evidence_id' => ['required', 'uuid'],
             'edek_updates.*.edeks' => ['required', 'array'],
@@ -197,32 +196,39 @@ class ReportService
 
         $report = Report::findOrFail($id);
 
-        $year = now()->year;
-        $teamSequence = Report::whereYear('created_at', $year)
-            ->whereNotNull('team_number')
-            ->count() + 1;
-        $teamNumber = 'TIM-' . $year . '-' . str_pad($teamSequence, 3, '0', STR_PAD_LEFT);
+        if (!$report->team_number) {
+            $year = now()->year;
+            $lastReport = Report::whereYear('created_at', $year)
+                ->whereNotNull('team_number')
+                ->orderBy('team_number', 'desc')
+                ->first();
 
-        $report->update([
-            'progress' => 'Klarifikasi',
-            'team_number' => $teamNumber,
-        ]);
+            if ($lastReport) {
+                $lastSequence = (int) substr($lastReport->team_number, -3);
+                $teamSequence = $lastSequence + 1;
+            } else {
+                $teamSequence = 1;
+            }
+
+            $teamNumber = 'TIM-' . $year . '-' . str_pad($teamSequence, 3, '0', STR_PAD_LEFT);
+
+            $report->update([
+                'progress' => 'Klarifikasi',
+                'team_number' => $teamNumber,
+            ]);
+        }
 
         $report->handlers()->sync($request->anggota);
-        foreach ($request->edek_updates as $update) {
-            $evidence = ReportEvidence::findOrFail(
-                $update['evidence_id']
-            );
 
+        foreach ($request->edek_updates as $update) {
+            $evidence = ReportEvidence::findOrFail($update['evidence_id']);
             $existingEdeks = $evidence->edeks ?? [];
 
             $evidence->update([
-                'edeks' => array_merge(
-                    $existingEdeks,
-                    $update['edeks']
-                ),
+                'edeks' => array_merge($existingEdeks, $update['edeks']),
             ]);
         }
+
         $users = User::whereIn('id', $request->anggota)->get();
 
         foreach ($users as $user) {

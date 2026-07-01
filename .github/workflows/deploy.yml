@@ -40,13 +40,6 @@ jobs:
           resourceGroup: kota301
           imageToBuild: kota301.azurecr.io/sikpk-app:${{ github.sha }}
 
-      - name: Run Laravel Migrations
-        run: |
-          az containerapp exec \
-            --name sikpk-app \
-            --resource-group kota301 \
-            --command "php artisan migrate --force" </dev/null
-
       - name: Check Revisions
         run: |
           az containerapp revision list \
