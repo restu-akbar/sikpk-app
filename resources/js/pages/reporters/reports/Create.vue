@@ -242,7 +242,6 @@ const validateStep = (step: 1 | 2 | 3) => {
     return isValid;
 };
 
-// Fungsi diubah namanya agar tidak bentrok dengan fungsi dari useStep
 const handleNextStep = () => {
     if (currentStep.value === 1 && !validateStep(1)) return;
     if (currentStep.value === 2 && !validateStep(2)) return;
@@ -250,11 +249,12 @@ const handleNextStep = () => {
 
     stepErrors.value = {};
     nextStep();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
-// Fungsi diubah namanya agar tidak bentrok dengan fungsi dari useStep
 const handlePrevStep = () => {
     prevStep();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
 const watchedFields = [
@@ -985,7 +985,7 @@ const handleSubmit = async () => {
                             <button
                                 v-if="currentStep > 1"
                                 type="button"
-                                @click="prevStep"
+                                @click="handlePrevStep"
                                 class="flex items-center gap-2 rounded-lg border border-gray-400 bg-white px-5 py-2.5 text-sm font-medium transition-all hover:bg-gray-50"
                             >
                                 <svg

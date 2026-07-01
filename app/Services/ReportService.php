@@ -2,8 +2,8 @@
 
 namespace App\Services;
 
+use App\Mail\NewReportMail;
 use App\Mail\TeamAssignedMail;
-use App\Models\AudioRecording;
 use App\Models\Report;
 use App\Models\ReportEvidence;
 use App\Models\User;
@@ -102,7 +102,7 @@ class ReportService
     }
     public function store(array $data, Request $request): Report
     {
-        return DB::transaction(function () use ($data, $request) {
+        $report = DB::transaction(function () use ($data, $request) {
             $reporter   = auth('google')->user();
             $reporterId = $reporter?->id;
 
@@ -173,6 +173,15 @@ class ReportService
 
             return $report;
         });
+
+        User::each(function ($user) use ($report) {
+            $this->mailService->send(
+                $user->email,
+                new NewReportMail($user, $report)
+            );
+        });
+
+        return $report;
     }
 
     public function assignHandlers($request, $id)
@@ -226,7 +235,6 @@ class ReportService
                 )
             );
         }
-
     }
 
     public function rejectReport(Request $request, string $id): void

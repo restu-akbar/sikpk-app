@@ -14,7 +14,8 @@ class UserController extends Controller
 {
     public function __construct(
         protected UserService $userService
-    ) {}
+    ) {
+    }
 
     public function data()
     {
@@ -44,9 +45,9 @@ class UserController extends Controller
         try {
             $this->userService->createAnggota($validated);
 
-            return back()->with('success', 'Anggota berhasil ditambahkan.');
+            return back()->with('success', Toast::success('Data anggota baru berhasil ditambahkan ke dalam sistem.'));
         } catch (\Exception $e) {
-            return back()->with('toast', Toast::error($e->getMessage()));
+            return back()->with('toast', Toast::error($e->getMessage() ?: 'Data anggota baru gagal tersimpan'));
         }
     }
 
@@ -65,9 +66,9 @@ class UserController extends Controller
         try {
             $this->userService->updateAnggota($user, $validated);
 
-            return back()->with('success', 'Anggota berhasil diperbarui.');
+            return back()->with('toast', Toast::success('Data anggota yang dipilih berhasil diubah sesuai perubahan yang dilakukan.'));
         } catch (\Exception $e) {
-            return back()->with('toast', Toast::error($e->getMessage()));
+            return back()->with('toast', Toast::error($e->getMessage() ?: 'Data anggota gagal diperbaharui'));
         }
     }
 
@@ -78,10 +79,10 @@ class UserController extends Controller
 
             return back()->with(
                 'toast',
-                Toast::success('Anggota berhasil dihapus.')
+                Toast::success('Data anggota yang dipilih berhasil dihapus.')
             );
         } catch (\Exception $e) {
-            return back()->with('toast', Toast::error($e->getMessage()));
+            return back()->with('toast', Toast::error($e->getMessage() ?: 'Data anggota gagal dihapus'));
         }
     }
 }
